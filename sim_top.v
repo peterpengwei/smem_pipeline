@@ -25,6 +25,7 @@ module sim_top();
 
 	reg Clk_32UI;
 	reg reset_BWT_extend;
+	reg stall;
 	
 	//RAM for reads
 	reg load_valid;
@@ -53,6 +54,7 @@ module sim_top();
 	Top uut(
 		.Clk_32UI(Clk_32UI),
 		.reset_BWT_extend(reset_BWT_extend),
+		.stall(stall),
 		
 		.load_valid(load_valid),
 		.load_data(load_data),
@@ -83,6 +85,7 @@ module sim_top();
 	initial begin
 		Clk_32UI = 1;
 		reset_BWT_extend = 0;
+		stall = 0;
 		
 		load_valid = 0;
 		load_data = 0;
@@ -162,6 +165,7 @@ module sim_top();
 		cntl_b2 = 64'h0220_4340_00ca_20e2;
 		cntl_b3 = 64'hc810_c003_0e0a_8ec6;
 		
+		stall = 1;
 		//-----------------------------------
 		#`PER_H;	#`PER_H;
 		//1st memory responses for 2nd read
@@ -238,6 +242,7 @@ module sim_top();
 		#`PER_H;	#`PER_H;
 		#`PER_H;	#`PER_H;
 		#`PER_H;	#`PER_H;
+		stall = 0;
 		#`PER_H;	#`PER_H;
 		#`PER_H;	#`PER_H;
 		#`PER_H;	#`PER_H;

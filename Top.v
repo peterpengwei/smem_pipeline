@@ -23,6 +23,7 @@
 module Top(
 	input Clk_32UI,
 	input reset_BWT_extend,
+	input stall,
 	
 	//RAM for reads
 	input load_valid,
@@ -134,6 +135,7 @@ module Top(
 		// input of BWT_extend
 		.Clk_32UI(Clk_32UI),
 		.reset_BWT_extend(reset_BWT_extend),
+		.stall(stall),
 
 		//from memory
 		.primary(primary), // fix value
@@ -177,6 +179,7 @@ module Top(
 	Queue queue(
 		.Clk_32UI(Clk_32UI),
 		.reset_n(reset_BWT_extend),
+		.stall(stall),
 		
 		.DRAM_get(DRAM_get),
 		.cnt_a0           (cnt_a0),		.cnt_a1           (cnt_a1),

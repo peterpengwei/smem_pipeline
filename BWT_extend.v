@@ -92,29 +92,6 @@ module BWT_extend(
 		.cnt_out3       (cnt_tl_out3)
 	);
 	
-	
-
-   
-   reg [5:0] BWT_extend_counter_t;
-   
-   //-----------------------------
-   always @(posedge Clk_32UI)
-   begin
-   	 if(!reset_BWT_extend)
-   	 begin
-   	   BWT_extend_counter_t <= 0;
-   	   BWT_extend_done <= 0;
-   	 end
-   	 else
-   	 begin
-   	 	 if(trigger) BWT_extend_counter_t <= BWT_extend_counter_t + 1;
-   	 	 else BWT_extend_counter_t <= BWT_extend_counter_t;
-   	 	 if(BWT_extend_counter_t==13) BWT_extend_done <= 1;
-   	 end
-   end
-   
-   //-------------------------------
-	
 	//=================================================
 	wire [63:0] ik_x0_L0, ik_x1_L0, ik_x2_L0;
 	reg  [63:0] ik_x0_L1, ik_x1_L1, ik_x2_L1;
@@ -1000,58 +977,4 @@ module Pipe(
 
 	end
 	
-endmodule
-
-module push_mem
-(
-	input  [255:0] data,
-	input  [6:0] addr,
-	input  we, clk,
-	output reg [255:0] q
-);
-	// Declare the RAM variable
-	reg [255:0] ram[127:0];
-	
-	always @ (posedge clk)
-	begin
-		if (we) 
-		begin
-			ram[addr] <= data;
-			q <= data;
-		end
-		
-		else 
-		begin
-			q <= ram[addr];
-		end
-	end
-	
-endmodule
-
-////////////////////////////////////////////////////
-// 101 x 8bit Block RAM                           //
-////////////////////////////////////////////////////
-
-module quary_queue
-(
-	input  [7:0] data,
-	input  [6:0] addr,
-	input  we, clk,
-	output reg [7:0] q
-);
-	// Declare the RAM variable
-	reg [7:0] ram[127:0];
-	
-	always @ (posedge clk)
-	begin
-		if (we) 
-		begin
-			ram[addr] <= data;
-			q <= data;
-		end
-		else 
-		begin
-			q <= ram[addr];
-		end
-	end
 endmodule

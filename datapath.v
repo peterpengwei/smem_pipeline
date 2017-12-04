@@ -2,6 +2,7 @@ module Datapath(
 	// input of BWT_extend
 	input Clk_32UI,
 	input reset_BWT_extend,
+	input stall,
 	
 	input [63:0] primary, // fix value
 	input [63:0] L2_0, L2_1, L2_2, L2_3, //fix value
@@ -44,8 +45,9 @@ module Datapath(
 	parameter F_init = 0; // F_init will disable the forward pipeline
 	parameter F_run = 1;
 	parameter F_break = 2;
-	parameter B_init = 3;
-	parameter B_run = 4;
+	parameter BCK_INI = 6'h4;	//100
+	parameter BCK_RUN = 6'h5;	//101
+	parameter BCK_END = 6'h6;	//110
 	parameter DONE = 6'b111111;
 	
 	//-----------------------------------------------------------
@@ -78,7 +80,7 @@ module Datapath(
 		if(!reset_BWT_extend) begin
 			status_L0 <= DONE;
 		end
-		else begin
+		else if(!stall) begin
 			// part 1 forward control
 			if(status == F_run) begin
 				if (forward_i >= Len) begin
@@ -189,6 +191,8 @@ module Datapath(
 	Pipe_BWT_extend pipe_BWT_extend(
 	    .Clk_32UI(Clk_32UI),
 		.reset_BWT_extend(reset_BWT_extend),
+		.stall(stall),
+		
 		.forward_i_L0 (forward_i_L0),
 		.min_intv_L0 (min_intv_L0),
 
@@ -248,7 +252,7 @@ module Datapath(
 		if(!reset_BWT_extend) begin
 			status_L1 <= DONE;
 		end
-		else begin
+		else if(!stall) begin
 			if(status_L00 == F_run) begin
 				case(query_L00) 
 					0: begin
@@ -429,7 +433,7 @@ module Datapath(
 		if(!reset_BWT_extend) begin
 			status_L2 <= DONE;
 		end
-		else begin
+		else if(!stall) begin
 			if(status_L1 == F_run) begin
 				if (is_update_ik) begin
 					case(query_L1)
@@ -519,7 +523,7 @@ module Datapath(
 		if(!reset_BWT_extend) begin
 			status_L3 <= DONE;
 		end
-		else begin
+		else if(!stall) begin
 			if(status_L2 == F_break) begin
 				if(forward_i_L2 == Len) begin
 					curr_we_2 <= 1;
@@ -538,7 +542,7 @@ module Datapath(
 				// last_n_L3 <= ptr_curr_L2;
 				// read_addr_L3 <= ptr_curr_L2;
 				// write_addr_L3 <= ptr_curr_L2;
-				status_L3 <= B_init;
+				status_L3 <= BCK_INI;
 			end
 			
 			else begin
@@ -579,7 +583,7 @@ module Datapath(
 		if(!reset_BWT_extend) begin
 			status_out <= DONE;
 		end
-		else begin
+		else if(!stall) begin
 			if(status_L3 == F_init || status_L3 == F_run) begin //if break, no memory access and no next query
 				DRAM_valid <= 1;
 				addr_k <= {forward_k_L3[34:7], 4'b0};
@@ -640,6 +644,8 @@ endmodule
 module Pipe_BWT_extend(
 		input reset_BWT_extend, 
         input Clk_32UI,
+		input stall,
+		
 		input [6:0] forward_i_L0,
 		input [6:0] min_intv_L0,
 
@@ -828,7 +834,7 @@ module Pipe_BWT_extend(
 		if(!reset_BWT_extend) begin
 			status_L1 <= DONE;
 		end
-		else begin
+		else if(!stall) begin
 			forward_i_L1 <= forward_i_L0;
 			min_intv_L1 <= min_intv_L0;
 
@@ -850,7 +856,7 @@ module Pipe_BWT_extend(
 		if(!reset_BWT_extend) begin
 			status_L2 <= DONE;
 		end
-		else begin
+		else if(!stall) begin
 			forward_i_L2 <= forward_i_L1;
 			min_intv_L2 <= min_intv_L1;
 
@@ -872,7 +878,7 @@ module Pipe_BWT_extend(
 		if(!reset_BWT_extend) begin
 			status_L3 <= DONE;
 		end
-		else begin
+		else if(!stall) begin
 			forward_i_L3 <= forward_i_L2;
 			min_intv_L3 <= min_intv_L2;
 
@@ -894,7 +900,7 @@ module Pipe_BWT_extend(
 		if(!reset_BWT_extend) begin
 			status_L4 <= DONE;
 		end
-		else begin
+		else if(!stall) begin
 			forward_i_L4 <= forward_i_L3;
 			min_intv_L4 <= min_intv_L3;
 
@@ -916,7 +922,7 @@ module Pipe_BWT_extend(
 		if(!reset_BWT_extend) begin
 			status_L5 <= DONE;
 		end
-		else begin
+		else if(!stall) begin
 			forward_i_L5 <= forward_i_L4;
 			min_intv_L5 <= min_intv_L4;
 
@@ -938,7 +944,7 @@ module Pipe_BWT_extend(
 		if(!reset_BWT_extend) begin
 			status_L6 <= DONE;
 		end
-		else begin
+		else if(!stall) begin
 			forward_i_L6 <= forward_i_L5;
 			min_intv_L6 <= min_intv_L5;
 
@@ -960,7 +966,7 @@ module Pipe_BWT_extend(
 		if(!reset_BWT_extend) begin
 			status_L7 <= DONE;
 		end
-		else begin	
+		else if(!stall) begin	
 			forward_i_L7 <= forward_i_L6;
 			min_intv_L7 <= min_intv_L6;
 
@@ -982,7 +988,7 @@ module Pipe_BWT_extend(
 		if(!reset_BWT_extend) begin
 			status_L8 <= DONE;
 		end
-		else begin
+		else if(!stall) begin
 			forward_i_L8 <= forward_i_L7;
 			min_intv_L8 <= min_intv_L7;
 
@@ -1004,7 +1010,7 @@ module Pipe_BWT_extend(
 		if(!reset_BWT_extend) begin
 			status_L9 <= DONE;
 		end
-		else begin
+		else if(!stall) begin
 			forward_i_L9 <= forward_i_L8;
 			min_intv_L9 <= min_intv_L8;
 
@@ -1026,7 +1032,7 @@ module Pipe_BWT_extend(
 		if(!reset_BWT_extend) begin
 			status_L10 <= DONE;
 		end
-		else begin
+		else if(!stall) begin
 			forward_i_L10 <= forward_i_L9;
 			min_intv_L10 <= min_intv_L9;
 
@@ -1048,7 +1054,7 @@ module Pipe_BWT_extend(
 		if(!reset_BWT_extend) begin
 			status_L11 <= DONE;
 		end
-		else begin
+		else if(!stall) begin
 			forward_i_L11 <= forward_i_L10;
 			min_intv_L11 <= min_intv_L10;
 
@@ -1070,7 +1076,7 @@ module Pipe_BWT_extend(
 		if(!reset_BWT_extend) begin
 			status_pipe <= DONE;
 		end
-		else begin
+		else if(!stall) begin
 			forward_i_pipe <= forward_i_L11;
 			min_intv_pipe <= min_intv_L11;
 

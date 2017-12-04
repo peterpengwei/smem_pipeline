@@ -19,6 +19,7 @@
 module Queue(
 	input Clk_32UI,
 	input reset_n,
+	input stall,
 	
 	input DRAM_get,
 	input [31:0] cnt_a0,cnt_a1,cnt_a2,cnt_a3,
@@ -67,7 +68,7 @@ module Queue(
 	//6+7+7+10+256+7+7+8 = 308
 	parameter F_WIDTH = 308;
 	parameter B_WIDTH = 0;
-	parameter DEPTH = 128;
+	parameter DEPTH = 256;
 	
 	parameter F_init = 0; // F_init will disable the forward pipeline
 	parameter F_run = 1;
@@ -76,8 +77,8 @@ module Queue(
 	parameter B_run = 4;
 	parameter DONE = 6'b111111;
 	
-	reg [9:0] read_ptr;
-	reg [9:0] write_ptr;
+	reg [9:0] read_ptr_f;
+	reg [9:0] write_ptr_f;
 	
 	reg [5:0] status_L0;
 	reg [6:0] ptr_curr_L0; // record the status of curr and mem queue
@@ -156,18 +157,18 @@ module Queue(
 	
 	//------------------------------------------------
 	
-	reg [F_WIDTH + B_WIDTH - 1 :0] RAM[DEPTH-1:0];
+	reg [F_WIDTH + B_WIDTH - 1 :0] RAM_forward[DEPTH-1:0];
 	reg [F_WIDTH + B_WIDTH - 1 :0] output_data;
 
-	//circular queue
+	//circular queue for reads
 	always@(posedge Clk_32UI) begin
 		if(!reset_n) begin
-			write_ptr <= 0;
+			write_ptr_f <= 0;
 		end
-		else begin	
+		else if(!stall) begin	
 			if((status_L3 == F_init) ||(status_L3 == F_run) || (status_L3 == F_break)) begin 
-				RAM[write_ptr] <= f_data;
-				write_ptr <= write_ptr + 1;
+				RAM_forward[write_ptr_f] <= f_data;
+				write_ptr_f <= write_ptr_f + 1;
 			end
 			
 			//else if (status_L3 == B_)
@@ -177,40 +178,42 @@ module Queue(
 		end
 	end
 	
+	//circular queue for memory responses.
+	reg [767:0] RAM_memory[31:0];
+	reg [5:0] read_ptr_m;
+	reg [5:0] write_ptr_m;
+	wire memory_valid = (write_ptr_m != read_ptr_m);
 	
-	assign new_read = (load_done) & new_read_valid;
+	always@(posedge Clk_32UI) begin
+		if(!reset_n) begin
+			write_ptr_m <= 0;
+		end
+		else begin
+			if(DRAM_get) begin
+				RAM_memory[write_ptr_m] <= {cnt_a0,cnt_a1,cnt_a2,cnt_a3,cnt_b0,cnt_b1,cnt_b2,cnt_b3, cntl_a0,cntl_a1,cntl_a2,cntl_a3,cntl_b0,cntl_b1,cntl_b2,cntl_b3};
+				write_ptr_m <= write_ptr_m + 1;
+			end
+		end
+	end
+	
+	assign new_read = (load_done) & new_read_valid & (!memory_valid) & (!stall);
 	
 	always@(posedge Clk_32UI) begin
 		if (!reset_n) begin
-			read_ptr <= 0;
+			read_ptr_f <= 0;
+			read_ptr_m <= 0;
 			status_out <= DONE;
 		end
-		else begin
-			if (DRAM_get) begin // get memory responses, output old read
-				if(read_ptr != write_ptr) begin
-					{ptr_curr_out, read_num_out, ik_x0_out, ik_x1_out, ik_x2_out, ik_info_out, forward_i_out,min_intv_out, query_out, status_out} <= RAM[read_ptr];	
-					read_ptr <= read_ptr + 1;
-					// new_read <=  0;
-					
-					cnt_a0_out <= cnt_a0;
-					cnt_a1_out <= cnt_a1;
-					cnt_a2_out <= cnt_a2;
-					cnt_a3_out <= cnt_a3;
-					cnt_b0_out <= cnt_b0;
-					cnt_b1_out <= cnt_b1;
-					cnt_b2_out <= cnt_b2;
-					cnt_b3_out <= cnt_b3;
-					cntl_a0_out <= cntl_a0;
-					cntl_a1_out <= cntl_a1;
-					cntl_a2_out <= cntl_a2;
-					cntl_a3_out <= cntl_a3;
-					cntl_b0_out <= cntl_b0;
-					cntl_b1_out <= cntl_b1;
-					cntl_b2_out <= cntl_b2;
-					cntl_b3_out <= cntl_b3;
+		else if (!stall) begin
+			if (memory_valid) begin // get memory responses, output old read
+				if(read_ptr_f != write_ptr_f) begin
+					{ptr_curr_out, read_num_out, ik_x0_out, ik_x1_out, ik_x2_out, ik_info_out, forward_i_out,min_intv_out, query_out, status_out} <= RAM_forward[read_ptr_f];
+					{cnt_a0_out,cnt_a1_out,cnt_a2_out,cnt_a3_out,cnt_b0_out,cnt_b1_out,cnt_b2_out,cnt_b3_out, cntl_a0_out,cntl_a1_out,cntl_a2_out,cntl_a3_out,cntl_b0_out,cntl_b1_out,cntl_b2_out,cntl_b3_out} <= RAM_memory[read_ptr_m];
+					read_ptr_f <= read_ptr_f + 1;
+					read_ptr_m <= read_ptr_m + 1;
+
 				end
 				else begin //impossible to happen
-					// new_read <= 0;
 					
 					//-------------------
                     status_out <= DONE;
@@ -242,7 +245,7 @@ module Queue(
 					cntl_b2_out <= 64'h1111_1111_1111_1111;
 					cntl_b3_out <= 64'h1111_1111_1111_1111;
                     
-					read_ptr <= read_ptr;
+					read_ptr_f <= read_ptr_f;
 				end
 			end
 			
@@ -280,7 +283,7 @@ module Queue(
 				cntl_b2_out <= 64'h1111_1111_1111_1111;
 				cntl_b3_out <= 64'h1111_1111_1111_1111;
 				
-				read_ptr <= read_ptr;
+				read_ptr_f <= read_ptr_f;
 			end
 			else begin // no memory responses and no more reads
 				// new_read <= 0;
@@ -315,7 +318,7 @@ module Queue(
 				cntl_b2_out <= 64'h1111_1111_1111_1111;
 				cntl_b3_out <= 64'h1111_1111_1111_1111;
 				
-				read_ptr <= read_ptr;
+				read_ptr_f <= read_ptr_f;
 			
 			
 			end
