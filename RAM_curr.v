@@ -1,6 +1,8 @@
 module RAM_curr_mem(
 	input reset_n,
 	input clk,
+	input stall,
+	input [8:0] batch_size,
 	
 	// curr queue, port A
 	input [9:0] curr_read_num_1,
@@ -44,11 +46,14 @@ module RAM_curr_mem(
 	input[31:0] ret,
 	input [9:0] ret_read_num,
 	
-	//interface with output module
-	input output_valid,
-	input[9:0] output_read_num,
-	output reg [31:0] output_ret,
-	output reg [6:0] output_mem_size
+	//---------------------------------
+	
+	//output module
+	output reg output_request,
+	input output_permit,
+	output reg [511:0] output_data,
+	output reg output_valid,
+	output reg output_finish
 
 );
 
@@ -109,21 +114,94 @@ module RAM_curr_mem(
 	end
 	
 	//params
+	reg [8:0] done_counter;
+	reg all_read_done;
+	
 	always@(posedge clk) begin
-		if(mem_size_valid) begin
-			mem_size_queue[mem_size_read_num] <= mem_size;
+		if(reset_n) begin
+			done_counter <= 0;
 		end
-		
-		if(ret_valid) begin
-			ret_queue[ret_read_num] <= ret;
-		end
-		
-		if(output_valid) begin
-			output_mem_size <= mem_size_queue[output_read_num];
-			output_ret <= ret_queue[output_read_num];
+		else begin
+			if(mem_size_valid) begin
+				mem_size_queue[mem_size_read_num] <= mem_size;
+				done_counter <= done_counter + 1;
+			end
+			
+			if(done_counter == batch_size && done_counter > 0) begin
+				all_read_done <= 1;
+			end
+			
+			if(ret_valid) begin
+				ret_queue[ret_read_num] <= ret;
+			end
+			
 		end
 	end
 	
+	//output module
 	
+	always@(posedge clk) begin
+		if(reset_n) begin
+			output_request <= 0;
+		end
+		else if(all_read_done)begin
+			output_request <= 1;
+		end
+	end
+	
+	reg [8:0] output_result_ptr;
+	reg [6:0] output_mem_ptr;
+	reg [6:0] curr_size;
+	reg [6:0] already_output_num;
+	reg group_start; //indicate the initial of a read's data
+	
+	always@(posedge clk) begin
+		if(reset_n) begin
+			output_result_ptr <= 0;
+			output_mem_ptr <= 0;
+			group_start <= 1;
+			output_valid <= 0;
+			output_data <= 0;
+			output_finish <= 0;
+			already_output_num <= 0;
+		end
+		else if(output_permit) begin
+			if(output_result_ptr < batch_size) begin 
+				if(group_start) begin
+					output_valid		 <= 1;
+					output_data[9:0]     <= output_result_ptr;
+					output_data[63:10]   <= 0;
+					output_data[70:64]   <= mem_size_queue[output_result_ptr];
+					output_data[127:71]  <= 0;
+					output_data[159:128] <= ret_queue[output_result_ptr];
+					output_data[511:160] <= 0;
+					group_start <= 0;
+					curr_size <= mem_size_queue[output_result_ptr];
+					already_output_num <= 0;
+				end
+				else if(already_output_num < curr_size - 1) begin
+					output_valid <= 1;
+					output_data[255:0] <= mem_queue[output_result_ptr][already_output_num];
+					output_data[511:256] <= mem_queue[output_result_ptr][already_output_num+1];
+					already_output_num <= already_output_num + 2;	
+				end
+				else if(already_output_num == curr_size - 1) begin
+					output_valid <= 1;
+					output_data[255:0] <= mem_queue[output_result_ptr][already_output_num];
+					already_output_num <= already_output_num + 1;
+				end
+				else if(already_output_num == curr_size) begin
+					output_valid <= 0; //[important] during the output process there will be a gap between each mem group!
+					output_result_ptr <= output_result_ptr + 1;
+					group_start <= 1;
+				end
+			end
+			else begin
+				output_valid <= 0;
+				output_finish <= 1;
+			
+			end
+		end
+	end
 	
 endmodule	

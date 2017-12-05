@@ -31,12 +31,19 @@ module Datapath(
 	output reg [6:0] min_intv_out,
 	//----------------------------
 	
+	output reg [9:0] curr_read_num_1,
 	output reg curr_we_1,
 	output reg [255:0] curr_data_1,
 	output reg [6:0] curr_addr_1,	
+	
+	output reg [9:0] curr_read_num_2,
 	output reg curr_we_2,
 	output reg [255:0] curr_data_2,
-	output reg [6:0] curr_addr_2
+	output reg [6:0] curr_addr_2,
+	
+	output reg ret_valid,
+	output reg [31:0] ret,
+	output reg [9:0] ret_read_num
 	
 	
 );
@@ -48,7 +55,7 @@ module Datapath(
 	parameter BCK_INI = 6'h4;	//100
 	parameter BCK_RUN = 6'h5;	//101
 	parameter BCK_END = 6'h6;	//110
-	parameter DONE = 6'b111111;
+	parameter BUBBLE = 6'b110000;
 	
 	//-----------------------------------------------------------
 	//** initial case unsolved ** what to do with F_init? => left with the final stage
@@ -78,7 +85,7 @@ module Datapath(
 	
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
-			status_L0 <= DONE;
+			status_L0 <= BUBBLE;
 		end
 		else if(!stall) begin
 			// part 1 forward control
@@ -250,13 +257,18 @@ module Datapath(
 	
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
-			status_L1 <= DONE;
+			status_L1 <= BUBBLE;
+			curr_read_num_1 <= 0;
+			curr_we_1 <= 0;
+			curr_data_1 <= 0;
+			curr_addr_1 <= 0;
 		end
 		else if(!stall) begin
 			if(status_L00 == F_run) begin
 				case(query_L00) 
 					0: begin
 						if (ok3_x2_L0 != ik_x2_L00) begin
+							curr_read_num_1 <= read_num_L00;
 							curr_we_1 <= 1;
 							curr_data_1 <= {ik_info_L00, ik_x2_L00, ik_x1_L00, ik_x0_L00};
 							curr_addr_1 <= ptr_curr_L00;
@@ -274,6 +286,7 @@ module Datapath(
 							end
 						end
 						else begin
+							curr_read_num_1 <= 0;
 							curr_we_1 <= 0;
 							curr_data_1 <= 0;
 							curr_addr_1 <= 0;
@@ -286,6 +299,7 @@ module Datapath(
 					
 					1: begin
 						if (ok2_x2_L0 != ik_x2_L00) begin
+							curr_read_num_1 <= read_num_L00;
 							curr_we_1 <= 1;
 							curr_data_1 <= {ik_info_L00, ik_x2_L00, ik_x1_L00, ik_x0_L00};
 							curr_addr_1 <= ptr_curr_L00;
@@ -303,6 +317,7 @@ module Datapath(
 							end
 						end
 						else begin
+							curr_read_num_1 <= 0;
 							curr_we_1 <= 0;
 							curr_data_1 <= 0;
 							curr_addr_1 <= 0;
@@ -315,6 +330,7 @@ module Datapath(
 					
 					2: begin
 						if (ok1_x2_L0 != ik_x2_L00) begin
+							curr_read_num_1 <= read_num_L00;
 							curr_we_1 <= 1;
 							curr_data_1 <= {ik_info_L00, ik_x2_L00, ik_x1_L00, ik_x0_L00};
 							curr_addr_1 <= ptr_curr_L00;
@@ -332,6 +348,7 @@ module Datapath(
 							end
 						end
 						else begin
+							curr_read_num_1 <= 0;
 							curr_we_1 <= 0;
 							curr_data_1 <= 0;
 							curr_addr_1 <= 0;
@@ -344,6 +361,7 @@ module Datapath(
 					
 					3: begin
 						if (ok0_x2_L0 != ik_x2_L00) begin
+							curr_read_num_1 <= read_num_L00;
 							curr_we_1 <= 1;
 							curr_data_1 <= {ik_info_L00, ik_x2_L00, ik_x1_L00, ik_x0_L00};
 							curr_addr_1 <= ptr_curr_L00;
@@ -361,6 +379,7 @@ module Datapath(
 							end
 						end
 						else begin
+							curr_read_num_1 <= 0;
 							curr_we_1 <= 0;
 							curr_data_1 <= 0;
 							curr_addr_1 <= 0;
@@ -372,6 +391,7 @@ module Datapath(
 					end // end 3
 					
 					default: begin // equal to else		
+						curr_read_num_1 <= read_num_L00;
 						curr_we_1 <= 1;
 						curr_data_1 <= {ik_info_L00, ik_x2_L00, ik_x1_L00, ik_x0_L00};
 						curr_addr_1 <= ptr_curr_L00;
@@ -384,6 +404,7 @@ module Datapath(
 				endcase
 			end
 			else begin
+				curr_read_num_1 <= 0;
 				curr_we_1 <= 0;
 				curr_data_1 <= 0;
 				curr_addr_1 <= 0;
@@ -431,7 +452,7 @@ module Datapath(
 	
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
-			status_L2 <= DONE;
+			status_L2 <= BUBBLE;
 		end
 		else if(!stall) begin
 			if(status_L1 == F_run) begin
@@ -521,35 +542,49 @@ module Datapath(
 	
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
-			status_L3 <= DONE;
+			status_L3 <= BUBBLE;
+			ret <= 0;
+			ret_valid <= 0;
+			ret_read_num <= 0;
+			curr_read_num_2 <= 0;
+			curr_we_2 <= 0;
+			curr_data_2 <= 0; 
+			curr_addr_2 <= 0;
 		end
 		else if(!stall) begin
 			if(status_L2 == F_break) begin
 				if(forward_i_L2 == Len) begin
+					curr_read_num_2 <= read_num_L2;
 					curr_we_2 <= 1;
 					curr_data_2 <= {ik_info_L2, ik_x2_L2, ik_x1_L2, ik_x0_L2}; 
 					curr_addr_2 <= ptr_curr_L2;
 					ptr_curr_L3 <= ptr_curr_L2 + 1;
 				end
 				else begin
+					curr_read_num_2 <= 0;
 					curr_we_2 <= 0;
 					curr_data_2 <= 0; 
 					curr_addr_2 <= 0;
 					ptr_curr_L3 <= ptr_curr_L2;
 				end
 						
-				// ret_L3 <= ik_info_L2[31:0];
-				// last_n_L3 <= ptr_curr_L2;
-				// read_addr_L3 <= ptr_curr_L2;
-				// write_addr_L3 <= ptr_curr_L2;
+				ret <= ik_info_L2[31:0];
+				ret_valid <= 1;
+				ret_read_num <= read_num_L2;
+
 				status_L3 <= BCK_INI;
 			end
 			
 			else begin
+				curr_read_num_2 <= 0;
 				curr_we_2 <= 0;
 				curr_data_2 <= 0; 
 				curr_addr_2 <= 0;
 				ptr_curr_L3 <= ptr_curr_L2;
+				
+				ret <= 0;
+				ret_valid <= 0;
+				ret_read_num <= 0;
 				
 				status_L3 <= status_L2;
 			end
@@ -581,7 +616,7 @@ module Datapath(
 	
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
-			status_out <= DONE;
+			status_out <= BUBBLE;
 		end
 		else if(!stall) begin
 			if(status_L3 == F_init || status_L3 == F_run) begin //if break, no memory access and no next query
@@ -673,7 +708,7 @@ module Pipe_BWT_extend(
 		output reg [63:0] ik_x0_pipe, ik_x1_pipe, ik_x2_pipe, ik_info_pipe
 
 	);
-	parameter DONE = 6'b11_1111;
+	parameter BUBBLE = 6'b11_1111;
 	
 	reg [6:0] forward_i_L1;
 	reg [6:0] min_intv_L1;
@@ -832,7 +867,7 @@ module Pipe_BWT_extend(
 
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
-			status_L1 <= DONE;
+			status_L1 <= BUBBLE;
 		end
 		else if(!stall) begin
 			forward_i_L1 <= forward_i_L0;
@@ -854,7 +889,7 @@ module Pipe_BWT_extend(
 	
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
-			status_L2 <= DONE;
+			status_L2 <= BUBBLE;
 		end
 		else if(!stall) begin
 			forward_i_L2 <= forward_i_L1;
@@ -876,7 +911,7 @@ module Pipe_BWT_extend(
 	
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
-			status_L3 <= DONE;
+			status_L3 <= BUBBLE;
 		end
 		else if(!stall) begin
 			forward_i_L3 <= forward_i_L2;
@@ -898,7 +933,7 @@ module Pipe_BWT_extend(
 	
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
-			status_L4 <= DONE;
+			status_L4 <= BUBBLE;
 		end
 		else if(!stall) begin
 			forward_i_L4 <= forward_i_L3;
@@ -920,7 +955,7 @@ module Pipe_BWT_extend(
 	
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
-			status_L5 <= DONE;
+			status_L5 <= BUBBLE;
 		end
 		else if(!stall) begin
 			forward_i_L5 <= forward_i_L4;
@@ -942,7 +977,7 @@ module Pipe_BWT_extend(
 	
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
-			status_L6 <= DONE;
+			status_L6 <= BUBBLE;
 		end
 		else if(!stall) begin
 			forward_i_L6 <= forward_i_L5;
@@ -964,7 +999,7 @@ module Pipe_BWT_extend(
 	
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
-			status_L7 <= DONE;
+			status_L7 <= BUBBLE;
 		end
 		else if(!stall) begin	
 			forward_i_L7 <= forward_i_L6;
@@ -986,7 +1021,7 @@ module Pipe_BWT_extend(
 	
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
-			status_L8 <= DONE;
+			status_L8 <= BUBBLE;
 		end
 		else if(!stall) begin
 			forward_i_L8 <= forward_i_L7;
@@ -1008,7 +1043,7 @@ module Pipe_BWT_extend(
 	
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
-			status_L9 <= DONE;
+			status_L9 <= BUBBLE;
 		end
 		else if(!stall) begin
 			forward_i_L9 <= forward_i_L8;
@@ -1030,7 +1065,7 @@ module Pipe_BWT_extend(
 	
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
-			status_L10 <= DONE;
+			status_L10 <= BUBBLE;
 		end
 		else if(!stall) begin
 			forward_i_L10 <= forward_i_L9;
@@ -1052,7 +1087,7 @@ module Pipe_BWT_extend(
 	
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
-			status_L11 <= DONE;
+			status_L11 <= BUBBLE;
 		end
 		else if(!stall) begin
 			forward_i_L11 <= forward_i_L10;
@@ -1074,7 +1109,7 @@ module Pipe_BWT_extend(
 	
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
-			status_pipe <= DONE;
+			status_pipe <= BUBBLE;
 		end
 		else if(!stall) begin
 			forward_i_pipe <= forward_i_L11;
