@@ -62,10 +62,10 @@ module RAM_curr_mem(
 	//33+33+33+14 = 113 bits
 	
 	//512 reads * 2 queue/read * 101 slots / queue * 113 bits/slots = 1.7M
-	reg [511:0] curr_queue [100:0][112:0];
-	reg [511:0] mem_queue  [100:0][112:0];
-	reg [511:0] mem_size_queue[6:0]; //mem_size = 7bits;
-	reg [511:0] ret_queue[31:0]; //ret = 32 bits;
+	reg [112:0] curr_queue [511:0][100:0];
+	reg [112:0] mem_queue  [511:0][100:0];
+	reg [6:0] mem_size_queue[511:0]; //mem_size = 7bits;
+	reg [31:0] ret_queue[511:0] ; //ret = 32 bits;
 	
 	//curr queue
 	always@(posedge clk) begin
@@ -118,7 +118,7 @@ module RAM_curr_mem(
 	reg all_read_done;
 	
 	always@(posedge clk) begin
-		if(reset_n) begin
+		if(!reset_n) begin
 			done_counter <= 0;
 		end
 		else begin
@@ -141,7 +141,7 @@ module RAM_curr_mem(
 	//output module
 	
 	always@(posedge clk) begin
-		if(reset_n) begin
+		if(!reset_n) begin
 			output_request <= 0;
 		end
 		else if(all_read_done)begin
@@ -156,7 +156,7 @@ module RAM_curr_mem(
 	reg group_start; //indicate the initial of a read's data
 	
 	always@(posedge clk) begin
-		if(reset_n) begin
+		if(!reset_n) begin
 			output_result_ptr <= 0;
 			output_mem_ptr <= 0;
 			group_start <= 1;
@@ -164,42 +164,56 @@ module RAM_curr_mem(
 			output_data <= 0;
 			output_finish <= 0;
 			already_output_num <= 0;
+			curr_size <= 0;
 		end
 		else if(output_permit) begin
-			if(output_result_ptr < batch_size) begin 
-				if(group_start) begin
-					output_valid		 <= 1;
-					output_data[9:0]     <= output_result_ptr;
-					output_data[63:10]   <= 0;
-					output_data[70:64]   <= mem_size_queue[output_result_ptr];
-					output_data[127:71]  <= 0;
-					output_data[159:128] <= ret_queue[output_result_ptr];
-					output_data[511:160] <= 0;
-					group_start <= 0;
-					curr_size <= mem_size_queue[output_result_ptr];
-					already_output_num <= 0;
+			if(!stall) begin
+				if(output_result_ptr < batch_size) begin 
+					if(group_start) begin
+						output_valid		 <= 1;
+						output_data[9:0]     <= output_result_ptr;
+						output_data[63:10]   <= 0;
+						output_data[70:64]   <= mem_size_queue[output_result_ptr];
+						output_data[127:71]  <= 0;
+						output_data[159:128] <= ret_queue[output_result_ptr];
+						output_data[511:160] <= 0;
+						group_start <= 0;
+						curr_size <= mem_size_queue[output_result_ptr];
+						already_output_num <= 0;
+					end
+					else if(already_output_num < curr_size - 1) begin
+						output_valid <= 1;
+						
+						{output_data[230:224],output_data[198:192],output_data[160:128],output_data[96:64],output_data[32:0]} <= mem_queue[output_result_ptr][already_output_num];
+						{output_data[255:231],output_data[223:199],output_data[191:161],output_data[127:97],output_data[63:33]} <= 0;
+						
+						{output_data[486:480],output_data[454:448],output_data[416:384],output_data[352:320],output_data[288:256]} <= mem_queue[output_result_ptr][already_output_num + 1];
+						{output_data[511:487],output_data[479:455],output_data[447:417],output_data[383:353],output_data[319:289]} <= 0;
+						already_output_num <= already_output_num + 2;	
+					end
+					else if(already_output_num == curr_size - 1) begin
+						output_valid <= 1;
+						
+						{output_data[230:224],output_data[198:192],output_data[160:128],output_data[96:64],output_data[32:0]} <= mem_queue[output_result_ptr][already_output_num];
+						{output_data[255:231],output_data[223:199],output_data[191:161],output_data[127:97],output_data[63:33]} <= 0;
+						output_data[511:256] <= 0;
+						
+						already_output_num <= already_output_num + 1;
+					end
+					else if(already_output_num == curr_size) begin
+						output_valid <= 0; //[important] during the output process there will be a gap between each mem group!
+						output_result_ptr <= output_result_ptr + 1;
+						group_start <= 1;
+					end
 				end
-				else if(already_output_num < curr_size - 1) begin
-					output_valid <= 1;
-					output_data[255:0] <= mem_queue[output_result_ptr][already_output_num];
-					output_data[511:256] <= mem_queue[output_result_ptr][already_output_num+1];
-					already_output_num <= already_output_num + 2;	
-				end
-				else if(already_output_num == curr_size - 1) begin
-					output_valid <= 1;
-					output_data[255:0] <= mem_queue[output_result_ptr][already_output_num];
-					already_output_num <= already_output_num + 1;
-				end
-				else if(already_output_num == curr_size) begin
-					output_valid <= 0; //[important] during the output process there will be a gap between each mem group!
-					output_result_ptr <= output_result_ptr + 1;
-					group_start <= 1;
+				else begin
+					output_valid <= 0;
+					output_finish <= 1;
+				
 				end
 			end
 			else begin
 				output_valid <= 0;
-				output_finish <= 1;
-			
 			end
 		end
 	end

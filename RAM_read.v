@@ -32,7 +32,7 @@ module RAM_read(
 	parameter F_break = 2;
 	parameter B_init = 3;
 	parameter B_run = 4;
-	parameter DONE = 6'b111111;
+	parameter BUBBLE = 6'b110000;
 	
 	parameter CL = 512;
 	parameter MAX_READ = 512;
@@ -136,9 +136,9 @@ module RAM_read(
 		if(!reset_n) begin
 			query_position_L1 <= 0;
 			select_L1 <= 0;
-			status_L1 <= DONE;
+			status_L1 <= BUBBLE;
 		end
-		else if (status_query != DONE && status_query != F_break) begin
+		else if (status_query != BUBBLE && status_query != F_break) begin
 			case (query_position[6:5])
 				2'b00: begin
 					select_L1 <= RAM_read_1[query_read_num][255:0];
@@ -167,9 +167,9 @@ module RAM_read(
 		if(!reset_n) begin
 			query_position_L2 <= 0;
 			select_L2 <= 0;
-			status_L2 <= DONE;
+			status_L2 <= BUBBLE;
 		end
-		else if (status_L1 != DONE) begin
+		else if (status_L1 != BUBBLE) begin
 			case(query_position_L1[4:3])
 				2'b00: begin
 					select_L2 <= select_L1[63:0];
@@ -200,7 +200,7 @@ module RAM_read(
 		if(!reset_n) begin
 			new_read_query <= 8'b1111_1111;	
 		end
-		else if (status_L2 != DONE) begin
+		else if (status_L2 != BUBBLE) begin
 			case(query_position_L2[2:0])
 				3'b000: begin
 					new_read_query <= select_L2[7:0];

@@ -75,7 +75,7 @@ module Queue(
 	parameter F_break = 2;
 	parameter B_init = 3;
 	parameter B_run = 4;
-	parameter DONE = 6'b111111;
+	parameter BUBBLE = 6'b110000;
 	
 	reg [9:0] read_ptr_f;
 	reg [9:0] write_ptr_f;
@@ -202,7 +202,7 @@ module Queue(
 		if (!reset_n) begin
 			read_ptr_f <= 0;
 			read_ptr_m <= 0;
-			status_out <= DONE;
+			status_out <= BUBBLE;
 		end
 		else if (!stall) begin
 			if (memory_valid) begin // get memory responses, output old read
@@ -216,7 +216,7 @@ module Queue(
 				else begin //impossible to happen
 					
 					//-------------------
-                    status_out <= DONE;
+                    status_out <= BUBBLE;
                     ptr_curr_out <= 7'b111_1111;
                     read_num_out <= 10'b11_1111_1111; 
                     ik_x0_out <= 64'h1111_1111_1111_1111; 
@@ -288,7 +288,7 @@ module Queue(
 			else begin // no memory responses and no more reads
 				// new_read <= 0;
 				//-------------------
-                status_out <= DONE;
+                status_out <= BUBBLE;
 				ptr_curr_out <= 7'b111_1111;
 				read_num_out <= 10'b11_1111_1111; 
 				ik_x0_out <= 64'h1111_1111_1111_1111; 
