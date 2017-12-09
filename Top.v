@@ -22,7 +22,7 @@
 
 module Top(
 	input Clk_32UI,
-	input reset_BWT_extend,
+	input reset_n,
 	input stall,
 	
 	//RAM for reads
@@ -40,13 +40,13 @@ module Top(
 	input [31:0] cntl_a0,cntl_a1,cntl_a2,cntl_a3,
 	input [63:0] cntl_b0,cntl_b1,cntl_b2,cntl_b3,
 	
-	//queue requests
-	output  curr_we_1,
-	output  [255:0] curr_data_1,
-	output  [6:0] curr_addr_1,	
-	output  curr_we_2,
-	output  [255:0] curr_data_2,
-	output  [6:0] curr_addr_2	
+	output output_request,
+	input output_permit,
+	
+	output [511:0] output_data,
+	output output_valid,
+	output output_finish 
+	
 );
 	
 	
@@ -97,8 +97,50 @@ module Top(
 	//part 4: parameters
 	wire [63:0] primary, L2_0, L2_1, L2_2, L2_3;
 	
+	//---------------------
+	wire ret_valid;
+	wire [31:0] ret;
+	wire [9:0] ret_read_num;
+	
+	wire  [9:0] curr_read_num_1;
+	wire  curr_we_1;
+	wire  [255:0] curr_data_1;
+	wire  [6:0] curr_addr_1;
+	
+	wire  [9:0] curr_read_num_2;
+	wire  curr_we_2;
+	wire  [255:0] curr_data_2;
+	wire  [6:0] curr_addr_2;
+	
+	//-------------------------
+	
+	//interface for backward
+	
+	// mem queue, port A
+	wire [9:0] mem_read_num_1;
+	wire mem_we_1;
+	wire [255:0] mem_data_1; //[important]sequence: [p_info, p_x2, p_x1, p_x0]
+	wire [6:0] mem_addr_1;
+	wire [255:0] mem_q_1;
+	
+	//mem queue, port B
+	wire [9:0] mem_read_num_2;
+	wire mem_we_2;
+	wire [255:0] mem_data_2;
+	wire [6:0] mem_addr_2;
+	wire [255:0] mem_q_2;
+	
+	//---------------------------------
+	
+	//mem size
+	wire mem_size_valid;
+	wire[6:0] mem_size;
+	wire[9:0] mem_size_read_num;
+	
+	
+	
 	RAM_read ram_read(
-		.reset_n(reset_BWT_extend),
+		.reset_n(reset_n),
 		.clk(Clk_32UI),
 		
 		// part 1: load all reads
@@ -134,7 +176,7 @@ module Top(
 	Datapath datapath(
 		// input of BWT_extend
 		.Clk_32UI(Clk_32UI),
-		.reset_BWT_extend(reset_BWT_extend),
+		.reset_BWT_extend(reset_n),
 		.stall(stall),
 
 		//from memory
@@ -168,17 +210,24 @@ module Top(
 		.min_intv_out(min_intv_out),
 		
 		//to RAM
+		.curr_read_num_1(curr_read_num_1),
 		.curr_we_1(curr_we_1),
 		.curr_data_1(curr_data_1),
 		.curr_addr_1(curr_addr_1),	
+		
+		.curr_read_num_2(curr_read_num_2),
 		.curr_we_2(curr_we_2),
 		.curr_data_2(curr_data_2),
-		.curr_addr_2(curr_addr_2)
+		.curr_addr_2(curr_addr_2),
+		
+		.ret_valid(ret_valid),
+		.ret(ret),
+		.ret_read_num(ret_read_num)
 	);
 	
 	Queue queue(
 		.Clk_32UI(Clk_32UI),
-		.reset_n(reset_BWT_extend),
+		.reset_n(reset_n),
 		.stall(stall),
 		
 		.DRAM_get(DRAM_get),
@@ -198,7 +247,7 @@ module Top(
 		.ik_x0(ik_x0_out), .ik_x1(ik_x1_out), .ik_x2(ik_x2_out), .ik_info(ik_info_out),
 		.forward_i(forward_i_out),
 		.min_intv(min_intv_out),
-		
+		//.next_query_position()
 		//queue to pipeline
 		.status_out(status),
 		.ptr_curr_out(ptr_curr), // record the status of curr and mem queue
@@ -234,5 +283,65 @@ module Top(
 		.query_status_2RAM(status_query),
 		.new_read_query_2Queue(new_read_query)
 	);
+	
+	RAM_curr_mem ram_curr_mem(
+		.reset_n(reset_n),
+		.clk(clk),
+		.stall(stall),
+		.batch_size(batch_size),
+		
+		// curr queue, port A
+		.curr_read_num_1(curr_read_num_1),
+		.curr_we_1(curr_we_1),
+		.curr_data_1(curr_data_1), //[important]sequence: [ik_info, ik_x2, ik_x1, ik_x0]
+		.curr_addr_1(curr_addr_1),
+		.curr_q_1(curr_q_1),
+		
+		//curr queue, port B
+		.curr_read_num_2(curr_read_num_2),
+		.curr_we_2(curr_we_2),
+		.curr_data_2(curr_data_2),
+		.curr_addr_2(curr_addr_2),
+		.curr_q_2(curr_q_2),
+		
+		//--------------------------------
+		
+		// mem queue, port A
+		.mem_read_num_1(mem_read_num_1),
+		.mem_we_1(mem_we_1),
+		.mem_data_1(mem_data_1), //[important]sequence: [p_info, p_x2, p_x1, p_x0]
+		.mem_addr_1(mem_addr_1),
+		.mem_q_1(mem_q_1),
+		
+		//mem queue, port B
+		.mem_read_num_2(mem_read_num_2),
+		.mem_we_2(mem_we_2),
+		.mem_data_2(mem_data_2),
+		.mem_addr_2(mem_addr_2),
+		.mem_q_2(mem_q_2),
+		
+		//---------------------------------
+		
+		//mem size
+		.mem_size_valid(mem_size_valid),
+		.mem_size(mem_size),
+		.mem_size_read_num(mem_size_read_num),
+		
+		//ret
+		.ret_valid(ret_valid),
+		.ret(ret),
+		.ret_read_num(ret_read_num),
+		
+		//---------------------------------
+		
+		//output module
+		.output_request(output_request),
+		.output_permit(output_permit),
+		.output_data(output_data),
+		.output_valid(output_valid),
+		.output_finish(output_finish)
+
+	);
+	
 	
 endmodule

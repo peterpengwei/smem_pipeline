@@ -197,6 +197,7 @@ module Queue(
 	end
 	
 	assign new_read = (load_done) & new_read_valid & (!memory_valid) & (!stall);
+	wire [5:0] next_status = RAM_forward[read_ptr_f][5:0];
 	
 	always@(posedge Clk_32UI) begin
 		if (!reset_n) begin
@@ -205,7 +206,11 @@ module Queue(
 			status_out <= BUBBLE;
 		end
 		else if (!stall) begin
-			if (memory_valid) begin // get memory responses, output old read
+			if(next_status == F_break) begin
+				//
+			
+			end
+			else if (memory_valid) begin // get memory responses, output old read
 				if(read_ptr_f != write_ptr_f) begin
 					{ptr_curr_out, read_num_out, ik_x0_out, ik_x1_out, ik_x2_out, ik_info_out, forward_i_out,min_intv_out, query_out, status_out} <= RAM_forward[read_ptr_f];
 					{cnt_a0_out,cnt_a1_out,cnt_a2_out,cnt_a3_out,cnt_b0_out,cnt_b1_out,cnt_b2_out,cnt_b3_out, cntl_a0_out,cntl_a1_out,cntl_a2_out,cntl_a3_out,cntl_b0_out,cntl_b1_out,cntl_b2_out,cntl_b3_out} <= RAM_memory[read_ptr_m];
