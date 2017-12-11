@@ -30,9 +30,11 @@ module RAM_read(
 	parameter F_init = 0; // F_init will disable the forward pipeline
 	parameter F_run = 1;
 	parameter F_break = 2;
-	parameter B_init = 3;
-	parameter B_run = 4;
+	parameter BCK_INI = 6'h4;	//100
+	parameter BCK_RUN = 6'h5;	//101
+	parameter BCK_END = 6'h6;	//110
 	parameter BUBBLE = 6'b110000;
+	parameter DONE = 6'b100000;
 	
 	parameter CL = 512;
 	parameter MAX_READ = 512;
@@ -138,7 +140,7 @@ module RAM_read(
 			select_L1 <= 0;
 			status_L1 <= BUBBLE;
 		end
-		else if (status_query != BUBBLE && status_query != F_break) begin
+		else if (status_query != BUBBLE && status_query != F_break && status_query != BCK_END) begin
 			case (query_position[6:5])
 				2'b00: begin
 					select_L1 <= RAM_read_1[query_read_num][255:0];

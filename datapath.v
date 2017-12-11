@@ -29,6 +29,8 @@ module Datapath(
 	output reg [63:0] ik_x0_out, ik_x1_out, ik_x2_out, ik_info_out,
 	output reg [6:0] forward_i_out,
 	output reg [6:0] min_intv_out,
+	
+	output reg [6:0] next_query_position,
 	//----------------------------
 	
 	output reg [9:0] curr_read_num_1,
@@ -631,6 +633,8 @@ module Datapath(
 			ik_info_out<= ik_info_L2;
 			forward_i_out <= forward_i_L2;
 			min_intv_out <= min_intv_L2;
+			
+			next_query_position <= forward_i_L2;
 		end
 	end
 

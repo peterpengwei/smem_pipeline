@@ -27,16 +27,25 @@ module Queue(
 	input [31:0] cntl_a0,cntl_a1,cntl_a2,cntl_a3,
 	input [63:0] cntl_b0,cntl_b1,cntl_b2,cntl_b3,
 	
-	//Pipeline -> Queue
+	output reg [31:0] cnt_a0_out,cnt_a1_out,cnt_a2_out,cnt_a3_out,
+	output reg [63:0] cnt_b0_out,cnt_b1_out,cnt_b2_out,cnt_b3_out,
+	output reg [31:0] cntl_a0_out,cntl_a1_out,cntl_a2_out,cntl_a3_out,
+	output reg [63:0] cntl_b0_out,cntl_b1_out,cntl_b2_out,cntl_b3_out,
+	
+	//======================================================================
+	
+	//Forward Pipeline -> Queue
 	input [5:0] status,
 	input [6:0] ptr_curr, // record the status of curr and mem queue
 	input [9:0] read_num,
 	input [63:0] ik_x0, ik_x1, ik_x2, ik_info,
 	input [6:0] forward_i,
 	input [6:0] min_intv,
-
 	
-	//Queue -> Pipeline
+	//forward query position
+	input [6:0] next_query_position,
+	
+	//Queue -> Forward Pipeline
 	output reg [5:0] status_out,
 	output reg [6:0] ptr_curr_out, // record the status of curr and mem queue
 	output reg [9:0] read_num_out,
@@ -45,11 +54,62 @@ module Queue(
 	output reg [6:0] min_intv_out,
 	output reg [7:0] query_out,
 	
-	output reg [31:0] cnt_a0_out,cnt_a1_out,cnt_a2_out,cnt_a3_out,
-	output reg [63:0] cnt_b0_out,cnt_b1_out,cnt_b2_out,cnt_b3_out,
-	output reg [31:0] cntl_a0_out,cntl_a1_out,cntl_a2_out,cntl_a3_out,
-	output reg [63:0] cntl_b0_out,cntl_b1_out,cntl_b2_out,cntl_b3_out,
+	//======================================================================
+	
+	//Backward Pipelie -> Queue
+	input [6:0] forward_size_n,	
+	input [8:0] read_num_B,
+	input [6:0] min_intv_B,
+	input [5:0] status_B,
+	input [6:0] new_size_B,
+	input [6:0] new_last_size_B,
+	input [63:0] primary_B,
+	input [6:0] current_rd_addr_B,
+	input [6:0] current_wr_addr_B,mem_wr_addr_B,
+	input [6:0] backward_i_B, backward_j_B,
+	input iteration_boundary_B,
+	input [63:0] p_x0_B,p_x1_B,p_x2_B,p_info_B,
+	input [63:0] reserved_token_x2_B, //reserved_token_x2 => last_token_x2_q
+	input [31:0] reserved_mem_info_B, //reserved_mem_info => last_mem_info_q
+	input [63:0] backward_k_B,backward_l_B, // backward_k == k, backward_l==l;
+	
+	input [7:0] output_c_B, // address for next query
+	
+	// Queue -> Backward Pipeline
+	// queue special provide 
+	output reg [63:0] ik_x0_new_q,
+	output reg [63:0] ik_x1_new_q,
+	output reg [63:0] ik_x2_new_q,
+	output reg [6:0] backward_x_q, // x
+	output reg [7:0] backward_c_q, // next bp
 
+	output reg [6:0] forward_size_n_q, //foward curr array size	
+	
+	// circular provide
+	output reg [8:0] read_num_q,
+	output reg [6:0] min_intv_q,	//
+	output reg [5:0] status_q,
+	output reg [6:0] new_size_q,
+	output reg [6:0] new_last_size_q,
+	output reg [63:0] primary_q,
+	output reg [6:0] current_rd_addr_q,
+	output reg [6:0] current_wr_addr_q,
+	output reg [6:0] mem_wr_addr_q,
+	output reg [6:0] backward_i_q, 
+	output reg [6:0] backward_j_q,
+	output reg iteration_boundary_q,
+	output reg [63:0] p_x0_q, // same as ik in forward datapath, store the p_x0 value into queue
+	output reg [63:0] p_x1_q,
+	output reg [63:0] p_x2_q,
+	output reg [63:0] p_info_q,
+	output reg [63:0] last_token_x2_q, //pushed to queue
+	output reg [31:0] last_mem_info_q,
+	output reg [63:0] k_q,
+	output reg [63:0] l_q,
+	
+
+	
+	//========================================================================
 	//fetch new read at the end of queue
 	output new_read,
 	input new_read_valid,
@@ -77,6 +137,7 @@ module Queue(
 	parameter BCK_RUN = 6'h5;	//101
 	parameter BCK_END = 6'h6;	//110
 	parameter BUBBLE = 6'b110000;
+	parameter DONE = 6'b100000;
 	
 	reg [8:0] read_ptr_f;
 	reg [8:0] write_ptr_f;
@@ -108,12 +169,12 @@ module Queue(
 	// 3 stage pipe to wait for the delay of retrieving query
 	//------------------------------------------------
 	
-	assign query_position_2RAM = forward_i;
-	assign query_read_num_2RAM = read_num;
-	assign query_status_2RAM = status;
+	assign query_position_2RAM = (status != BUBBLE && status != F_break) ? next_query_position : (status_B != BUBBLE && status_B != BCK_END) ? output_c_B : 8'b1111_1111;
+	assign query_read_num_2RAM = (status != BUBBLE && status != F_break) ? read_num : (status_B != BUBBLE && status_B != BCK_END) ? read_num_B : 9'b1_1111_1111;
+	assign query_status_2RAM = (status != BUBBLE && status != F_break) ? status : (status_B != BUBBLE && status_B != BCK_END) ? status_B : 6'b11_1111;
 	
 	always@(posedge Clk_32UI) begin
-		status_L0 <= status;
+		status_L0 <= status ;
 		ptr_curr_L0 <= ptr_curr; // record the status of curr and mem queue
 		read_num_L0 <= read_num;
 		ik_x0_L0 <= ik_x0;

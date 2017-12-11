@@ -70,6 +70,8 @@ module Top(
 	wire [6:0] forward_i_out;
 	wire [6:0] min_intv_out;
 	
+	wire [6:0] next_query_position;
+	
 	wire [31:0] cnt_a0_out,cnt_a1_out,cnt_a2_out,cnt_a3_out;
 	wire [63:0] cnt_b0_out,cnt_b1_out,cnt_b2_out,cnt_b3_out;
 	wire [31:0] cntl_a0_out,cntl_a1_out,cntl_a2_out,cntl_a3_out;
@@ -209,6 +211,8 @@ module Top(
 		.forward_i_out(forward_i_out),
 		.min_intv_out(min_intv_out),
 		
+		.next_query_position(next_query_position),
+		
 		//to RAM
 		.curr_read_num_1(curr_read_num_1),
 		.curr_we_1(curr_we_1),
@@ -247,7 +251,9 @@ module Top(
 		.ik_x0(ik_x0_out), .ik_x1(ik_x1_out), .ik_x2(ik_x2_out), .ik_info(ik_info_out),
 		.forward_i(forward_i_out),
 		.min_intv(min_intv_out),
-		//.next_query_position()
+		
+		.next_query_position(next_query_position),
+		
 		//queue to pipeline
 		.status_out(status),
 		.ptr_curr_out(ptr_curr), // record the status of curr and mem queue
@@ -295,14 +301,11 @@ module Top(
 		.curr_we_1(curr_we_1),
 		.curr_data_1(curr_data_1), //[important]sequence: [ik_info, ik_x2, ik_x1, ik_x0]
 		.curr_addr_1(curr_addr_1),
-		.curr_q_1(curr_q_1),
 		
-		//curr queue, port B
-		// .curr_read_num_2(curr_read_num_2),
-		// .curr_we_2(curr_we_2),
-		// .curr_data_2(curr_data_2),
-		// .curr_addr_2(curr_addr_2),
-		// .curr_q_2(curr_q_2),
+		// curr queue, port B
+		.curr_read_num_2(),
+		.curr_addr_2(),
+		.curr_q_2(),
 		
 		//--------------------------------
 		
@@ -312,13 +315,6 @@ module Top(
 		.mem_data_1(mem_data_1), //[important]sequence: [p_info, p_x2, p_x1, p_x0]
 		.mem_addr_1(mem_addr_1),
 		.mem_q_1(mem_q_1),
-		
-		//mem queue, port B
-		// .mem_read_num_2(mem_read_num_2),
-		// .mem_we_2(mem_we_2),
-		// .mem_data_2(mem_data_2),
-		// .mem_addr_2(mem_addr_2),
-		// .mem_q_2(mem_q_2),
 		
 		//---------------------------------
 		
