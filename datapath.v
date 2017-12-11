@@ -36,10 +36,10 @@ module Datapath(
 	output reg [255:0] curr_data_1,
 	output reg [6:0] curr_addr_1,	
 	
-	output reg [9:0] curr_read_num_2,
-	output reg curr_we_2,
-	output reg [255:0] curr_data_2,
-	output reg [6:0] curr_addr_2,
+	// output reg [9:0] curr_read_num_2,
+	// output reg curr_we_2,
+	// output reg [255:0] curr_data_2,
+	// output reg [6:0] curr_addr_2,
 	
 	output reg ret_valid,
 	output reg [31:0] ret,
@@ -403,6 +403,29 @@ module Datapath(
 					end
 				endcase
 			end
+			else if(status_L00 == F_break) begin
+				if(forward_i_L00 == Len) begin
+					curr_read_num_1 <= read_num_L00;
+					curr_we_1 <= 1;
+					curr_data_1 <= {ik_info_L00, ik_x2_L00, ik_x1_L00, ik_x0_L00}; 
+					curr_addr_1 <= ptr_curr_L00;
+					ptr_curr_L1 <= ptr_curr_L00 + 1;
+				end
+				else begin
+					curr_read_num_1 <= 0;
+					curr_we_1 <= 0;
+					curr_data_1 <= 0; 
+					curr_addr_1 <= 0;
+					ptr_curr_L1 <= ptr_curr_L00;
+				end
+				
+				ret <= ik_info_L00[31:0];
+				ret_valid <= 1;
+				ret_read_num <= read_num_L00;
+				
+				status_L1 <= BCK_INI;
+			
+			end
 			else begin
 				curr_read_num_1 <= 0;
 				curr_we_1 <= 0;
@@ -412,6 +435,10 @@ module Datapath(
 				status_L1 <= status_L00; // if (ok[c].x[2] < min_intv) break;
 				is_update_ik <= 0; // after break, "ik = ok[c]; ik.info = i + 1;" won't be executed.
 				is_add_i <= 0;
+				
+				ret <= 0;
+				ret_valid <= 0;
+				ret_read_num <= 0;
 			end	
 			
 			//------------------------------
@@ -450,6 +477,11 @@ module Datapath(
     reg [9:0] read_num_L2;
     reg [63:0] ik_x0_L2, ik_x1_L2, ik_x2_L2, ik_info_L2;
 	
+	reg [63:0] forward_k_temp_L2;
+	reg [63:0] forward_l_temp_L2;
+	reg [63:0] forward_k_temp_L2_minus;
+	reg [63:0] forward_l_temp_L2_minus;
+	
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
 			status_L2 <= BUBBLE;
@@ -462,21 +494,44 @@ module Datapath(
 							ik_x0_L2 <= ok3_x0_L1;
 							ik_x1_L2 <= ok3_x1_L1;
 							ik_x2_L2 <= ok3_x2_L1;
+							
+							forward_k_temp_L2 <= ok3_x1_L1 - 1;
+							forward_l_temp_L2 <= ok3_x1_L1 - 1 + ok3_x2_L1;
+							
+							forward_k_temp_L2_minus <= ok3_x1_L1 - 1 - 1;
+							forward_l_temp_L2_minus <= ok3_x1_L1 - 1 + ok3_x2_L1 - 1;
 						end	
 						1: begin
 							ik_x0_L2 <= ok2_x0_L1;
 							ik_x1_L2 <= ok2_x1_L1;
 							ik_x2_L2 <= ok2_x2_L1;
+							
+							forward_k_temp_L2 <= ok2_x1_L1 - 1;
+							forward_l_temp_L2 <= ok2_x1_L1 - 1 + ok2_x2_L1;
+							forward_k_temp_L2_minus <= ok2_x1_L1 - 1 - 1;
+							forward_l_temp_L2_minus <= ok2_x1_L1 - 1 + ok2_x2_L1 - 1;
+							
 						end	
 						2: begin
 							ik_x0_L2 <= ok1_x0_L1;
 							ik_x1_L2 <= ok1_x1_L1;
 							ik_x2_L2 <= ok1_x2_L1;
+							
+							forward_k_temp_L2 <= ok1_x1_L1 - 1;
+							forward_l_temp_L2 <= ok1_x1_L1 - 1 + ok1_x2_L1;
+							forward_k_temp_L2_minus <= ok1_x1_L1 - 1 - 1;
+							forward_l_temp_L2_minus <= ok1_x1_L1 - 1 + ok1_x2_L1 - 1;
 						end	
 						3: begin
 							ik_x0_L2 <= ok0_x0_L1;
 							ik_x1_L2 <= ok0_x1_L1;
 							ik_x2_L2 <= ok0_x2_L1;
+							
+							
+							forward_k_temp_L2 <= ok0_x1_L1 - 1;
+							forward_l_temp_L2 <= ok0_x1_L1 - 1 + ok0_x2_L1;
+							forward_k_temp_L2_minus <= ok0_x1_L1 - 1 - 1;
+							forward_l_temp_L2_minus <= ok0_x1_L1 - 1 + ok0_x2_L1 - 1;
 						end	
 						default: begin
 							//theoretically we should never came here.
@@ -489,6 +544,11 @@ module Datapath(
 					ik_x1_L2 <= ik_x1_L1;
 					ik_x2_L2 <= ik_x2_L1;
 					ik_info_L2 <= ik_info_L1;
+					
+					forward_k_temp_L2 <= ik_x1_L1 -1;
+					forward_l_temp_L2 <= ik_x1_L1 -1 + ik_x2_L1;
+					forward_k_temp_L2_minus <= ik_x1_L1 -1 - 1;
+					forward_l_temp_L2_minus <= ik_x1_L1 -1 + ik_x2_L1 - 1;
 				end
 				
 				if (is_add_i) begin
@@ -504,6 +564,11 @@ module Datapath(
 				ik_x2_L2 <= ik_x2_L1;
 				ik_info_L2 <= ik_info_L1;
 				forward_i_L2 <= forward_i_L1;
+				
+				forward_k_temp_L2 <= ik_x1_L1 -1;
+				forward_l_temp_L2 <= ik_x1_L1 -1 + ik_x2_L1;
+				forward_k_temp_L2_minus <= ik_x1_L1 -1 - 1;
+				forward_l_temp_L2_minus <= ik_x1_L1 -1 + ik_x2_L1 - 1;
 			end
 			status_L2 <= status_L1;
 
@@ -519,110 +584,23 @@ module Datapath(
 		end
 	end // end always
 	
-	//----------------------------------------------------
-	//L3
-	
-	wire [63:0] forward_k_temp_L3 = ik_x1_L2 -1;
-	wire [63:0] forward_l_temp_L3 = forward_k_temp_L3 + ik_x2_L2; 
-	reg [63:0] forward_k_L3;
-    reg [63:0] forward_l_L3;
-	
-	reg [6:0] forward_i_L3;
-	reg [6:0] min_intv_L3;
-
-	
-	reg [5:0] status_L3;
-	reg [7:0] query_L3;//only send the current query into the pipeline
-	reg [6:0] ptr_curr_L3;// record the status of curr and mem queue
-	
-	reg [9:0] read_num_L3;
-	reg [63:0] ik_x0_L3, ik_x1_L3, ik_x2_L3, ik_info_L3;
-	wire is_k_minus = forward_k_temp_L3 >= primary;
-	wire is_l_minus = forward_l_temp_L3 >= primary;
-	
-	always@(posedge Clk_32UI) begin
-		if(!reset_BWT_extend) begin
-			status_L3 <= BUBBLE;
-			ret <= 0;
-			ret_valid <= 0;
-			ret_read_num <= 0;
-			curr_read_num_2 <= 0;
-			curr_we_2 <= 0;
-			curr_data_2 <= 0; 
-			curr_addr_2 <= 0;
-		end
-		else if(!stall) begin
-			if(status_L2 == F_break) begin
-				if(forward_i_L2 == Len) begin
-					curr_read_num_2 <= read_num_L2;
-					curr_we_2 <= 1;
-					curr_data_2 <= {ik_info_L2, ik_x2_L2, ik_x1_L2, ik_x0_L2}; 
-					curr_addr_2 <= ptr_curr_L2;
-					ptr_curr_L3 <= ptr_curr_L2 + 1;
-				end
-				else begin
-					curr_read_num_2 <= 0;
-					curr_we_2 <= 0;
-					curr_data_2 <= 0; 
-					curr_addr_2 <= 0;
-					ptr_curr_L3 <= ptr_curr_L2;
-				end
-						
-				ret <= ik_info_L2[31:0];
-				ret_valid <= 1;
-				ret_read_num <= read_num_L2;
-
-				status_L3 <= BCK_INI;
-			end
-			
-			else begin
-				curr_read_num_2 <= 0;
-				curr_we_2 <= 0;
-				curr_data_2 <= 0; 
-				curr_addr_2 <= 0;
-				ptr_curr_L3 <= ptr_curr_L2;
-				
-				ret <= 0;
-				ret_valid <= 0;
-				ret_read_num <= 0;
-				
-				status_L3 <= status_L2;
-			end
-			ptr_curr_L3 <= ptr_curr_L2;
-			
-			forward_i_L3 <= forward_i_L2;
-			min_intv_L3 <= min_intv_L2;
-
-
-			status_L3 <= status_L2;
-			//query_L3 <= query_L2;//no need
-
-			read_num_L3 <= read_num_L2;
-			ik_x0_L3 <= ik_x0_L2;
-			ik_x1_L3 <= ik_x1_L2;
-			ik_x2_L3 <= ik_x2_L2;
-			ik_info_L3 <= ik_info_L2;	
-			
-			//---------------------------------------------------------
-			// combine two functions into the same level
-			forward_k_L3 <= is_k_minus ? forward_k_temp_L3 -1 : forward_k_temp_L3;
-			forward_l_L3 <= is_l_minus ? forward_l_temp_L3 -1 : forward_l_temp_L3;
-    	end
-   	end //  end always
-	
 	//-----------------------------------------------------
-	//L4 end of forward pipeline, send out memory request
-	reg [5:0] status_L4;
+	//L3 end of forward pipeline, send out memory request
+	
+	wire is_k_minus = forward_k_temp_L2 >= primary;
+	wire is_l_minus = forward_l_temp_L2 >= primary;
+	wire [63:0] forward_k_L2 = is_k_minus ? forward_k_temp_L2_minus : forward_k_temp_L2;
+    wire [63:0] forward_l_L2 = is_l_minus ? forward_l_temp_L2_minus : forward_l_temp_L2;
 	
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
 			status_out <= BUBBLE;
 		end
 		else if(!stall) begin
-			if(status_L3 == F_init || status_L3 == F_run) begin //if break, no memory access and no next query
+			if(status_L2 == F_init || status_L2 == F_run) begin //if break, no memory access and no next query
 				DRAM_valid <= 1;
-				addr_k <= {forward_k_L3[34:7], 4'b0};
-				addr_l <= {forward_l_L3[34:7], 4'b0};
+				addr_k <= {forward_k_L2[34:7], 4'b0};
+				addr_l <= {forward_l_L2[34:7], 4'b0};
 			end
 			else begin
 				DRAM_valid <= 0;
@@ -636,23 +614,23 @@ module Datapath(
 			// end
 
 			
-			if (status_L3 == F_init) begin
+			if (status_L2 == F_init) begin
 				status_out <= F_run;
 			end
 			else begin
-				status_out <= status_L3;
+				status_out <= status_L2;
 			end
 			
 			
 
-			ptr_curr_out<= ptr_curr_L3; // record the status of curr and mem queue
-			read_num_out<= read_num_L3;
-			ik_x0_out<= ik_x0_L3; 
-			ik_x1_out<= ik_x1_L3; 
-			ik_x2_out<= ik_x2_L3; 
-			ik_info_out<= ik_info_L3;
-			forward_i_out <= forward_i_L3;
-			min_intv_out <= min_intv_L3;
+			ptr_curr_out<= ptr_curr_L2; // record the status of curr and mem queue
+			read_num_out<= read_num_L2;
+			ik_x0_out<= ik_x0_L2; 
+			ik_x1_out<= ik_x1_L2; 
+			ik_x2_out<= ik_x2_L2; 
+			ik_info_out<= ik_info_L2;
+			forward_i_out <= forward_i_L2;
+			min_intv_out <= min_intv_L2;
 		end
 	end
 

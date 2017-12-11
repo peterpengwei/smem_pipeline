@@ -73,8 +73,9 @@ module Queue(
 	parameter F_init = 0; // F_init will disable the forward pipeline
 	parameter F_run = 1;
 	parameter F_break = 2;
-	parameter B_init = 3;
-	parameter B_run = 4;
+	parameter BCK_INI = 6'h4;	//100
+	parameter BCK_RUN = 6'h5;	//101
+	parameter BCK_END = 6'h6;	//110
 	parameter BUBBLE = 6'b110000;
 	
 	reg [8:0] read_ptr_f;
@@ -208,7 +209,13 @@ module Queue(
 		end
 		else if (!stall) begin
 			if(next_status == F_break) begin
-				//
+				//just pop out the read, no memory response.
+				{ptr_curr_out, read_num_out, ik_x0_out, ik_x1_out, ik_x2_out, ik_info_out, forward_i_out,min_intv_out, query_out, status_out} <= RAM_forward[read_ptr_f];
+				read_ptr_f <= read_ptr_f + 1;
+			end
+			else if (next_status == BCK_INI) begin
+			
+			
 			
 			end
 			else if (memory_valid) begin // get memory responses, output old read

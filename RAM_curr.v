@@ -11,13 +11,6 @@ module RAM_curr_mem(
 	input [6:0] curr_addr_1,
 	output reg [255:0] curr_q_1,
 	
-	//curr queue, port B
-	input [9:0] curr_read_num_2,
-	input curr_we_2,
-	input [255:0] curr_data_2,
-	input [6:0] curr_addr_2,
-	output reg [255:0] curr_q_2,
-	
 	//--------------------------------
 	
 	// mem queue, port A
@@ -26,13 +19,6 @@ module RAM_curr_mem(
 	input [255:0] mem_data_1, //[important]sequence: [p_info, p_x2, p_x1, p_x0]
 	input [6:0] mem_addr_1,
 	output reg [255:0] mem_q_1,
-	
-	//mem queue, port B
-	input [9:0] mem_read_num_2,
-	input mem_we_2,
-	input [255:0] mem_data_2,
-	input [6:0] mem_addr_2,
-	output reg [255:0] mem_q_2,
 	
 	//---------------------------------
 	
@@ -78,16 +64,7 @@ module RAM_curr_mem(
 			{curr_q_1[230:224],curr_q_1[198:192],curr_q_1[160:128],curr_q_1[96: 64],curr_q_1[32: 0]} <= curr_queue[curr_read_num_1][curr_addr_1];
 			{curr_q_1[255:231],curr_q_1[223:199],curr_q_1[191:161],curr_q_1[127:97],curr_q_1[63:33]} <= 0;
 		end
-		
-		//port B
-		if(curr_we_2) begin
-			curr_queue[curr_read_num_2][curr_addr_2] <= {curr_data_2[230:224],curr_data_2[198:192],curr_data_2[160:128],curr_data_2[96:64],curr_data_2[32:0]};
-			curr_q_2 <= curr_data_2;
-		end
-		else begin
-			{curr_q_2[230:224],curr_q_2[198:192],curr_q_2[160:128],curr_q_2[96: 64],curr_q_2[32: 0]} <= curr_queue[curr_read_num_2][curr_addr_2];
-			{curr_q_2[255:231],curr_q_2[223:199],curr_q_2[191:161],curr_q_2[127:97],curr_q_2[63:33]} <= 0;
-		end
+
 	end
 	
 	//mem queue
@@ -100,16 +77,6 @@ module RAM_curr_mem(
 		else begin
 			{mem_q_1[230:224],mem_q_1[198:192],mem_q_1[160:128],mem_q_1[96:64],mem_q_1[32:0]} <= mem_queue[mem_read_num_1][mem_addr_1];
 			{mem_q_1[255:231],mem_q_1[223:199],mem_q_1[191:161],mem_q_1[127:97],mem_q_1[63:33]} <= 0;
-		end
-		
-		//port B
-		if(mem_we_2) begin
-			mem_queue[mem_read_num_2][mem_addr_2] <= {mem_data_2[230:224],mem_data_2[198:192],mem_data_2[160:128],mem_data_2[96:64],mem_data_2[32:0]};
-			mem_q_2 <= mem_data_2;
-		end
-		else begin
-			{mem_q_2[230:224],mem_q_2[198:192],mem_q_2[160:128],mem_q_2[96:64],mem_q_2[32:0]} <= mem_queue[mem_read_num_2][mem_addr_2];
-			{mem_q_2[255:231],mem_q_2[223:199],mem_q_2[191:161],mem_q_2[127:97],mem_q_2[63:33]} <= 0;
 		end
 	end
 	

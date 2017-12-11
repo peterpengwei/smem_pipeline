@@ -107,10 +107,10 @@ module Top(
 	wire  [255:0] curr_data_1;
 	wire  [6:0] curr_addr_1;
 	
-	wire  [9:0] curr_read_num_2;
-	wire  curr_we_2;
-	wire  [255:0] curr_data_2;
-	wire  [6:0] curr_addr_2;
+	// wire  [9:0] curr_read_num_2;
+	// wire  curr_we_2;
+	// wire  [255:0] curr_data_2;
+	// wire  [6:0] curr_addr_2;
 	
 	//-------------------------
 	
@@ -124,11 +124,11 @@ module Top(
 	wire [255:0] mem_q_1;
 	
 	//mem queue, port B
-	wire [9:0] mem_read_num_2;
-	wire mem_we_2;
-	wire [255:0] mem_data_2;
-	wire [6:0] mem_addr_2;
-	wire [255:0] mem_q_2;
+	// wire [9:0] mem_read_num_2;
+	// wire mem_we_2;
+	// wire [255:0] mem_data_2;
+	// wire [6:0] mem_addr_2;
+	// wire [255:0] mem_q_2;
 	
 	//---------------------------------
 	
@@ -215,10 +215,10 @@ module Top(
 		.curr_data_1(curr_data_1),
 		.curr_addr_1(curr_addr_1),	
 		
-		.curr_read_num_2(curr_read_num_2),
-		.curr_we_2(curr_we_2),
-		.curr_data_2(curr_data_2),
-		.curr_addr_2(curr_addr_2),
+		// .curr_read_num_2(curr_read_num_2),
+		// .curr_we_2(curr_we_2),
+		// .curr_data_2(curr_data_2),
+		// .curr_addr_2(curr_addr_2),
 		
 		.ret_valid(ret_valid),
 		.ret(ret),
@@ -298,11 +298,11 @@ module Top(
 		.curr_q_1(curr_q_1),
 		
 		//curr queue, port B
-		.curr_read_num_2(curr_read_num_2),
-		.curr_we_2(curr_we_2),
-		.curr_data_2(curr_data_2),
-		.curr_addr_2(curr_addr_2),
-		.curr_q_2(curr_q_2),
+		// .curr_read_num_2(curr_read_num_2),
+		// .curr_we_2(curr_we_2),
+		// .curr_data_2(curr_data_2),
+		// .curr_addr_2(curr_addr_2),
+		// .curr_q_2(curr_q_2),
 		
 		//--------------------------------
 		
@@ -314,11 +314,11 @@ module Top(
 		.mem_q_1(mem_q_1),
 		
 		//mem queue, port B
-		.mem_read_num_2(mem_read_num_2),
-		.mem_we_2(mem_we_2),
-		.mem_data_2(mem_data_2),
-		.mem_addr_2(mem_addr_2),
-		.mem_q_2(mem_q_2),
+		// .mem_read_num_2(mem_read_num_2),
+		// .mem_we_2(mem_we_2),
+		// .mem_data_2(mem_data_2),
+		// .mem_addr_2(mem_addr_2),
+		// .mem_q_2(mem_q_2),
 		
 		//---------------------------------
 		
