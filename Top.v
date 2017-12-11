@@ -286,7 +286,7 @@ module Top(
 	
 	RAM_curr_mem ram_curr_mem(
 		.reset_n(reset_n),
-		.clk(clk),
+		.clk(Clk_32UI),
 		.stall(stall),
 		.batch_size(batch_size),
 		

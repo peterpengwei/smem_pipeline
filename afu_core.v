@@ -44,9 +44,9 @@ module afu_core(
     input  wire                             csr_ctx_base_valid,
     input  wire [57:0]                      csr_ctx_base,
 
-	input reg [63:0]	dsm_base_addr,	
-	input reg [63:0] 						io_src_ptr,
-	input reg [63:0] 						io_dst_ptr
+	input  [63:0]	dsm_base_addr,	
+	input  [63:0] 						io_src_ptr,
+	input  [63:0] 						io_dst_ptr
 
 );
 	parameter IDLE = 0;
@@ -54,8 +54,17 @@ module afu_core(
 	parameter CHECK_POLLING = 2;
 	parameter LOAD_400M = 3;
 	parameter LOAD_200M = 4;
-	parameter LOAD_200M_Q = 5;
-	parameter RUN = 6;
+	parameter LOAD_200M_Q= 5;
+	parameter RUN_1 = 6;
+	parameter RUN_2 = 7;
+	parameter OUTPUT_1 = 8;
+	parameter OUTPUT_2 = 9;
+	parameter FENCE = 10;
+	parameter FINAL = 11;
+	
+	
+	parameter CL = 512;
+	parameter MAX_READ = 512;
 	
 	wire [57:0] hand_ptr = io_src_ptr + 50331648 + 16384 - 1;
 	wire [57:0] input_base = io_src_ptr + 50331648 + 16384;
@@ -73,8 +82,8 @@ module afu_core(
 	reg [11:0] load_ptr;
 	reg [11:0] RAM_400M_ptr;
 	reg [11:0] RAM_200M_ptr;
-	reg load_valid,
-	reg [511:0] load_data,
+	reg load_valid;
+	reg [511:0] load_data;
 	
 	reg batch_reset_n;
 	reg [CL-1:0] RAM_400M[MAX_READ-1:0];
@@ -85,7 +94,7 @@ module afu_core(
 	
 	wire FIFO_request_full, FIFO_response_full, FIFO_output_full;
 	wire FIFO_request_empty, FIFO_response_empty, FIFO_output_empty;
-	reg FIFO_request_rd_en;
+	wire FIFO_request_rd_en;
 	reg FIFO_output_rd_en;
 	
 	wire output_request_200M;
@@ -94,7 +103,16 @@ module afu_core(
 	wire [511:0] output_data_200M, output_data_400M;
 	wire output_valid_200M;
 	
+	reg [5:0] state_BWA;
+	reg debug1, debug2, debug3, debug4;
+	wire FIFO_request_valid;
+	
+	
 	// central controller && TX_RD
+	
+	//[important] for the control of FIFO_request
+	assign FIFO_request_rd_en = ((state_BWA == RUN_1) & (!FIFO_request_empty) & (!spl_tx_rd_almostfull));
+	
 	always@(posedge CLK_400M) begin
 		if(!reset_n) begin
 			
@@ -107,12 +125,19 @@ module afu_core(
 			batch_reset_n <= 0;
 			RAM_400M_ptr <= 0;
 			RAM_200M_ptr <= 0;
-			FIFO_request_rd_en <= 0;
+			//FIFO_request_rd_en <= 0;
 			FIFO_output_rd_en <= 0;
-			TX_RD_send_l <= 0;
 			addr_l_400M_reg <= 0;
 			addr_l_400M_valid<= 0;
 			output_permit <= 0;
+			
+			cor_tx_wr_valid <= 0;
+			cor_tx_dsr_valid <= 0;
+			cor_tx_fence_valid <= 0;
+			cor_tx_done_valid <= 0;
+			cor_tx_wr_addr <= 0; 
+			cor_tx_wr_len <= 0; 
+			cor_tx_data <= 0;
 			
 			output_addr <= 0;
 			
@@ -132,9 +157,7 @@ module afu_core(
 						batch_reset_n <= 0;
 						RAM_400M_ptr <= 0;
 						RAM_200M_ptr <= 0;
-						FIFO_request_rd_en <= 0;
 						FIFO_output_rd_en <= 0;
-						TX_RD_send_l <= 0;
 						addr_l_400M_reg <= 0;
 						addr_l_400M_valid<= 0;
 						output_permit <= 0;
@@ -190,8 +213,9 @@ module afu_core(
 				// LOAD 400M -----------------------
 				// load all reads into 400M fields
 				LOAD_400M : begin
-					if(!spl_tx_rd_almostfull) begin
-						if(load_ptr < CL_num) begin
+					
+					if(load_ptr < CL_num) begin	
+						if(!spl_tx_rd_almostfull) begin
 							cor_tx_rd_valid <= 1;
 							cor_tx_rd_addr <= input_base + load_ptr;
 							load_ptr <= load_ptr + 1;
@@ -201,26 +225,24 @@ module afu_core(
 							cor_tx_rd_valid <= 0;
 							cor_tx_rd_addr <= 0;
 							cor_tx_rd_len <= 0;
-							state_BWA <= LOAD_400M;
 						end
 					end
 					else begin
 						cor_tx_rd_valid <= 0;
 						cor_tx_rd_addr <= 0;
 						cor_tx_rd_len <= 0;
-						state_BWA <= LOAD_400M;					
+							
+						if(load_ptr == CL_num && RAM_400M_ptr == CL_num) begin
+							state_BWA <= LOAD_200M;
+						end
+						else begin
+							state_BWA <= LOAD_400M;
+						end
 					end
-				
+					
 					if(io_rx_rd_valid) begin
 						RAM_400M[RAM_400M_ptr] <= io_rx_data;
 						RAM_400M_ptr <= RAM_400M_ptr + 1;
-					end
-					
-					if(load_data == CL_num && RAM_400M_ptr == CL_num) begin
-						state_BWA <= LOAD_200M;
-					end
-					else begin
-						state_BWA <= LOAD_400M;
 					end
 				end
 				
@@ -250,13 +272,10 @@ module afu_core(
 				RUN_1: begin
 					if(!output_request_200M) begin
 						if(!FIFO_request_empty && !spl_tx_rd_almostfull)begin
-							FIFO_request_rd_en <= 1;
-						
+							// wire FIFO_request_rd_en <= 1;
 							state_BWA <= RUN_2;
 						end
-						else begin
-							FIFO_request_rd_en <= 0;
-						
+						else begin						
 							state_BWA <= RUN_1;
 						end
 						
@@ -291,17 +310,18 @@ module afu_core(
 					end
 				end
 				
-				RUN_2: begin
-					FIFO_request_rd_en <= 0;
-					
-					cor_tx_rd_valid <= 1;
-					cor_tx_rd_addr <= addr_k_400M;
-					cor_tx_rd_len <= 1;
+				RUN_2: begin					
+					if(FIFO_request_valid) begin
+						cor_tx_rd_valid <= 1;
+						cor_tx_rd_addr <= addr_k_400M;
+						cor_tx_rd_len <= 1;
 
-					addr_l_400M_reg <= addr_l_400M;
-					addr_l_400M_valid<= 1;
+						addr_l_400M_reg <= addr_l_400M;
+						addr_l_400M_valid<= 1;
+						
+						state_BWA <= RUN_1;
+					end
 					
-					state_BWA <= RUN_1;
 				end
 				
 				// OUTPUT -------------------------------
@@ -336,7 +356,7 @@ module afu_core(
 					if (~spl_tx_wr_almostfull) begin
                         cor_tx_wr_valid <= 1'b1;
                         cor_tx_fence_valid <= 1'b1;
-                        tx_wr_state <= FINAL;
+                        state_BWA <= FINAL;
 
                     end
 				end
@@ -349,7 +369,7 @@ module afu_core(
                         cor_tx_wr_addr <= hand_ptr;
                         cor_tx_data[511:480] <= 16;
                         cor_tx_data[479:0] <= 0;
-                        tx_wr_state <= IDLE;
+                        state_BWA <= IDLE;
                     end
 				end
 				
@@ -358,9 +378,22 @@ module afu_core(
 		end
 	end
 	
-	reg [511:0] CL_1, CL_2;
+	
+	
 	wire [511:0] CL_1_200M, CL_2_200M;
 	reg push_response_FIFO;
+	reg [5:0] state_RD_RX;
+	parameter RD_RX_IDLE = 0;
+	parameter RD_RX_RUN_1 = 1;
+	parameter RD_RX_RUN_2 = 2;
+	
+	//wire push_response_FIFO = (state_RD_RX == RD_RX_RUN_2) & io_rx_rd_valid;
+	
+	reg [511:0] CL_1;
+	reg [511:0] CL_2;
+	//wire [511:0] CL_2 = push_response_FIFO ? io_rx_data : 0;
+	
+
 	
 	//Controller for memory responses
 	always@(posedge CLK_400M) begin
@@ -444,8 +477,13 @@ module afu_core(
 		end
 	end
 	
+	
+	wire [31:0] addr_k, addr_l;
+	wire  DRAM_valid;
+	wire DRAM_get;
+	
 	// request FIFO
-	aFIFO #(.DATA_WIDTH(64), .ADDRESS_WIDTH(3)) FIFO_request(
+	aFIFO #(.DATA_WIDTH(64), .ADDRESS_WIDTH(4)) FIFO_request(
 		.Clear_in(!batch_reset_n),
 		
 		//200M
@@ -456,6 +494,7 @@ module afu_core(
 		
 		//400M
 		.Data_out({addr_k_400M,addr_l_400M}),
+		.Data_valid(FIFO_request_valid),
 		.ReadEn_in(FIFO_request_rd_en),
 		.Empty_out(FIFO_request_empty),
 		.RClk(CLK_400M)
@@ -473,13 +512,14 @@ module afu_core(
 		
 		//200M
 		.Data_out({CL_2_200M, CL_1_200M}),
+		.Data_valid(DRAM_get),
 		.ReadEn_in(!FIFO_response_empty), //[important] need testing
 		.Empty_out(FIFO_response_empty),
 		.RClk(CLK_200M)
 	);
 	
 	//output FIFO
-	aFIFO #(.DATA_WIDTH(), .ADDRESS_WIDTH(4)) FIFO_response(
+	aFIFO #(.DATA_WIDTH(512), .ADDRESS_WIDTH(4)) FIFO_output(
 		.Clear_in(!batch_reset_n),
 		
 		//200M
@@ -511,7 +551,7 @@ module afu_core(
 		.DRAM_valid(DRAM_valid),
 		.addr_k(addr_k), .addr_l(addr_l),
 		
-		.DRAM_get(!FIFO_response_empty), //[important] need testing
+		.DRAM_get(DRAM_get), //[important] need testing
 		.cnt_a0 (CL_1_200M[31:0]),		.cnt_a1 (CL_1_200M[95:64]),		.cnt_a2 (CL_1_200M[159:128]),	.cnt_a3 (CL_1_200M[223:192]),
 		.cnt_b0 (CL_1_200M[319:256]),	.cnt_b1 (CL_1_200M[383:320]),	.cnt_b2 (CL_1_200M[447:384]),	.cnt_b3 (CL_1_200M[511:448]),
 		.cntl_a0(CL_2_200M[31:0]),		.cntl_a1(CL_2_200M[95:64]),		.cntl_a2(CL_2_200M[159:128]),	.cntl_a3(CL_2_200M[223:192]),
@@ -551,6 +591,7 @@ module aFIFO
                  FIFO_DEPTH    = (1 << ADDRESS_WIDTH))
      //Reading port
     (output reg  [DATA_WIDTH-1:0]        Data_out, 
+	 output reg  						 Data_valid,
      output reg                          Empty_out,
      input wire                          ReadEn_in,
      input wire                          RClk,        
@@ -575,10 +616,15 @@ module aFIFO
     //Data ports logic:
     //(Uses a dual-port RAM).
     //'Data_out' logic:
-    always @ (posedge RClk) 
-        if (ReadEn_in & !Empty_out)
+    always @ (posedge RClk) begin
+        if (ReadEn_in & !Empty_out) begin
             Data_out <= Mem[pNextWordToRead];
-
+			Data_valid <= 1;
+		end
+		else begin
+			Data_valid <= 0;
+		end
+	end
 			//'Data_in' logic:
     always @ (posedge WClk)
         if (WriteEn_in & !Full_out)

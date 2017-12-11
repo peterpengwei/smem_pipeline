@@ -77,8 +77,8 @@ module Queue(
 	parameter B_run = 4;
 	parameter BUBBLE = 6'b110000;
 	
-	reg [9:0] read_ptr_f;
-	reg [9:0] write_ptr_f;
+	reg [8:0] read_ptr_f;
+	reg [8:0] write_ptr_f;
 	
 	reg [5:0] status_L0;
 	reg [6:0] ptr_curr_L0; // record the status of curr and mem queue
@@ -107,7 +107,7 @@ module Queue(
 	// 3 stage pipe to wait for the delay of retrieving query
 	//------------------------------------------------
 	
-	assign query_position_2RAM = forward_i+1;
+	assign query_position_2RAM = forward_i;
 	assign query_read_num_2RAM = read_num;
 	assign query_status_2RAM = status;
 	
@@ -180,8 +180,9 @@ module Queue(
 	
 	//circular queue for memory responses.
 	reg [767:0] RAM_memory[31:0];
-	reg [5:0] read_ptr_m;
-	reg [5:0] write_ptr_m;
+	reg [4:0] read_ptr_m; //[important] for FIFO, the extension of ptr should be equal to that of RAM
+	reg [4:0] write_ptr_m;
+	
 	wire memory_valid = (write_ptr_m != read_ptr_m);
 	
 	always@(posedge Clk_32UI) begin
@@ -265,7 +266,7 @@ module Queue(
                 ik_x1_out <= new_ik_x1; //from RAM
                 ik_x2_out <= new_ik_x2; //from RAM
                 ik_info_out <= new_ik_info; //from RAM
-                forward_i_out <= new_forward_i; // from RAM
+                forward_i_out <= new_forward_i + 1; // from RAM
                 min_intv_out <= 1; 
                 query_out <= 0; // !!!!the first round doesn't need query
                 
