@@ -85,7 +85,7 @@ module Queue(
 	output reg [63:0] ik_x2_new_q,
 	output reg [6:0] backward_x_q, // x
 	output reg [7:0] backward_c_q, // next bp
-
+	output reg forward_all_done,
 	output reg [6:0] forward_size_n_q, //foward curr array size	
 	
 	// circular provide
@@ -341,7 +341,7 @@ module Queue(
 					forward_i_L2, min_intv_L2, new_read_query_2Queue, backward_x_L2,
 					status_L2
 				  };
-		b_data <= {	forward_size_n_B_L2, read_num_B_L2, min_intv_B_L2, new_size_B_L2, 
+		b_data <= {	new_read_query_2Queue, forward_size_n_B_L2, read_num_B_L2, min_intv_B_L2, new_size_B_L2, 
 					new_last_size_B_L2, primary_B_L2, current_rd_addr_B_L2, current_wr_addr_B_L2, mem_wr_addr_B_L2,
 					backward_i_B_L2, backward_j_B_L2, iteration_boundary_B_L2,
 					p_x0_B_L2[32:0], p_x1_B_L2[32:0], p_x2_B_L2[32:0], p_info_B_L2[38:32], p_info_B_L2[6:0],
@@ -419,6 +419,8 @@ module Queue(
 				ik_info_out[31:7] <= 0;
 				
 				read_ptr_f <= read_ptr_f + 1;
+				
+				forward_all_done <= 0;
 			end
 			
 			//////////////////////////////////////////
@@ -437,7 +439,8 @@ module Queue(
 
 				
 				read_ptr_f <= read_ptr_f + 1;
-			
+				
+				forward_all_done <= 1;
 			end
 			///////////////////////////////////////////
 			
@@ -453,9 +456,10 @@ module Queue(
 						ik_info_out[63:39] <= 0;
 						ik_info_out[31:7] <= 0;
 						
+						forward_all_done <= 0;
 					end
 					else if (next_status == BCK_RUN) begin
-						{	forward_size_n_q, read_num_q, min_intv_q, new_size_q, 
+						{	backward_c_q, forward_size_n_q, read_num_q, min_intv_q, new_size_q, 
 							new_last_size_q, primary_q, current_rd_addr_q, current_wr_addr_q, mem_wr_addr_q,
 							backward_i_q, backward_j_q, iteration_boundary_q,
 							p_x0_q[32:0], p_x1_q[32:0], p_x2_q[32:0], p_info_q[38:32], p_info_q[6:0],
@@ -474,6 +478,7 @@ module Queue(
 						k_q[63:33] <= 0;
 						l_q[63:33] <= 0;
 						
+						forward_all_done <= 1;
 					end
 					
 					{cnt_a0_out,cnt_a1_out,cnt_a2_out,cnt_a3_out,cnt_b0_out,cnt_b1_out,cnt_b2_out,cnt_b3_out, cntl_a0_out,cntl_a1_out,cntl_a2_out,cntl_a3_out,cntl_b0_out,cntl_b1_out,cntl_b2_out,cntl_b3_out} <= RAM_memory[read_ptr_m];
@@ -554,6 +559,8 @@ module Queue(
 				cntl_b3_out <= 64'h1111_1111_1111_1111;
 				
 				read_ptr_f <= read_ptr_f;
+				
+				forward_all_done <= 0;
 			end
 			else begin // no memory responses and no more reads
 				// new_read <= 0;
