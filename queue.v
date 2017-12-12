@@ -59,6 +59,7 @@ module Queue(
 	//======================================================================
 	
 	//Backward Pipelie -> Queue
+	//[important] should stay unchanged during stall condition
 	input [6:0] forward_size_n_B,	
 	input [8:0] read_num_B,
 	input [6:0] min_intv_B,
@@ -128,7 +129,7 @@ module Queue(
 	input [7:0] new_read_query_2Queue
 );
 
-	parameter WIDTH = 308 + 100; //[important] be careful not to exceed the width
+	parameter WIDTH = 308 + 50; //[important] be careful not to exceed the width
 	parameter DEPTH = 384;
 	
 	parameter F_init = 0; // F_init will disable the forward pipeline
@@ -374,9 +375,12 @@ module Queue(
 	end
 	
 	//circular queue for memory responses.
-	reg [767:0] RAM_memory[31:0];
-	reg [4:0] read_ptr_m; //[important] for FIFO, the extension of ptr should be equal to that of RAM
-	reg [4:0] write_ptr_m;
+	parameter Memory_Buffer_Depth_log = 5;
+	parameter Memory_Buffer_Depth = 32;
+	
+	reg [767:0] RAM_memory[Memory_Buffer_Depth - 1:0];
+	reg [Memory_Buffer_Depth_log - 1:0] read_ptr_m; //[important] for FIFO, the extension of ptr should be equal to that of RAM
+	reg [Memory_Buffer_Depth_log - 1:0] write_ptr_m;
 	
 	wire memory_valid = (write_ptr_m != read_ptr_m);
 	
@@ -392,6 +396,7 @@ module Queue(
 		end
 	end
 	
+	//[important] whether to fetch new read
 	assign new_read = (load_done) & new_read_valid & (!memory_valid) & (!stall);
 	wire [5:0] next_status = RAM_forward[read_ptr_f][5:0];
 	
@@ -415,26 +420,65 @@ module Queue(
 				
 				read_ptr_f <= read_ptr_f + 1;
 			end
+			
+			//////////////////////////////////////////
 			else if (next_status == BCK_INI) begin
 				//provide initial value to backward datapath
-			
+				//no memory response
+				//only _q ports are meaningful
+				{forward_size_n_q, read_num_out, 
+				ik_x0_new_q[32:0], ik_x1_new_q[32:0], ik_x2_new_q[32:0], ik_info_out[38:32], ik_info_L2[6:0], 
+				forward_i_out,min_intv_out, query_out, backward_x_q,
+				status_out} <= RAM_forward[read_ptr_f];
+				
+				ik_x0_new_q[63:33] <= 0;
+				ik_x1_new_q[63:33] <= 0;
+				ik_x2_new_q[63:33] <= 0;
+
+				
+				read_ptr_f <= read_ptr_f + 1;
 			
 			end
+			///////////////////////////////////////////
+			
 			else if (memory_valid) begin // get memory responses, output old read
 				if(read_ptr_f != write_ptr_f) begin
-					{ptr_curr_out, read_num_out, ik_x0_out[32:0], ik_x1_out[32:0], ik_x2_out[32:0], ik_info_out[38:32], ik_info_L2[6:0], 
-					forward_i_out,min_intv_out, query_out, backward_x_out,
-					status_out} <= RAM_forward[read_ptr_f];
-					ik_x0_out[63:33] <= 0;
-					ik_x1_out[63:33] <= 0;
-					ik_x2_out[63:33] <= 0;
-					ik_info_out[63:39] <= 0;
-					ik_info_out[31:7] <= 0;
+					if(next_status == F_run) begin
+						{ptr_curr_out, read_num_out, ik_x0_out[32:0], ik_x1_out[32:0], ik_x2_out[32:0], ik_info_out[38:32], ik_info_L2[6:0], 
+						forward_i_out,min_intv_out, query_out, backward_x_out,
+						status_out} <= RAM_forward[read_ptr_f];
+						ik_x0_out[63:33] <= 0;
+						ik_x1_out[63:33] <= 0;
+						ik_x2_out[63:33] <= 0;
+						ik_info_out[63:39] <= 0;
+						ik_info_out[31:7] <= 0;
+						
+					end
+					else if (next_status == BCK_RUN) begin
+						{	forward_size_n_q, read_num_q, min_intv_q, new_size_q, 
+							new_last_size_q, primary_q, current_rd_addr_q, current_wr_addr_q, mem_wr_addr_q,
+							backward_i_q, backward_j_q, iteration_boundary_q,
+							p_x0_q[32:0], p_x1_q[32:0], p_x2_q[32:0], p_info_q[38:32], p_info_q[6:0],
+							last_token_x2_q[32:0], last_mem_info_q[6:0], k_q[32:0], l_q[32:0],
+							status_q
+						} <= RAM_forward[read_ptr_f];
+						
+						p_x0_q[63:33] <= 0;
+						p_x1_q[63:33] <= 0;
+						p_x2_q[63:33] <= 0;
+						p_info_q[63:39] <= 0;
+						p_info_q[31:7] <= 0;
+						
+						last_token_x2_q[63:33] <= 0;
+						last_mem_info_q[31:7] <= 0;
+						k_q[63:33] <= 0;
+						l_q[63:33] <= 0;
+						
+					end
 					
 					{cnt_a0_out,cnt_a1_out,cnt_a2_out,cnt_a3_out,cnt_b0_out,cnt_b1_out,cnt_b2_out,cnt_b3_out, cntl_a0_out,cntl_a1_out,cntl_a2_out,cntl_a3_out,cntl_b0_out,cntl_b1_out,cntl_b2_out,cntl_b3_out} <= RAM_memory[read_ptr_m];
 					read_ptr_f <= read_ptr_f + 1;
 					read_ptr_m <= read_ptr_m + 1;
-
 				end
 				else begin //impossible to happen
 					
