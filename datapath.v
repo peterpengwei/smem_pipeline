@@ -22,6 +22,7 @@ module Datapath(
 	input [63:0] ik_x0, ik_x1, ik_x2, ik_info,
 	input [6:0] forward_i,
 	input [6:0] min_intv,
+	input [6:0] backward_x,
 	
 	output reg [5:0] status_out,
 	output reg [6:0] ptr_curr_out, // record the status of curr and mem queue
@@ -29,6 +30,7 @@ module Datapath(
 	output reg [63:0] ik_x0_out, ik_x1_out, ik_x2_out, ik_info_out,
 	output reg [6:0] forward_i_out,
 	output reg [6:0] min_intv_out,
+	output reg [6:0] backward_x_out,
 	
 	output reg [6:0] next_query_position,
 	//----------------------------
@@ -44,7 +46,7 @@ module Datapath(
 	// output reg [6:0] curr_addr_2,
 	
 	output reg ret_valid,
-	output reg [31:0] ret,
+	output reg [6:0] ret,
 	output reg [9:0] ret_read_num
 	
 	
@@ -74,6 +76,7 @@ module Datapath(
 	reg [63:0] cntl_b0_L0,cntl_b1_L0,cntl_b2_L0,cntl_b3_L0;
 	
 	reg [6:0] forward_i_L0;
+	reg [6:0] backward_x_L0;
 	reg [6:0] min_intv_L0;
 
 	
@@ -132,7 +135,7 @@ module Datapath(
 
 			forward_i_L0 <= forward_i;
 			min_intv_L0 <= min_intv;
-
+			backward_x_L0 <= backward_x;
 
 			status_L0 <= status;
 			query_L0 <= query;//only send the current query into the pipeline
@@ -155,7 +158,7 @@ module Datapath(
 	
 	wire [6:0] forward_i_L00;
 	wire [6:0] min_intv_L00;
-
+	wire [6:0] backward_x_L00;
 	
 	wire [5:0] status_L00;
 	wire [7:0] query_L00;//only send the current query into the pipeline
@@ -204,7 +207,7 @@ module Datapath(
 		
 		.forward_i_L0 (forward_i_L0),
 		.min_intv_L0 (min_intv_L0),
-
+		.backward_x_L0(backward_x_L0),
 
 		.status_L0 (status_L0),
 		.query_L0 (query_L0),//only send the current query into the pipeline
@@ -220,7 +223,7 @@ module Datapath(
 		
 		.forward_i_pipe (forward_i_L00),
 		.min_intv_pipe (min_intv_L00),
-
+		.backward_x_pipe(backward_x_L00),
 
 		.status_pipe (status_L00),
 		.query_pipe (query_L00),//only send the current query into the pipeline
@@ -245,7 +248,7 @@ module Datapath(
 	
 	reg [6:0] forward_i_L1;
 	reg [6:0] min_intv_L1;
-
+	reg [6:0] backward_x_L1;
 	
 	reg [5:0] status_L1;
 	reg [7:0] query_L1;//only send the current query into the pipeline
@@ -421,7 +424,7 @@ module Datapath(
 					ptr_curr_L1 <= ptr_curr_L00;
 				end
 				
-				ret <= ik_info_L00[31:0];
+				ret <= ik_info_L00[6:0];
 				ret_valid <= 1;
 				ret_read_num <= read_num_L00;
 				
@@ -452,7 +455,8 @@ module Datapath(
 			
 			forward_i_L1 <= forward_i_L00;
 			min_intv_L1 <= min_intv_L00;
-
+			backward_x_L1 <= backward_x_L00;
+			
 			query_L1 <= query_L00;//only send the current query into the pipeline
 			read_num_L1 <= read_num_L00;
 			ik_x0_L1 <= ik_x0_L00;
@@ -469,7 +473,7 @@ module Datapath(
     
     reg [6:0] forward_i_L2;
     reg [6:0] min_intv_L2;
-
+	reg [6:0] backward_x_L2;
     
     reg [5:0] status_L2;
     reg [7:0] query_L2;//only send the current query into the pipeline
@@ -575,7 +579,7 @@ module Datapath(
 			status_L2 <= status_L1;
 
 			min_intv_L2 <= min_intv_L1;
-
+			backward_x_L2 <= backward_x_L1;
 
 			status_L2 <= status_L1;
 			//query_L2 <= query_L1; //no need to use query anymore
@@ -633,6 +637,7 @@ module Datapath(
 			ik_info_out<= ik_info_L2;
 			forward_i_out <= forward_i_L2;
 			min_intv_out <= min_intv_L2;
+			backward_x_out <= backward_x_L2;
 			
 			next_query_position <= forward_i_L2;
 		end
@@ -665,7 +670,7 @@ module Pipe_BWT_extend(
 		
 		input [6:0] forward_i_L0,
 		input [6:0] min_intv_L0,
-
+		input [6:0] backward_x_L0,
 
 		input [5:0] status_L0,
 		input [7:0] query_L0,//only send the current query into the pipeline
@@ -679,7 +684,7 @@ module Pipe_BWT_extend(
 		
 		output reg [6:0] forward_i_pipe,
 		output reg [6:0] min_intv_pipe,
-
+		output reg [6:0] backward_x_pipe,
 
 		output reg [5:0] status_pipe,
 		output reg [7:0] query_pipe,//only send the current query into the pipeline
@@ -694,7 +699,7 @@ module Pipe_BWT_extend(
 	
 	reg [6:0] forward_i_L1;
 	reg [6:0] min_intv_L1;
-
+	reg [6:0] backward_x_L1;
 	
 	reg [5:0] status_L1;
 	reg [7:0] query_L1;//only send the current query into the pipeline
@@ -708,7 +713,7 @@ module Pipe_BWT_extend(
 	
 	reg [6:0] forward_i_L2;
 	reg [6:0] min_intv_L2;
-
+	reg [6:0] backward_x_L2;
 	
 	reg [5:0] status_L2;
 	reg [7:0] query_L2;//only send the current query into the pipeline
@@ -722,7 +727,7 @@ module Pipe_BWT_extend(
 	
 	reg [6:0] forward_i_L3;
 	reg [6:0] min_intv_L3;
-
+	reg [6:0] backward_x_L3;
 	
 	reg [5:0] status_L3;
 	reg [7:0] query_L3;//only send the current query into the pipeline
@@ -736,7 +741,7 @@ module Pipe_BWT_extend(
 	
 	reg [6:0] forward_i_L4;
 	reg [6:0] min_intv_L4;
-
+	reg [6:0] backward_x_L4;
 	
 	reg [5:0] status_L4;
 	reg [7:0] query_L4;//only send the current query into the pipeline
@@ -750,7 +755,7 @@ module Pipe_BWT_extend(
 	
 	reg [6:0] forward_i_L5;
 	reg [6:0] min_intv_L5;
-
+	reg [6:0] backward_x_L5;
 	
 	reg [5:0] status_L5;
 	reg [7:0] query_L5;//only send the current query into the pipeline
@@ -764,7 +769,7 @@ module Pipe_BWT_extend(
 	
 	reg [6:0] forward_i_L6;
 	reg [6:0] min_intv_L6;
-
+	reg [6:0] backward_x_L6;
 	
 	reg [5:0] status_L6;
 	reg [7:0] query_L6;//only send the current query into the pipeline
@@ -778,7 +783,7 @@ module Pipe_BWT_extend(
 	
 	reg [6:0] forward_i_L7;
 	reg [6:0] min_intv_L7;
-
+	reg [6:0] backward_x_L7;
 	
 	reg [5:0] status_L7;
 	reg [7:0] query_L7;//only send the current query into the pipeline
@@ -792,7 +797,7 @@ module Pipe_BWT_extend(
 	
 	reg [6:0] forward_i_L8;
 	reg [6:0] min_intv_L8;
-
+	reg [6:0] backward_x_L8;
 	
 	reg [5:0] status_L8;
 	reg [7:0] query_L8;//only send the current query into the pipeline
@@ -806,7 +811,7 @@ module Pipe_BWT_extend(
 	
 	reg [6:0] forward_i_L9;
 	reg [6:0] min_intv_L9;
-
+	reg [6:0] backward_x_L9;
 	
 	reg [5:0] status_L9;
 	reg [7:0] query_L9;//only send the current query into the pipeline
@@ -820,7 +825,7 @@ module Pipe_BWT_extend(
 	
 	reg [6:0] forward_i_L10;
 	reg [6:0] min_intv_L10;
-
+	reg [6:0] backward_x_L10;
 	
 	reg [5:0] status_L10;
 	reg [7:0] query_L10;//only send the current query into the pipeline
@@ -834,7 +839,7 @@ module Pipe_BWT_extend(
 	
 	reg [6:0] forward_i_L11;
 	reg [6:0] min_intv_L11;
-
+	reg [6:0] backward_x_L11;
 	
 	reg [5:0] status_L11;
 	reg [7:0] query_L11;//only send the current query into the pipeline
@@ -854,7 +859,7 @@ module Pipe_BWT_extend(
 		else if(!stall) begin
 			forward_i_L1 <= forward_i_L0;
 			min_intv_L1 <= min_intv_L0;
-
+			backward_x_L1 <= backward_x_L0;
 
 			status_L1 <= status_L0;
 			query_L1 <= query_L0;//only send the current query into the pipeline
@@ -876,7 +881,7 @@ module Pipe_BWT_extend(
 		else if(!stall) begin
 			forward_i_L2 <= forward_i_L1;
 			min_intv_L2 <= min_intv_L1;
-
+			backward_x_L2 <= backward_x_L1;
 
 			status_L2 <= status_L1;
 			query_L2 <= query_L1;//only send the current query into the pipeline
@@ -898,7 +903,7 @@ module Pipe_BWT_extend(
 		else if(!stall) begin
 			forward_i_L3 <= forward_i_L2;
 			min_intv_L3 <= min_intv_L2;
-
+			backward_x_L3 <= backward_x_L2;
 
 			status_L3 <= status_L2;
 			query_L3 <= query_L2;//only send the current query into the pipeline
@@ -920,7 +925,7 @@ module Pipe_BWT_extend(
 		else if(!stall) begin
 			forward_i_L4 <= forward_i_L3;
 			min_intv_L4 <= min_intv_L3;
-
+			backward_x_L4 <= backward_x_L3;
 
 			status_L4 <= status_L3;
 			query_L4 <= query_L3;//only send the current query into the pipeline
@@ -942,7 +947,7 @@ module Pipe_BWT_extend(
 		else if(!stall) begin
 			forward_i_L5 <= forward_i_L4;
 			min_intv_L5 <= min_intv_L4;
-
+			backward_x_L5 <= backward_x_L4;
 
 			status_L5 <= status_L4;
 			query_L5 <= query_L4;//only send the current query into the pipeline
@@ -964,7 +969,7 @@ module Pipe_BWT_extend(
 		else if(!stall) begin
 			forward_i_L6 <= forward_i_L5;
 			min_intv_L6 <= min_intv_L5;
-
+			backward_x_L6 <= backward_x_L5;
 
 			status_L6 <= status_L5;
 			query_L6 <= query_L5;//only send the current query into the pipeline
@@ -986,7 +991,7 @@ module Pipe_BWT_extend(
 		else if(!stall) begin	
 			forward_i_L7 <= forward_i_L6;
 			min_intv_L7 <= min_intv_L6;
-
+			backward_x_L7 <= backward_x_L6;
 
 			status_L7 <= status_L6;
 			query_L7 <= query_L6;//only send the current query into the pipeline
@@ -1008,7 +1013,7 @@ module Pipe_BWT_extend(
 		else if(!stall) begin
 			forward_i_L8 <= forward_i_L7;
 			min_intv_L8 <= min_intv_L7;
-
+			backward_x_L8 <= backward_x_L7;
 
 			status_L8 <= status_L7;
 			query_L8 <= query_L7;//only send the current query into the pipeline
@@ -1030,7 +1035,7 @@ module Pipe_BWT_extend(
 		else if(!stall) begin
 			forward_i_L9 <= forward_i_L8;
 			min_intv_L9 <= min_intv_L8;
-
+			backward_x_L9 <= backward_x_L8;
 
 			status_L9 <= status_L8;
 			query_L9 <= query_L8;//only send the current query into the pipeline
@@ -1052,7 +1057,7 @@ module Pipe_BWT_extend(
 		else if(!stall) begin
 			forward_i_L10 <= forward_i_L9;
 			min_intv_L10 <= min_intv_L9;
-
+			backward_x_L10 <= backward_x_L9;
 
 			status_L10 <= status_L9;
 			query_L10 <= query_L9;//only send the current query into the pipeline
@@ -1074,7 +1079,7 @@ module Pipe_BWT_extend(
 		else if(!stall) begin
 			forward_i_L11 <= forward_i_L10;
 			min_intv_L11 <= min_intv_L10;
-
+			backward_x_L11 <= backward_x_L10;
 
 			status_L11 <= status_L10;
 			query_L11 <= query_L10;//only send the current query into the pipeline
@@ -1096,7 +1101,7 @@ module Pipe_BWT_extend(
 		else if(!stall) begin
 			forward_i_pipe <= forward_i_L11;
 			min_intv_pipe <= min_intv_L11;
-
+			backward_x_pipe <= backward_x_L11;
 
 			status_pipe <= status_L11;
 			query_pipe <= query_L11;//only send the current query into the pipeline

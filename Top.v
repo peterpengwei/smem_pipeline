@@ -60,6 +60,7 @@ module Top(
 	wire [63:0] ik_x0, ik_x1, ik_x2, ik_info;
 	wire [6:0] forward_i;
 	wire [6:0] min_intv;
+	wire [6:0] backward_x;
 	
 	//from pipeline to queue
 	wire [5:0] status_out;
@@ -69,6 +70,7 @@ module Top(
 	wire [63:0] ik_x0_out, ik_x1_out, ik_x2_out, ik_info_out;
 	wire [6:0] forward_i_out;
 	wire [6:0] min_intv_out;
+	wire [6:0] backward_x_out;
 	
 	wire [6:0] next_query_position;
 	
@@ -101,7 +103,7 @@ module Top(
 	
 	//---------------------
 	wire ret_valid;
-	wire [31:0] ret;
+	wire [6:0] ret;
 	wire [9:0] ret_read_num;
 	
 	wire  [9:0] curr_read_num_1;
@@ -202,6 +204,7 @@ module Top(
 		.ik_x0(ik_x0), .ik_x1(ik_x1), .ik_x2(ik_x2), .ik_info(ik_info),
 		.forward_i(forward_i),
 		.min_intv(min_intv),
+		.backward_x(backward_x),
 		
 		//to queue
 		.status_out(status_out),
@@ -210,6 +213,7 @@ module Top(
 		.ik_x0_out(ik_x0_out), .ik_x1_out(ik_x1_out), .ik_x2_out(ik_x2_out), .ik_info_out(ik_info_out),
 		.forward_i_out(forward_i_out),
 		.min_intv_out(min_intv_out),
+		.backward_x_out(backward_x_out),
 		
 		.next_query_position(next_query_position),
 		
@@ -251,6 +255,7 @@ module Top(
 		.ik_x0(ik_x0_out), .ik_x1(ik_x1_out), .ik_x2(ik_x2_out), .ik_info(ik_info_out),
 		.forward_i(forward_i_out),
 		.min_intv(min_intv_out),
+		.backward_x(backward_x_out),
 		
 		.next_query_position(next_query_position),
 		
@@ -261,6 +266,7 @@ module Top(
 		.ik_x0_out(ik_x0), .ik_x1_out(ik_x1), .ik_x2_out(ik_x2), .ik_info_out(ik_info),
 		.forward_i_out(forward_i),
 		.min_intv_out(min_intv),
+		.backward_x_out(backward_x),
 		.query_out(query),
 		
 		.cnt_a0_out           (cnt_a0_out),		.cnt_a1_out           (cnt_a1_out),

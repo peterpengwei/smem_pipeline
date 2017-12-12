@@ -33,7 +33,7 @@ module RAM_curr_mem(
 	
 	//ret
 	input ret_valid,
-	input[31:0] ret,
+	input [6:0] ret,
 	input [9:0] ret_read_num,
 	
 	//---------------------------------
@@ -55,7 +55,7 @@ module RAM_curr_mem(
 	reg [112:0] curr_queue [511:0][100:0];
 	reg [112:0] mem_queue  [511:0][100:0];
 	reg [6:0] mem_size_queue[511:0]; //mem_size = 7bits;
-	reg [31:0] ret_queue[511:0] ; //ret = 32 bits;
+	reg [6:0] ret_queue[511:0] ; //ret = 7 bits;
 	
 	//curr queue
 	always@(posedge clk) begin
@@ -144,7 +144,7 @@ module RAM_curr_mem(
 						output_data[63:10]   <= 0;
 						output_data[70:64]   <= mem_size_queue[output_result_ptr];
 						output_data[127:71]  <= 0;
-						output_data[159:128] <= ret_queue[output_result_ptr];
+						output_data[159:128] <= {25'b0, ret_queue[output_result_ptr]};
 						output_data[511:160] <= 0;
 						group_start <= 0;
 						curr_size <= mem_size_queue[output_result_ptr];
