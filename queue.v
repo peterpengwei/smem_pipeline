@@ -15,7 +15,7 @@
 
 //==========================
 
-
+`define READ_NUM_WIDTH 8 
 module Queue(
 	input Clk_32UI,
 	input reset_n,
@@ -37,7 +37,7 @@ module Queue(
 	//Forward Pipeline -> Queue
 	input [5:0] status,
 	input [6:0] ptr_curr, // record the status of curr and mem queue
-	input [9:0] read_num,
+	input [`READ_NUM_WIDTH - 1 :0] read_num,
 	input [63:0] ik_x0, ik_x1, ik_x2, ik_info,
 	input [6:0] forward_i,
 	input [6:0] min_intv,
@@ -49,7 +49,7 @@ module Queue(
 	//Queue -> Forward Pipeline
 	output reg [5:0] status_out,
 	output reg [6:0] ptr_curr_out, // record the status of curr and mem queue
-	output reg [9:0] read_num_out,
+	output reg [`READ_NUM_WIDTH - 1 :0] read_num_out,
 	output reg [63:0] ik_x0_out, ik_x1_out, ik_x2_out, ik_info_out,
 	output reg [6:0] forward_i_out,
 	output reg [6:0] min_intv_out,
@@ -61,7 +61,7 @@ module Queue(
 	//Backward Pipelie -> Queue
 	//[important] should stay unchanged during stall condition
 	input [6:0] forward_size_n_B,	
-	input [8:0] read_num_B,
+	input [`READ_NUM_WIDTH - 1 :0] read_num_B,
 	input [6:0] min_intv_B,
 	input [5:0] status_B,
 	input [6:0] new_size_B,
@@ -89,7 +89,7 @@ module Queue(
 	output reg [6:0] forward_size_n_q, //foward curr array size	
 	
 	// circular provide
-	output reg [8:0] read_num_q,
+	output reg [`READ_NUM_WIDTH - 1 :0] read_num_q,
 	output reg [6:0] min_intv_q,	//
 	output reg [5:0] status_q,
 	output reg [6:0] new_size_q,
@@ -118,13 +118,13 @@ module Queue(
 	input new_read_valid,
 	input load_done,
 	
-	input [9:0] new_read_num, //should be prepared before hand. every time new_read is set, next_read_num should be updated.
+	input [`READ_NUM_WIDTH - 1 :0] new_read_num, //should be prepared before hand. every time new_read is set, next_read_num should be updated.
 	input [63:0] new_ik_x0, new_ik_x1, new_ik_x2, new_ik_info,
 	input [6:0] new_forward_i,
 	
 	//fetch new query at the start of queue
-	output [7:0] query_position_2RAM,
-	output [9:0] query_read_num_2RAM,
+	output [6:0] query_position_2RAM,
+	output [`READ_NUM_WIDTH - 1 :0] query_read_num_2RAM,
 	output [5:0] query_status_2RAM,
 	input [7:0] new_read_query_2Queue
 );
@@ -146,7 +146,7 @@ module Queue(
 	
 	reg [5:0] status_L0;
 	reg [6:0] ptr_curr_L0; // record the status of curr and mem queue
-	reg [9:0] read_num_L0;
+	reg [`READ_NUM_WIDTH - 1 :0] read_num_L0;
 	reg [63:0] ik_x0_L0, ik_x1_L0, ik_x2_L0, ik_info_L0;
 	reg [6:0] forward_i_L0;
 	reg [6:0] min_intv_L0;
@@ -154,7 +154,7 @@ module Queue(
 	
 	reg [5:0] status_L1;
 	reg [6:0] ptr_curr_L1; // record the status of curr and mem queue
-	reg [9:0] read_num_L1;
+	reg [`READ_NUM_WIDTH - 1 :0] read_num_L1;
 	reg [63:0] ik_x0_L1, ik_x1_L1, ik_x2_L1, ik_info_L1;
 	reg [6:0] forward_i_L1;
 	reg [6:0] min_intv_L1;
@@ -162,14 +162,14 @@ module Queue(
 	
 	reg [5:0] status_L2;
 	reg [6:0] ptr_curr_L2; // record the status of curr and mem queue
-	reg [9:0] read_num_L2;
+	reg [`READ_NUM_WIDTH - 1 :0] read_num_L2;
 	reg [63:0] ik_x0_L2, ik_x1_L2, ik_x2_L2, ik_info_L2;
 	reg [6:0] forward_i_L2;
 	reg [6:0] min_intv_L2;
 	reg [6:0] backward_x_L2;
 	
 	reg [6:0] forward_size_n_B_L0;	
-	reg [8:0] read_num_B_L0;
+	reg [`READ_NUM_WIDTH - 1 :0] read_num_B_L0;
 	reg [6:0] min_intv_B_L0;
 	// reg [5:0] status_B_L0;
 	reg [6:0] new_size_B_L0;
@@ -185,7 +185,7 @@ module Queue(
 	reg [63:0] backward_k_B_L0,backward_l_B_L0; // backward_k == k, backward_l==l;
 	
 	reg [6:0] forward_size_n_B_L1;	
-	reg [8:0] read_num_B_L1;
+	reg [`READ_NUM_WIDTH - 1 :0] read_num_B_L1;
 	reg [6:0] min_intv_B_L1;
 	// reg [5:0] status_B_L1;
 	reg [6:0] new_size_B_L1;
@@ -201,7 +201,7 @@ module Queue(
 	reg [63:0] backward_k_B_L1, backward_l_B_L1; // backward_k == k, backward_l==l;
 	
 	reg [6:0] forward_size_n_B_L2;	//7	
-	reg [8:0] read_num_B_L2;		//9
+	reg [`READ_NUM_WIDTH - 1 :0] read_num_B_L2;		//9
 	reg [6:0] min_intv_B_L2;		//7
 	// reg [5:0] status_B_L2;		//6
 	reg [6:0] new_size_B_L2;		//7
@@ -408,8 +408,10 @@ module Queue(
 		end
 		else if (!stall) begin
 			if(next_status == F_break) begin
-				//just pop out the read, no memory response.
-				{ptr_curr_out, read_num_out, ik_x0_out[32:0], ik_x1_out[32:0], ik_x2_out[32:0], ik_info_out[38:32], ik_info_L2[6:0], 
+				//[important] pop out without memory response
+				
+				//======== forward ports =============
+				{ptr_curr_out, read_num_out, ik_x0_out[32:0], ik_x1_out[32:0], ik_x2_out[32:0], ik_info_out[38:32], ik_info_out[6:0], 
 				forward_i_out,min_intv_out, query_out, backward_x_out,
 				status_out} <= RAM_forward[read_ptr_f];
 				ik_x0_out[63:33] <= 0;
@@ -418,29 +420,81 @@ module Queue(
 				ik_info_out[63:39] <= 0;
 				ik_info_out[31:7] <= 0;
 				
+				//=====================================
+				
 				read_ptr_f <= read_ptr_f + 1;
 				
+				//======== backward ports =============
+				ik_x0_new_q <= 0;
+				ik_x1_new_q <= 0;
+				ik_x2_new_q <= 0;
+				backward_x_q <= 0; // x
+				backward_c_q <= 0; // next bp
 				forward_all_done <= 0;
+				forward_size_n_q <= 0; //foward curr array size	
+				read_num_q <= 0;
+				min_intv_q <= 0;	//
+				status_q <= BUBBLE;
+				new_size_q <= 0;
+				new_last_size_q <= 0;
+				primary_q <= 0;
+				current_rd_addr_q <= 0;
+				current_wr_addr_q <= 0;
+				mem_wr_addr_q <= 0;
+				backward_i_q <= 0; 
+				backward_j_q <= 0;
+				iteration_boundary_q <= 0;
+				p_x0_q <= 0; // same as ik in forward datapath <= 0; store the p_x0 value into queue
+				p_x1_q <= 0;
+				p_x2_q <= 0;
+				p_info_q <= 0;
+				last_token_x2_q <= 0; //pushed to queue
+				last_mem_info_q <= 0;
+				k_q <= 0;
+				l_q <= 0;
+				//=====================================
 			end
 			
-			//////////////////////////////////////////
 			else if (next_status == BCK_INI) begin
+				//[important] pop out without memory response
+				
+				//======== forward ports =============
+				status_out <= BUBBLE;
+				ptr_curr_out <= 7'b111_1111;
+				read_num_out <= 10'b11_1111_1111; 
+				ik_x0_out <= 64'h1111_1111_1111_1111; 
+				ik_x1_out <= 64'h1111_1111_1111_1111;  
+				ik_x2_out <= 64'h1111_1111_1111_1111;  
+				//ik_info_out <= 64'h1111_1111_1111_1111; 
+				//forward_i_out <= 7'b111_1111;
+				//min_intv_out <= 7'b111_1111; 
+				//query_out <= 8'b1111_1111; 
+				
+				backward_x_out <= 7'b111_1111;
+				//=====================================
+						
+				//======== backward initial ===========
 				//provide initial value to backward datapath
-				//no memory response
-				//only _q ports are meaningful
-				{forward_size_n_q, read_num_out, 
-				ik_x0_new_q[32:0], ik_x1_new_q[32:0], ik_x2_new_q[32:0], ik_info_out[38:32], ik_info_L2[6:0], 
-				forward_i_out,min_intv_out, query_out, backward_x_q,
-				status_out} <= RAM_forward[read_ptr_f];
+				//only _q ports are meaningful, others are placeholder
+				{	forward_size_n_q, read_num_q, 
+					ik_x0_new_q[32:0], ik_x1_new_q[32:0], ik_x2_new_q[32:0], 
+					ik_info_out[38:32], ik_info_out[6:0], forward_i_out,min_intv_out, query_out,  //place holder
+					backward_x_q, status_q
+				} <= RAM_forward[read_ptr_f];
 				
 				ik_x0_new_q[63:33] <= 0;
 				ik_x1_new_q[63:33] <= 0;
 				ik_x2_new_q[63:33] <= 0;
-
+				
+				min_intv_q <= 1;
 				
 				read_ptr_f <= read_ptr_f + 1;
 				
 				forward_all_done <= 1;
+				
+				//other ports left random
+				
+				//======================================
 			end
 			///////////////////////////////////////////
 			
@@ -456,9 +510,53 @@ module Queue(
 						ik_info_out[63:39] <= 0;
 						ik_info_out[31:7] <= 0;
 						
+						//======== backward ports =============
+						ik_x0_new_q <= 0;
+						ik_x1_new_q <= 0;
+						ik_x2_new_q <= 0;
+						backward_x_q <= 0; // x
+						backward_c_q <= 0; // next bp
 						forward_all_done <= 0;
+						forward_size_n_q <= 0; //foward curr array size	
+						read_num_q <= 0;
+						min_intv_q <= 0;	//
+						status_q <= BUBBLE;
+						new_size_q <= 0;
+						new_last_size_q <= 0;
+						primary_q <= 0;
+						current_rd_addr_q <= 0;
+						current_wr_addr_q <= 0;
+						mem_wr_addr_q <= 0;
+						backward_i_q <= 0; 
+						backward_j_q <= 0;
+						iteration_boundary_q <= 0;
+						p_x0_q <= 0; // same as ik in forward datapath <= 0; store the p_x0 value into queue
+						p_x1_q <= 0;
+						p_x2_q <= 0;
+						p_info_q <= 0;
+						last_token_x2_q <= 0; //pushed to queue
+						last_mem_info_q <= 0;
+						k_q <= 0;
+						l_q <= 0;
+						//=====================================
 					end
 					else if (next_status == BCK_RUN) begin
+						//=========== forward ports ==============
+						status_out <= BUBBLE;
+						ptr_curr_out <= 7'b111_1111;
+						read_num_out <= 10'b11_1111_1111; 
+						ik_x0_out <= 64'h1111_1111_1111_1111; 
+						ik_x1_out <= 64'h1111_1111_1111_1111;  
+						ik_x2_out <= 64'h1111_1111_1111_1111;  
+						ik_info_out <= 64'h1111_1111_1111_1111; 
+						forward_i_out <= 7'b111_1111;
+						min_intv_out <= 7'b111_1111; 
+						query_out <= 8'b1111_1111; 
+						
+						backward_x_out <= 7'b111_1111;
+						//==========================================
+						
+						//=========== backward ports ===============
 						{	backward_c_q, forward_size_n_q, read_num_q, min_intv_q, new_size_q, 
 							new_last_size_q, primary_q, current_rd_addr_q, current_wr_addr_q, mem_wr_addr_q,
 							backward_i_q, backward_j_q, iteration_boundary_q,
@@ -479,6 +577,7 @@ module Queue(
 						l_q[63:33] <= 0;
 						
 						forward_all_done <= 1;
+						//==========================================
 					end
 					
 					{cnt_a0_out,cnt_a1_out,cnt_a2_out,cnt_a3_out,cnt_b0_out,cnt_b1_out,cnt_b2_out,cnt_b3_out, cntl_a0_out,cntl_a1_out,cntl_a2_out,cntl_a3_out,cntl_b0_out,cntl_b1_out,cntl_b2_out,cntl_b3_out} <= RAM_memory[read_ptr_m];
@@ -520,12 +619,40 @@ module Queue(
 					cntl_b3_out <= 64'h1111_1111_1111_1111;
                     
 					read_ptr_f <= read_ptr_f;
+					
+					ik_x0_new_q <= 0;
+					ik_x1_new_q <= 0;
+					ik_x2_new_q <= 0;
+					backward_x_q <= 0; // x
+					backward_c_q <= 0; // next bp
+					forward_all_done <= 0;
+					forward_size_n_q <= 0; //foward curr array size	
+					read_num_q <= 0;
+					min_intv_q <= 0;	//
+					status_q <= BUBBLE;
+					new_size_q <= 0;
+					new_last_size_q <= 0;
+					primary_q <= 0;
+					current_rd_addr_q <= 0;
+					current_wr_addr_q <= 0;
+					mem_wr_addr_q <= 0;
+					backward_i_q <= 0; 
+					backward_j_q <= 0;
+					iteration_boundary_q <= 0;
+					p_x0_q <= 0; // same as ik in forward datapath <= 0; store the p_x0 value into queue
+					p_x1_q <= 0;
+					p_x2_q <= 0;
+					p_info_q <= 0;
+					last_token_x2_q <= 0; //pushed to queue
+					last_mem_info_q <= 0;
+					k_q <= 0;
+					l_q <= 0;
 				end
 			end
 			
 			
 			else if (new_read_valid) begin // no memory response, fetch new read
-				// new_read <= 1;
+
 				//-------------------
                 status_out <= F_init;
                 ptr_curr_out <= 0;
@@ -560,7 +687,33 @@ module Queue(
 				
 				read_ptr_f <= read_ptr_f;
 				
+				ik_x0_new_q <= 0;
+				ik_x1_new_q <= 0;
+				ik_x2_new_q <= 0;
+				backward_x_q <= 0; // x
+				backward_c_q <= 0; // next bp
 				forward_all_done <= 0;
+				forward_size_n_q <= 0; //foward curr array size	
+				read_num_q <= 0;
+				min_intv_q <= 0;	//
+				status_q <= BUBBLE;
+				new_size_q <= 0;
+				new_last_size_q <= 0;
+				primary_q <= 0;
+				current_rd_addr_q <= 0;
+				current_wr_addr_q <= 0;
+				mem_wr_addr_q <= 0;
+				backward_i_q <= 0; 
+				backward_j_q <= 0;
+				iteration_boundary_q <= 0;
+				p_x0_q <= 0; // same as ik in forward datapath <= 0; store the p_x0 value into queue
+				p_x1_q <= 0;
+				p_x2_q <= 0;
+				p_info_q <= 0;
+				last_token_x2_q <= 0; //pushed to queue
+				last_mem_info_q <= 0;
+				k_q <= 0;
+				l_q <= 0;
 			end
 			else begin // no memory responses and no more reads
 				// new_read <= 0;
@@ -597,7 +750,33 @@ module Queue(
 				
 				read_ptr_f <= read_ptr_f;
 			
-			
+				ik_x0_new_q <= 0;
+				ik_x1_new_q <= 0;
+				ik_x2_new_q <= 0;
+				backward_x_q <= 0; // x
+				backward_c_q <= 0; // next bp
+				forward_all_done <= 0;
+				forward_size_n_q <= 0; //foward curr array size	
+				read_num_q <= 0;
+				min_intv_q <= 0;	//
+				status_q <= BUBBLE;
+				new_size_q <= 0;
+				new_last_size_q <= 0;
+				primary_q <= 0;
+				current_rd_addr_q <= 0;
+				current_wr_addr_q <= 0;
+				mem_wr_addr_q <= 0;
+				backward_i_q <= 0; 
+				backward_j_q <= 0;
+				iteration_boundary_q <= 0;
+				p_x0_q <= 0; // same as ik in forward datapath <= 0; store the p_x0 value into queue
+				p_x1_q <= 0;
+				p_x2_q <= 0;
+				p_info_q <= 0;
+				last_token_x2_q <= 0; //pushed to queue
+				last_mem_info_q <= 0;
+				k_q <= 0;
+				l_q <= 0;
 			end
 		end
 	end	

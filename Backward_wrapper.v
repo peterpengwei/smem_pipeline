@@ -79,12 +79,12 @@ module Backward_wrapper(
 	
 	output [8:0] mem_read_num_1,
 	output mem_we_1,
-	output mem_data_1,
+	output [255:0] mem_data_1,
 	output [6:0] mem_addr_1,
 	
 	output [8:0] curr_read_num_1,
 	output curr_we_1,
-	output curr_data_1,
+	output [255:0] curr_data_1,
 	output [6:0] curr_addr_1,
 
 	//================================================
@@ -95,7 +95,7 @@ module Backward_wrapper(
 	//outputing finish_sign+read_num+mem_size to another module
 	output finish_sign, //read_num on line 88
 	output [6:0] mem_size,
-	output [6:0] mem_size_read_num //[licheng add]
+	output [8:0] mem_size_read_num //[licheng add]
 	
 	
 );

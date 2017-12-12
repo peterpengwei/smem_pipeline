@@ -1,3 +1,6 @@
+
+`define READ_NUM_WIDTH 8 
+`define MAX_READ 256
 module RAM_read(
 	input reset_n,
 	input clk,
@@ -12,14 +15,14 @@ module RAM_read(
 	// part 2: provide new read to pipeline
 	input new_read, //indicate RAM to update new_read
 	output reg new_read_valid,
-	output [8:0] new_read_num, //equal to read_num
+	output [`READ_NUM_WIDTH - 1:0] new_read_num, //equal to read_num
 	output [63:0] new_ik_x0, new_ik_x1, new_ik_x2, new_ik_info,
 	output [6:0] new_forward_i, //[important] forward_i points to the position already processed
 	
 	//part 3: provide new query to queue
 	input [5:0] status_query,
 	input [6:0] query_position,
-	input [8:0] query_read_num,
+	input [`READ_NUM_WIDTH - 1:0] query_read_num,
 	output reg [7:0] new_read_query,
 	
 	//part 4: provide primary,  L2
@@ -37,12 +40,12 @@ module RAM_read(
 	parameter DONE = 6'b100000;
 	
 	parameter CL = 512;
-	parameter MAX_READ = 512;
 	
-	reg [CL - 1:0] RAM_read_1[MAX_READ - 1:0];
-	reg [CL - 1:0] RAM_read_2[MAX_READ - 1:0];
-	reg [CL - 1:0] RAM_param[MAX_READ - 1:0];
-	reg [CL - 1:0] RAM_ik[MAX_READ - 1:0];
+	
+	reg [CL - 1:0] RAM_read_1[`MAX_READ - 1:0];
+	reg [CL - 1:0] RAM_read_2[`MAX_READ - 1:0];
+	reg [CL - 1:0] RAM_param[`MAX_READ - 1:0];
+	reg [CL - 1:0] RAM_ik[`MAX_READ - 1:0];
 	
 	reg [8:0] curr_position;	
 	reg [1:0] arbiter;

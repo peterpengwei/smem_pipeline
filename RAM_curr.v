@@ -1,3 +1,7 @@
+
+`define READ_NUM_WIDTH 8 
+`define MAX_READ 256
+
 module RAM_curr_mem(
 	input reset_n,
 	input clk,
@@ -5,20 +9,20 @@ module RAM_curr_mem(
 	input [8:0] batch_size,
 	
 	// curr queue, port A
-	input [9:0] curr_read_num_1,
+	input [`READ_NUM_WIDTH - 1:0] curr_read_num_1,
 	input curr_we_1,
 	input [255:0] curr_data_1, //[important]sequence: [ik_info, ik_x2, ik_x1, ik_x0]
 	input [6:0] curr_addr_1,
 	
 	//read port B
-	input [9:0] curr_read_num_2,
+	input [`READ_NUM_WIDTH - 1:0] curr_read_num_2,
 	input [6:0] curr_addr_2,
 	output reg [255:0] curr_q_2,
 	
 	//--------------------------------
 	
 	// mem queue, port A
-	input [9:0] mem_read_num_1,
+	input [`READ_NUM_WIDTH - 1:0] mem_read_num_1,
 	input mem_we_1,
 	input [255:0] mem_data_1, //[important]sequence: [p_info, p_x2, p_x1, p_x0]
 	input [6:0] mem_addr_1,
@@ -29,12 +33,12 @@ module RAM_curr_mem(
 	//mem size
 	input mem_size_valid,
 	input[6:0] mem_size,
-	input[9:0] mem_size_read_num,
+	input[`READ_NUM_WIDTH - 1:0] mem_size_read_num,
 	
 	//ret
 	input ret_valid,
 	input [6:0] ret,
-	input [9:0] ret_read_num,
+	input [`READ_NUM_WIDTH - 1:0] ret_read_num,
 	
 	//---------------------------------
 	
@@ -52,10 +56,10 @@ module RAM_curr_mem(
 	//33+33+33+14 = 113 bits
 	
 	//512 reads * 2 queue/read * 101 slots / queue * 113 bits/slots = 1.7M
-	reg [112:0] curr_queue [511:0][100:0];
-	reg [112:0] mem_queue  [511:0][100:0];
-	reg [6:0] mem_size_queue[511:0]; //mem_size = 7bits;
-	reg [6:0] ret_queue[511:0] ; //ret = 7 bits;
+	reg [112:0] curr_queue [`MAX_READ - 1:0][100:0];
+	reg [112:0] mem_queue  [`MAX_READ - 1:0][100:0];
+	reg [6:0] mem_size_queue[`MAX_READ - 1:0]; //mem_size = 7bits;
+	reg [6:0] ret_queue[`MAX_READ - 1:0] ; //ret = 7 bits;
 	
 	//curr queue
 	always@(posedge clk) begin
@@ -120,8 +124,8 @@ module RAM_curr_mem(
 	
 	reg [8:0] output_result_ptr;
 	reg [6:0] output_mem_ptr;
-	reg [6:0] curr_size;
-	reg [6:0] already_output_num;
+	reg [6:0] curr_size;//mem size, not read size
+	reg [6:0] already_output_num; //mem number, not read number
 	reg group_start; //indicate the initial of a read's data
 	
 	always@(posedge clk) begin

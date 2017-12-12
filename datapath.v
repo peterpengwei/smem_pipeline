@@ -1,3 +1,5 @@
+
+`define READ_NUM_WIDTH 8 
 module Datapath(
 	// input of BWT_extend
 	input Clk_32UI,
@@ -18,7 +20,7 @@ module Datapath(
 	input [5:0] status,
 	input [7:0] query, //only send the current query into the pipeline
 	input [6:0] ptr_curr, // record the status of curr and mem queue
-	input [9:0] read_num,
+	input [`READ_NUM_WIDTH - 1:0] read_num,
 	input [63:0] ik_x0, ik_x1, ik_x2, ik_info,
 	input [6:0] forward_i,
 	input [6:0] min_intv,
@@ -26,7 +28,7 @@ module Datapath(
 	
 	output reg [5:0] status_out,
 	output reg [6:0] ptr_curr_out, // record the status of curr and mem queue
-	output reg [9:0] read_num_out,
+	output reg [`READ_NUM_WIDTH - 1:0] read_num_out,
 	output reg [63:0] ik_x0_out, ik_x1_out, ik_x2_out, ik_info_out,
 	output reg [6:0] forward_i_out,
 	output reg [6:0] min_intv_out,
@@ -35,7 +37,7 @@ module Datapath(
 	output reg [6:0] next_query_position,
 	//----------------------------
 	
-	output reg [9:0] curr_read_num_1,
+	output reg [`READ_NUM_WIDTH - 1:0] curr_read_num_1,
 	output reg curr_we_1,
 	output reg [255:0] curr_data_1,
 	output reg [6:0] curr_addr_1,	
@@ -47,7 +49,7 @@ module Datapath(
 	
 	output reg ret_valid,
 	output reg [6:0] ret,
-	output reg [9:0] ret_read_num
+	output reg [`READ_NUM_WIDTH - 1:0] ret_read_num
 	
 	
 );
@@ -85,7 +87,7 @@ module Datapath(
 	reg [6:0] ptr_curr_L0;// record the status of curr and mem queue
 
 	
-	reg [9:0] read_num_L0;
+	reg [`READ_NUM_WIDTH - 1:0] read_num_L0;
 	reg [63:0] ik_x0_L0, ik_x1_L0, ik_x2_L0, ik_info_L0;
 	
 	always@(posedge Clk_32UI) begin
@@ -165,7 +167,7 @@ module Datapath(
 	wire [6:0] ptr_curr_L00;// record the status of curr and mem queue
 
 	
-	wire [9:0] read_num_L00;
+	wire [`READ_NUM_WIDTH - 1:0] read_num_L00;
 	wire [63:0] ik_x0_L00, ik_x1_L00, ik_x2_L00, ik_info_L00;
 	
 	BWT_extend BWT_ext_U0(
@@ -255,7 +257,7 @@ module Datapath(
 	reg [6:0] ptr_curr_L1;// record the status of curr and mem queue
 
 	
-	reg [9:0] read_num_L1;
+	reg [`READ_NUM_WIDTH - 1:0] read_num_L1;
 	reg [63:0] ik_x0_L1, ik_x1_L1, ik_x2_L1, ik_info_L1;
 
 	
@@ -480,7 +482,7 @@ module Datapath(
     reg [6:0] ptr_curr_L2;// record the status of curr and mem queue
 
     
-    reg [9:0] read_num_L2;
+    reg [`READ_NUM_WIDTH - 1:0] read_num_L2;
     reg [63:0] ik_x0_L2, ik_x1_L2, ik_x2_L2, ik_info_L2;
 	
 	reg [63:0] forward_k_temp_L2;
@@ -677,7 +679,7 @@ module Pipe_BWT_extend(
 		input [6:0] ptr_curr_L0,// record the status of curr and mem queue
 
 
-		input [9:0] read_num_L0,
+		input [`READ_NUM_WIDTH - 1:0] read_num_L0,
 		input [63:0] ik_x0_L0, ik_x1_L0, ik_x2_L0, ik_info_L0,
 	
 		//----------------------
@@ -691,7 +693,7 @@ module Pipe_BWT_extend(
 		output reg [6:0] ptr_curr_pipe,// record the status of curr and mem queue
 
 
-		output reg [9:0] read_num_pipe,
+		output reg [`READ_NUM_WIDTH - 1:0] read_num_pipe,
 		output reg [63:0] ik_x0_pipe, ik_x1_pipe, ik_x2_pipe, ik_info_pipe
 
 	);
@@ -706,7 +708,7 @@ module Pipe_BWT_extend(
 	reg [6:0] ptr_curr_L1;// record the status of curr and mem queue
 
 	
-	reg [9:0] read_num_L1;
+	reg [`READ_NUM_WIDTH - 1:0] read_num_L1;
 	reg [63:0] ik_x0_L1, ik_x1_L1, ik_x2_L1, ik_info_L1;
 
 		//----------------------
@@ -720,7 +722,7 @@ module Pipe_BWT_extend(
 	reg [6:0] ptr_curr_L2;// record the status of curr and mem queue
 
 	
-	reg [9:0] read_num_L2;
+	reg [`READ_NUM_WIDTH - 1:0] read_num_L2;
 	reg [63:0] ik_x0_L2, ik_x1_L2, ik_x2_L2, ik_info_L2;
 
 		//----------------------
@@ -734,7 +736,7 @@ module Pipe_BWT_extend(
 	reg [6:0] ptr_curr_L3;// record the status of curr and mem queue
 
 	
-	reg [9:0] read_num_L3;
+	reg [`READ_NUM_WIDTH - 1:0] read_num_L3;
 	reg [63:0] ik_x0_L3, ik_x1_L3, ik_x2_L3, ik_info_L3;
 
 		//----------------------
@@ -748,7 +750,7 @@ module Pipe_BWT_extend(
 	reg [6:0] ptr_curr_L4;// record the status of curr and mem queue
 
 	
-	reg [9:0] read_num_L4;
+	reg [`READ_NUM_WIDTH - 1:0] read_num_L4;
 	reg [63:0] ik_x0_L4, ik_x1_L4, ik_x2_L4, ik_info_L4;
 
 		//----------------------
@@ -762,7 +764,7 @@ module Pipe_BWT_extend(
 	reg [6:0] ptr_curr_L5;// record the status of curr and mem queue
 
 	
-	reg [9:0] read_num_L5;
+	reg [`READ_NUM_WIDTH - 1:0] read_num_L5;
 	reg [63:0] ik_x0_L5, ik_x1_L5, ik_x2_L5, ik_info_L5;
 
 		//----------------------
@@ -776,7 +778,7 @@ module Pipe_BWT_extend(
 	reg [6:0] ptr_curr_L6;// record the status of curr and mem queue
 
 	
-	reg [9:0] read_num_L6;
+	reg [`READ_NUM_WIDTH - 1:0] read_num_L6;
 	reg [63:0] ik_x0_L6, ik_x1_L6, ik_x2_L6, ik_info_L6;
 
 		//----------------------
@@ -790,7 +792,7 @@ module Pipe_BWT_extend(
 	reg [6:0] ptr_curr_L7;// record the status of curr and mem queue
 
 	
-	reg [9:0] read_num_L7;
+	reg [`READ_NUM_WIDTH - 1:0] read_num_L7;
 	reg [63:0] ik_x0_L7, ik_x1_L7, ik_x2_L7, ik_info_L7;
 
 		//----------------------
@@ -804,7 +806,7 @@ module Pipe_BWT_extend(
 	reg [6:0] ptr_curr_L8;// record the status of curr and mem queue
 
 	
-	reg [9:0] read_num_L8;
+	reg [`READ_NUM_WIDTH - 1:0] read_num_L8;
 	reg [63:0] ik_x0_L8, ik_x1_L8, ik_x2_L8, ik_info_L8;
 
 		//----------------------
@@ -818,7 +820,7 @@ module Pipe_BWT_extend(
 	reg [6:0] ptr_curr_L9;// record the status of curr and mem queue
 
 	
-	reg [9:0] read_num_L9;
+	reg [`READ_NUM_WIDTH - 1:0] read_num_L9;
 	reg [63:0] ik_x0_L9, ik_x1_L9, ik_x2_L9, ik_info_L9;
 
 		//----------------------
@@ -832,7 +834,7 @@ module Pipe_BWT_extend(
 	reg [6:0] ptr_curr_L10;// record the status of curr and mem queue
 
 	
-	reg [9:0] read_num_L10;
+	reg [`READ_NUM_WIDTH - 1:0] read_num_L10;
 	reg [63:0] ik_x0_L10, ik_x1_L10, ik_x2_L10, ik_info_L10;
 
 		//----------------------
@@ -846,7 +848,7 @@ module Pipe_BWT_extend(
 	reg [6:0] ptr_curr_L11;// record the status of curr and mem queue
 
 	
-	reg [9:0] read_num_L11;
+	reg [`READ_NUM_WIDTH - 1:0] read_num_L11;
 	reg [63:0] ik_x0_L11, ik_x1_L11, ik_x2_L11, ik_info_L11;
 	
 	

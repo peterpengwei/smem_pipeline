@@ -583,8 +583,6 @@ endmodule
 //            Xilinx website. It has some minor modifications.
 //=========================================
 
-`timescale 1ns/1ps
-
 module aFIFO
   #(parameter    DATA_WIDTH    = 65,
                  ADDRESS_WIDTH = 2,
@@ -696,8 +694,6 @@ endmodule
 // Coder    : Alex Claros F.
 // Date     : 15/May/2005.
 //=======================================
-
-`timescale 1ns/1ps
 
 module GrayCounter
    #(parameter   COUNTER_WIDTH = 4)
