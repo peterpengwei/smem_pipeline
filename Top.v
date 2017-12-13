@@ -45,7 +45,12 @@ module Top(
 	
 	output [511:0] output_data,
 	output output_valid,
-	output output_finish 
+	output output_finish,
+	
+	//----------------------------
+	//for test
+	output [6:0] backward_i_q_test,
+	output [6:0] backward_j_q_test
 	
 );
 	
@@ -582,5 +587,8 @@ module Top(
 
 	);
 	
+	
+	assign backward_i_q_test = backward_i_q;
+    assign backward_j_q_test = backward_j_q;
 	
 endmodule

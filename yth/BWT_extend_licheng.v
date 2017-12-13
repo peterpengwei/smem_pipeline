@@ -336,8 +336,12 @@ reg[6:0] backward_x_L12;
 	assign output_c = output_c_L12;
 	assign min_intv = min_intv_L12;
 	assign iteration_boundary = iteration_boundary_L12;
-	assign last_mem_info = reserved_mem_info;
-	assign last_token_x2 = reserved_token_x2;
+	//assign last_mem_info = reserved_mem_info;
+	//assign last_token_x2 = reserved_token_x2;
+	//[licheng] licheng is dying debugging this code.
+	assign last_mem_info = last_mem_info_L12;
+	assign last_token_x2 = last_token_x2_L12;
+	
 	assign p_x0 = p_x0_L12;
 	assign p_x1 = p_x1_L12;
 	assign p_x2 = p_x2_L12;

@@ -48,7 +48,29 @@ module sim_afu_core();
 	reg  [63:0] 						io_src_ptr;
 	reg  [63:0] 						io_dst_ptr;
 	
+	//==========================
+	//for test
+	wire [6:0] backward_i_q_test; 
+	wire [6:0] backward_j_q_test;
+	
+	//==========================
+	
 	initial forever #`PER_HH CLK_400M=!CLK_400M;
+	
+	always@(posedge CLK_400M)begin
+	   if(cor_tx_rd_valid) begin
+			
+			$display("%h",cor_tx_rd_addr);
+	   end
+	end
+	
+	always@(*) $display("i = %h, j = %h\t",backward_i_q_test, backward_j_q_test);
+	
+//	always@(*) begin
+//	   if(io_rx_rd_valid)
+//	       $display("%h", io_rx_data);
+	
+//	end
 	
 	initial begin
 		CLK_400M = 1;
@@ -128,7 +150,7 @@ module sim_afu_core();
 		io_rx_rd_valid = 0;
 		
 		#300;
-
+        $display("%d",cor_tx_rd_valid);
 		io_rx_rd_valid = 1; io_rx_data = 512'hc810c0030e0a8ec60220434000ca20e204c83c988f01c00c003c80018a042c8000000000182fb5f0000000001608a04a000000001a8f72c7000000002332667f;#`PER_H;
 		io_rx_rd_valid = 1; io_rx_data = 512'he8eccedcbecc0fbbe9cc8af1f5809048dfd7bb5fdefe5df6f5c3bffe3ffffe69000000002e38563c00000000265dfe18000000002e1ed23000000000362ca1fc;#`PER_H;
 		io_rx_rd_valid = 0; #200;;#`PER_H;
@@ -690,7 +712,10 @@ module sim_afu_core();
 
 	.dsm_base_addr(dsm_base_addr),	
 	.io_src_ptr(io_src_ptr),
-	.io_dst_ptr(io_dst_ptr)
+	.io_dst_ptr(io_dst_ptr),
+	
+	.backward_i_q_test(backward_i_q_test), 
+	.backward_j_q_test(backward_j_q_test)
 
 );
 

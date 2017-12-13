@@ -46,7 +46,11 @@ module afu_core(
 
 	input  [63:0]	dsm_base_addr,	
 	input  [63:0] 						io_src_ptr,
-	input  [63:0] 						io_dst_ptr
+	input  [63:0] 						io_dst_ptr,
+	
+	//for test
+	output [6:0] backward_i_q_test,
+	output [6:0] backward_j_q_test
 
 );
 	parameter IDLE = 0;
@@ -562,7 +566,10 @@ module afu_core(
 		
 		.output_data(output_data_200M),
 		.output_valid(output_valid_200M),
-		.output_finish (output_finish_200M)
+		.output_finish (output_finish_200M),
+		
+		.backward_i_q_test(backward_i_q_test), 
+		.backward_j_q_test(backward_j_q_test)
 		
 	);
 	
