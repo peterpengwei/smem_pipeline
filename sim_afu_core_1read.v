@@ -176,7 +176,7 @@ module sim_afu_core();
 		io_rx_rd_valid = 0; #200;;#`PER_H;
 		io_rx_rd_valid = 1; io_rx_data = 512'hffcfff339f18f4505790b14613177af671f52c7b2b7710fe53976bf78f3f4cbd0000000054568f6f0000000040436eb1000000003bd5112c000000005a3316b4;#`PER_H;
 		io_rx_rd_valid = 1; io_rx_data = 512'hffcfff339f18f4505790b14613177af671f52c7b2b7710fe53976bf78f3f4cbd0000000054568f6f0000000040436eb1000000003bd5112c000000005a3316b4;#`PER_H;
-		io_rx_rd_valid = 0; #200;;#`PER_H;
+		io_rx_rd_valid = 0; #500;;#`PER_H;
 		io_rx_rd_valid = 1; io_rx_data = 512'hffffffffffffffffffdfffffecfcfffe8acffcedf3ce0fff9b0f023f8cef2f0b0000000043d6b7c70000000036df3b40000000003256f525000000004be1fbd4;#`PER_H;
 		io_rx_rd_valid = 1; io_rx_data = 512'hffffffffffffffffffdfffffecfcfffe8acffcedf3ce0fff9b0f023f8cef2f0b0000000043d6b7c70000000036df3b40000000003256f525000000004be1fbd4;#`PER_H;
 		io_rx_rd_valid = 0; #200;;#`PER_H;

@@ -345,7 +345,7 @@ reg[6:0] backward_x_L12;
 	assign backward_x = backward_x_L12;
 
 	BWT_OCC4_lc BWT_OCC4_k(
-		.reset_BWT_extend(!reset_BWT_extend),
+		.reset_BWT_extend(reset_BWT_extend),
 		.stall(stall),
 		.Clk_32UI       (Clk_32UI),
 		.k              (k),
@@ -364,7 +364,7 @@ reg[6:0] backward_x_L12;
 	);
 
 	BWT_OCC4_lc BWT_OCC4_l(
-		.reset_BWT_extend(!reset_BWT_extend),
+		.reset_BWT_extend(reset_BWT_extend),
 		.stall(stall),
 		.Clk_32UI       (Clk_32UI),
 		.k              (l),
@@ -383,24 +383,7 @@ reg[6:0] backward_x_L12;
 	);
    reg [5:0] BWT_extend_counter_t;
    reg start;
-   //-----------------------------
-   //always @(posedge Clk_32UI)
-   //begin
-  // 	 if(!reset_BWT_extend | BWT_extend_counter_t == 12) begin
-   //	   BWT_extend_counter_t <= 0;
-   //	   BWT_extend_done <= 0;
-	//   start <= 0;
-   //	 end
-   //	 else begin
-	//	if (trigger) start <= 1;
-	//	else start <= start;
-//
-  // 	 	 if(start && BWT_extend_counter_t<20) BWT_extend_counter_t <= BWT_extend_counter_t + 1;
-  // 	 	 else BWT_extend_counter_t <= BWT_extend_counter_t;
-  // 	 	 if(BWT_extend_counter_t==10) BWT_extend_done <= 1;
-//		 else BWT_extend_done <= 0;
-  // 	 end
- //  end
+
 
    always @(posedge Clk_32UI) begin		
 		if (!reset_BWT_extend) begin
@@ -1517,8 +1500,10 @@ module BWT_OCC4_lc(
 		endcase
 	end
 	
+	reg debug1;
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
+			debug1 <= 1;
 			cnt_b0_L1 <= 0;
 			cnt_a0_L1 <= 0;
 			tmp_q <= 0;
@@ -1531,6 +1516,7 @@ module BWT_OCC4_lc(
 			cnt_b3_L1 <= 0;
 		end
 		else if(stall) begin //stall == 1  stalls
+			debug1 <= 2;
 			cnt_b0_L1 <= cnt_b0_L1;
 			cnt_a0_L1 <= cnt_a0_L1;
 			tmp_q <= tmp_q;
@@ -1543,6 +1529,7 @@ module BWT_OCC4_lc(
 			cnt_b3_L1 <= cnt_b3_L1;
 		end
 		else begin
+			debug1 <= 3;
 			cnt_b0_L1 <= cnt_b0;
 			cnt_a0_L1 <= cnt_a0;
 			tmp_q <= tmp;
