@@ -615,12 +615,6 @@ module Datapath(
 				addr_k <= 0;
 				addr_l <= 0;
 			end
-			// else if (backward) 
-			//
-			//
-			//
-			// end
-
 			
 			if (status_L2 == F_init) begin
 				status_out <= F_run;
@@ -642,6 +636,12 @@ module Datapath(
 			backward_x_out <= backward_x_L2;
 			
 			next_query_position <= forward_i_L2;
+		end
+		else begin
+			//[very important] in case the DRAM 
+			DRAM_valid <= 0;	
+			addr_k <= 0;
+			addr_l <= 0;
 		end
 	end
 

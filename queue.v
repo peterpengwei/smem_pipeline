@@ -121,6 +121,7 @@ module Queue(
 	input [`READ_NUM_WIDTH - 1 :0] new_read_num, //should be prepared before hand. every time new_read is set, next_read_num should be updated.
 	input [63:0] new_ik_x0, new_ik_x1, new_ik_x2, new_ik_info,
 	input [6:0] new_forward_i,
+	input [6:0] new_min_intv,
 	
 	//fetch new query at the start of queue
 	output [6:0] query_position_2RAM,
@@ -478,15 +479,13 @@ module Queue(
 				//only _q ports are meaningful, others are placeholder
 				{	forward_size_n_q, read_num_q, 
 					ik_x0_new_q[32:0], ik_x1_new_q[32:0], ik_x2_new_q[32:0], 
-					ik_info_out[38:32], ik_info_out[6:0], forward_i_out,min_intv_out, query_out,  //place holder
+					ik_info_out[38:32], ik_info_out[6:0], forward_i_out, min_intv_q, query_out,  //place holder
 					backward_x_q, status_q
 				} <= RAM_forward[read_ptr_f];
 				
 				ik_x0_new_q[63:33] <= 0;
 				ik_x1_new_q[63:33] <= 0;
 				ik_x2_new_q[63:33] <= 0;
-				
-				min_intv_q <= 1;
 				
 				read_ptr_f <= read_ptr_f + 1;
 				
@@ -663,7 +662,7 @@ module Queue(
                 ik_info_out <= new_ik_info; //from RAM
                 forward_i_out <= new_forward_i + 1; // from RAM
 				backward_x_out <= new_forward_i;
-                min_intv_out <= 1; 
+                min_intv_out <= new_min_intv; 
                 query_out <= 0; // !!!!the first round doesn't need query
                 
                 //-------------------

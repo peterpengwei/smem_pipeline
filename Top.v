@@ -141,6 +141,7 @@ module Top(
 	wire [`READ_NUM_WIDTH - 1:0] new_read_num; //should be prepared before hand. every time new_read is set, next_read_num should be updated.
 	wire [63:0] new_ik_x0, new_ik_x1, new_ik_x2, new_ik_info;
 	wire [6:0] new_forward_i;
+	wire [6:0] new_min_intv;
 	
 	
 	//part 3: provide new query to queue
@@ -223,6 +224,7 @@ module Top(
 		.new_ik_x2(new_ik_x2), 
 		.new_ik_info(new_ik_info),
 		.new_forward_i(new_forward_i),
+		.new_min_intv(new_min_intv),
 		
 		//part 3: provide new query to queue
 		.status_query(status_query),
@@ -516,6 +518,7 @@ module Top(
 		.new_read_num(new_read_num), //should be prepared before hand. every time new_read is set, next_read_num should be updated.
 		.new_ik_x0(new_ik_x0), .new_ik_x1(new_ik_x1), .new_ik_x2(new_ik_x2), .new_ik_info(new_ik_info),
 		.new_forward_i(new_forward_i),
+		.new_min_intv(new_min_intv),
 		
 		//fetch new query at the start of queue
 		.query_position_2RAM(query_position),

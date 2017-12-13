@@ -14,10 +14,14 @@ module RAM_read(
 	
 	// part 2: provide new read to pipeline
 	input new_read, //indicate RAM to update new_read
-	output reg new_read_valid,
+	
+	//output reg new_read_valid,
+	output new_read_valid,
+	
 	output [`READ_NUM_WIDTH - 1:0] new_read_num, //equal to read_num
 	output [63:0] new_ik_x0, new_ik_x1, new_ik_x2, new_ik_info,
 	output [6:0] new_forward_i, //[important] forward_i points to the position already processed
+	output [6:0] new_min_intv,
 	
 	//part 3: provide new query to queue
 	input [5:0] status_query,
@@ -94,15 +98,17 @@ module RAM_read(
 	assign new_ik_x2   = new_read_valid ? RAM_ik[new_read_ptr][191:128] : 64'h1111_1111_1111_1111;
 	assign new_ik_info = new_read_valid ? RAM_ik[new_read_ptr][255:192] : 64'h1111_1111_1111_1111;
 	assign new_forward_i = new_read_valid ? RAM_param[new_read_ptr][6:0] : 7'b111_1111;
+	assign new_min_intv = new_read_valid ? RAM_param[new_read_ptr][70:64] : 7'b111_1111;
 	
+	assign new_read_valid = reset_n & load_done & (new_read_ptr < curr_position) ;
 	always@(posedge clk) begin
 		if(!reset_n) begin
 			new_read_ptr <= 0;
-			new_read_valid <= 0;			
+			// new_read_valid <= 0;			
 		end
 		else if (load_done) begin		
-			if(new_read_ptr < curr_position-1) begin
-				new_read_valid <= 1;
+			if(new_read_ptr < curr_position) begin
+				// new_read_valid <= 1;
 				
 				if(new_read) begin
 					new_read_ptr <= new_read_ptr + 1;
@@ -112,13 +118,13 @@ module RAM_read(
 				end
 			end
 			else begin
-				new_read_valid <= 0;
+				// new_read_valid <= 0;
 				new_read_ptr <= new_read_ptr;
 			end
 		end
 		
 		else begin
-			new_read_valid <= 0;
+			// new_read_valid <= 0;
 			new_read_ptr <= new_read_ptr;		
 		end
 	end
