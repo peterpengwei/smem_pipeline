@@ -641,7 +641,7 @@ module sim_afu_core();
 		io_rx_rd_valid = 0; #200;
 
 		
-		#500;
+		#5000;
 		
 		
 		$finish; 
