@@ -181,15 +181,20 @@ always@(posedge clk) begin
 		if(backward_x == 0)begin
 			backward_i		<= 0;
 			iteration_boundary <= 1;
+			
+			//[licheng]
+			output_c <= 8'bxxxx_xxxx;
 		end
 		else begin
 			backward_i		<= backward_x - 1;
 			iteration_boundary <= 0;
+			//[licheng]
+			output_c <= backward_x - 1;
 		end
 		backward_j		<= 0;
 		new_last_size	<= forward_size_n_q;
 		forward_size_n	<= forward_size_n_q;
-		output_c		<= 0;
+		//output_c		<= 0;
 		//generated signals
 		new_size		<= 0;
 		mem_wr_addr		<= 7'b0;
@@ -210,7 +215,10 @@ always@(posedge clk) begin
 		backward_j		<= backward_j_q;
 		new_last_size	<= new_last_size_q;
 		forward_size_n	<= forward_size_n_q;
-		output_c		<= output_c_q;
+		//output_c		<= output_c_q;
+		//[licheng]
+		output_c <= backward_i_q;
+		
 		//generated signals
 
 		new_size			<= new_size_d;

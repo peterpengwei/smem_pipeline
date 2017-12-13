@@ -90,7 +90,7 @@ module Top(
 	wire [63:0] reserved_token_x2_B; //reserved_token_x2 => last_token_x2_q
 	wire [31:0] reserved_mem_info_B; //reserved_mem_info => last_mem_info_q
 	wire [63:0] backward_k_B,backward_l_B; // backward_k == k, backward_l==l;
-	wire [7:0] output_c_B; // address for next query
+	wire [6:0] output_c_B; // address for next query
 	
 	//from queue to backward
 	// queue special provide 

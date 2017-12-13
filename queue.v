@@ -76,7 +76,7 @@ module Queue(
 	input [31:0] reserved_mem_info_B, //reserved_mem_info => last_mem_info_q
 	input [63:0] backward_k_B,backward_l_B, // backward_k == k, backward_l==l;
 	
-	input [7:0] output_c_B, // address for next query
+	input [6:0] output_c_B, // address for next query
 	
 	// Queue -> Backward Pipeline
 	// queue special provide 
@@ -130,7 +130,7 @@ module Queue(
 	input [7:0] new_read_query_2Queue
 );
 
-	parameter WIDTH = 308 + 50; //[important] be careful not to exceed the width
+	parameter WIDTH = 308 + 100; //[important] be careful not to exceed the width
 	parameter DEPTH = 384;
 	
 	parameter F_init = 0; // F_init will disable the forward pipeline
@@ -342,7 +342,7 @@ module Queue(
 					forward_i_L2, min_intv_L2, new_read_query_2Queue, backward_x_L2,
 					status_L2
 				  };
-		b_data <= {	new_read_query_2Queue, forward_size_n_B_L2, read_num_B_L2, min_intv_B_L2, new_size_B_L2, 
+		b_data <= {	5'b10101,new_read_query_2Queue, forward_size_n_B_L2, read_num_B_L2, min_intv_B_L2, new_size_B_L2, 
 					new_last_size_B_L2, primary_B_L2, current_rd_addr_B_L2, current_wr_addr_B_L2, mem_wr_addr_B_L2,
 					backward_i_B_L2, backward_j_B_L2, iteration_boundary_B_L2,
 					p_x0_B_L2[32:0], p_x1_B_L2[32:0], p_x2_B_L2[32:0], p_info_B_L2[38:32], p_info_B_L2[6:0],

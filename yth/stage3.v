@@ -15,7 +15,7 @@ input wire [6:0] new_size_q,
 input wire [6:0] new_last_size_q,
 input wire [6:0] current_wr_addr_q,mem_wr_addr_q,
 input wire [6:0] backward_i_q, backward_j_q,
-input wire [7:0] output_c_q,
+input wire [7:0] output_c_q, //[licheng]useless
 input wire [6:0] min_intv_q,
 input wire finish_sign_q,iteration_boundary_q,
 input wire [63:0]	reserved_token_x2_q,
@@ -31,7 +31,7 @@ output reg [63:0] primary,
 output reg [6:0] new_last_size,
 output reg [6:0] current_wr_addr,mem_wr_addr,
 output reg [6:0] backward_i, backward_j,
-output reg [7:0] output_c,
+output reg [6:0] output_c, //[licheng]
 output reg [6:0] min_intv,
 output reg finish_sign,
 output reg [6:0] mem_size,
@@ -120,7 +120,7 @@ output reg [5:0] status
 			iteration_boundary	<= iteration_boundary;
 			backward_i			<= backward_i;
 			backward_j			<= backward_j;
-			output_c			<= output_c;
+			output_c			<= backward_i; //[licheng]
 			current_wr_addr		<= current_wr_addr;
 			current_rd_addr		<= current_rd_addr;
 		
@@ -158,7 +158,7 @@ output reg [5:0] status
 			reserved_mem_info	<= reserved_mem_info_q;
 			iteration_boundary	<= iteration_boundary_q;
 
-			output_c			<= output_c_q;
+			output_c			<= backward_i_q; //[licheng]
 			current_wr_addr		<= current_wr_addr_q;
 			current_rd_addr		<= current_rd_addr_q;
 		
@@ -190,7 +190,7 @@ output reg [5:0] status
 			iteration_boundary	<= iteration_boundary_q;
 			backward_i			<= backward_i_q;
 			backward_j			<= backward_j_q;
-			output_c			<= output_c_q;
+			output_c			<= backward_i_q; //[licheng]
 			current_wr_addr		<= current_wr_addr_q;
 			current_rd_addr		<= current_rd_addr_q;
 		
