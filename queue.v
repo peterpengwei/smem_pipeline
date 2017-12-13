@@ -500,7 +500,7 @@ module Queue(
 			else if (memory_valid) begin // get memory responses, output old read
 				if(read_ptr_f != write_ptr_f) begin
 					if(next_status == F_run) begin
-						{ptr_curr_out, read_num_out, ik_x0_out[32:0], ik_x1_out[32:0], ik_x2_out[32:0], ik_info_out[38:32], ik_info_L2[6:0], 
+						{ptr_curr_out, read_num_out, ik_x0_out[32:0], ik_x1_out[32:0], ik_x2_out[32:0], ik_info_out[38:32], ik_info_out[6:0], 
 						forward_i_out,min_intv_out, query_out, backward_x_out,
 						status_out} <= RAM_forward[read_ptr_f];
 						ik_x0_out[63:33] <= 0;
