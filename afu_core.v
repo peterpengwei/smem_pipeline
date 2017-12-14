@@ -480,17 +480,27 @@ module afu_core(
 				end
 				
 				RD_RX_RUN_2: begin
-					if(io_rx_rd_valid) begin
-						CL_2 <= io_rx_data;
-						push_response_FIFO <= 1;
-						
-						state_RD_RX <= RD_RX_RUN_1; // 2nd responses, wait for another round
+					if(!output_request_200M) begin
+						if(io_rx_rd_valid) begin
+							CL_2 <= io_rx_data;
+							push_response_FIFO <= 1;
+							
+							state_RD_RX <= RD_RX_RUN_1; // 2nd responses, wait for another round
+						end
+						else begin
+							CL_2 <= 0;
+							push_response_FIFO <= 0;
+							
+							state_RD_RX <= RD_RX_RUN_2;
+						end
 					end
 					else begin
+						CL_1 <= 0;
 						CL_2 <= 0;
 						push_response_FIFO <= 0;
-						
-						state_RD_RX <= RD_RX_RUN_2;
+						state_RD_RX <= RD_RX_IDLE; // wait for next batch of reads
+
+					
 					end
 				end
 	
