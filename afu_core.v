@@ -73,7 +73,7 @@ module afu_core(
 	wire [57:0] hand_ptr = io_src_ptr + 50331648 + 16384 - 1;
 	wire [57:0] input_base = io_src_ptr + 50331648 + 16384;
 	wire [57:0] output_base = io_dst_ptr;
-	wire [57:0] BWT_base = io_dst_ptr;
+	wire [57:0] BWT_base = io_src_ptr;
 	reg  [57:0] output_addr;
 	
 	wire BWT_read_tag_0 = io_rx_data[480];
@@ -297,7 +297,7 @@ module afu_core(
 						// no matter of almostfull condition, must send out addr_l if available.
 						if(addr_l_400M_valid) begin
 							cor_tx_rd_valid <= 1;
-							cor_tx_rd_addr <= addr_l_400M_reg;
+							cor_tx_rd_addr <= BWT_base + addr_l_400M_reg[31:4];
 							cor_tx_rd_len <= 1;	
 							
 							addr_l_400M_valid <= 0;
@@ -328,7 +328,7 @@ module afu_core(
 				RUN_2: begin					
 					if(FIFO_request_valid) begin
 						cor_tx_rd_valid <= 1;
-						cor_tx_rd_addr <= addr_k_400M;
+						cor_tx_rd_addr <= BWT_base + addr_k_400M[31:4];
 						cor_tx_rd_len <= 1;
 
 						addr_l_400M_reg <= addr_l_400M;
@@ -361,7 +361,7 @@ module afu_core(
 					
 					if(~spl_tx_wr_almostfull) begin
 						cor_tx_wr_valid <= 1'b1; 
-						cor_tx_wr_addr <= output_addr;
+						cor_tx_wr_addr <= output_base + output_addr;
 						cor_tx_data <= output_data_400M;
 
 						output_addr <= output_addr + 1;
@@ -555,7 +555,7 @@ module afu_core(
 		.RClk(CLK_400M)
 	);
 	
-	wire stall = spl_tx_rd_almostfull | spl_tx_wr_almostfull | FIFO_request_full | FIFO_output_full |	FIFO_response_full;
+	wire stall = spl_tx_rd_almostfull | spl_tx_wr_almostfull | FIFO_request_full | FIFO_output_full;
 	
 	Top top(
 		.Clk_32UI(CLK_200M),

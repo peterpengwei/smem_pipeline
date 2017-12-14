@@ -301,6 +301,12 @@ module sim_afu_core();
 		io_rx_rd_valid = 1; io_rx_data = 512'hfffffcffc40afddfcfbfee0283c2fdfffcf5f30cffd7fddffd7ffffd5d77ffbf000000004618cbc100000000387d9ef70000000032de2be1000000004dd9ea67;#`PER_H;
 		io_rx_rd_valid = 1; io_rx_data = 512'hfffffcffc40afddfcfbfee0283c2fdfffcf5f30cffd7fddffd7ffffd5d77ffbf000000004618cbc100000000387d9ef70000000032de2be1000000004dd9ea67;#`PER_H;
 		io_rx_rd_valid = 0; #200;;#`PER_H;
+		
+		spl_tx_rd_almostfull = 1;
+		#2000;
+		spl_tx_rd_almostfull = 0;
+		
+		
 		io_rx_rd_valid = 1; io_rx_data = 512'hfffffcffc40afddfcfbfee0283c2fdfffcf5f30cffd7fddffd7ffffd5d77ffbf000000004618cbc100000000387d9ef70000000032de2be1000000004dd9ea67;#`PER_H;
 		io_rx_rd_valid = 1; io_rx_data = 512'hfffffcffc40afddfcfbfee0283c2fdfffcf5f30cffd7fddffd7ffffd5d77ffbf000000004618cbc100000000387d9ef70000000032de2be1000000004dd9ea67;#`PER_H;
 		io_rx_rd_valid = 0; #200;;#`PER_H;

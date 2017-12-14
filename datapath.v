@@ -638,7 +638,7 @@ module Datapath(
 			next_query_position <= forward_i_L2;
 		end
 		else begin
-			//[very important] in case the DRAM 
+			//[very important] in case the DRAM_valid is kept valid during stall. 
 			DRAM_valid <= 0;	
 			addr_k <= 0;
 			addr_l <= 0;
