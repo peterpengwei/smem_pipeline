@@ -63,27 +63,32 @@ module RAM_curr_mem(
 	
 	//curr queue
 	always@(posedge clk) begin
+		
 		//port A
 		if(curr_we_1) begin
 			curr_queue[curr_read_num_1][curr_addr_1] <= {curr_data_1[230:224],curr_data_1[198:192],curr_data_1[160:128],curr_data_1[96:64],curr_data_1[32:0]};
 			//curr_q_1 <= curr_data_1;
 		end
-
-		{curr_q_2[230:224],curr_q_2[198:192],curr_q_2[160:128],curr_q_2[96: 64],curr_q_2[32: 0]} <= curr_queue[curr_read_num_2][curr_addr_2];
-		{curr_q_2[255:231],curr_q_2[223:199],curr_q_2[191:161],curr_q_2[127:97],curr_q_2[63:33]} <= 0;
-
+		
+		//[very important] use stall signal as the read_en. 
+		if(!stall) begin
+			{curr_q_2[230:224],curr_q_2[198:192],curr_q_2[160:128],curr_q_2[96: 64],curr_q_2[32: 0]} <= curr_queue[curr_read_num_2][curr_addr_2];
+			{curr_q_2[255:231],curr_q_2[223:199],curr_q_2[191:161],curr_q_2[127:97],curr_q_2[63:33]} <= 0;
+		end
 	end
 	
 	//mem queue
 	always@(posedge clk) begin
-		//port A
-		if(mem_we_1) begin
-			mem_queue[mem_read_num_1][mem_addr_1] <= {mem_data_1[230:224],mem_data_1[198:192],mem_data_1[160:128],mem_data_1[96:64],mem_data_1[32:0]};
-			//mem_q_1 <= mem_data_1;
-		end
-		
-		{mem_q_1[230:224],mem_q_1[198:192],mem_q_1[160:128],mem_q_1[96:64],mem_q_1[32:0]} <= mem_queue[mem_read_num_1][mem_addr_1];
-		{mem_q_1[255:231],mem_q_1[223:199],mem_q_1[191:161],mem_q_1[127:97],mem_q_1[63:33]} <= 0;
+			//port A
+			if(mem_we_1) begin
+				mem_queue[mem_read_num_1][mem_addr_1] <= {mem_data_1[230:224],mem_data_1[198:192],mem_data_1[160:128],mem_data_1[96:64],mem_data_1[32:0]};
+				//mem_q_1 <= mem_data_1;
+			end
+			
+			if(!stall) begin
+				{mem_q_1[230:224],mem_q_1[198:192],mem_q_1[160:128],mem_q_1[96:64],mem_q_1[32:0]} <= mem_queue[mem_read_num_1][mem_addr_1];
+				{mem_q_1[255:231],mem_q_1[223:199],mem_q_1[191:161],mem_q_1[127:97],mem_q_1[63:33]} <= 0;
+			end
 	end
 	
 	//params

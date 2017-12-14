@@ -555,7 +555,7 @@ module afu_core(
 		.RClk(CLK_400M)
 	);
 	
-	wire stall = spl_tx_rd_almostfull | spl_tx_wr_almostfull | FIFO_request_full | FIFO_output_full;
+	wire stall = spl_tx_rd_almostfull | spl_tx_wr_almostfull | FIFO_request_full | FIFO_output_full |	FIFO_response_full;
 	
 	Top top(
 		.Clk_32UI(CLK_200M),
