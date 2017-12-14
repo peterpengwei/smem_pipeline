@@ -65,7 +65,7 @@ module afu_core(
 	parameter OUTPUT_2 = 9;
 	parameter FENCE = 10;
 	parameter FINAL = 11;
-	
+	parameter FENCE_2 = 12;
 	
 	parameter CL = 512;
 	parameter MAX_READ = 512;
@@ -171,13 +171,8 @@ module afu_core(
 						
 						cor_tx_wr_valid <= 0; 
 						cor_tx_wr_addr <= 0;
-						cor_tx_data <= 0;
-						
-						cor_tx_rd_valid <= 0;
-						cor_tx_rd_addr <= 0;
-						cor_tx_rd_len <= 0;
-					
-						
+						cor_tx_data <= 0;	
+						cor_tx_fence_valid <= 0;
 						state_BWA <= POLLING;
 					end
 					else begin
@@ -319,7 +314,7 @@ module afu_core(
 						output_permit <= 1;
 						// FIFO_output_rd_en <= 0;
 						
-						output_addr <= output_base;
+						output_addr <= 0;
 						
 						state_BWA <= OUTPUT_1;
 					end
@@ -389,8 +384,26 @@ module afu_core(
                         cor_tx_wr_addr <= hand_ptr;
                         cor_tx_data[511:480] <= 16;
                         cor_tx_data[479:0] <= 0;
+                    
+				
+						state_BWA <= FENCE_2;
+
+					end
+				end
+				
+				FENCE_2: begin
+					if (~spl_tx_wr_almostfull) begin
+						cor_tx_dsr_valid <= 1'b0;
+                        cor_tx_wr_len <= 6'h1;
+                        cor_tx_wr_addr <= hand_ptr;
+                        cor_tx_data <= 0;
+						
+                        cor_tx_wr_valid <= 1'b1;
+                        cor_tx_fence_valid <= 1'b1;
                         state_BWA <= IDLE;
+
                     end
+					
 				end
 				
 				
