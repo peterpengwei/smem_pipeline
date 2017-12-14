@@ -93,6 +93,7 @@ module RAM_curr_mem(
 	always@(posedge clk) begin
 		if(!reset_n) begin
 			done_counter <= 0;
+			all_read_done <= 0;
 		end
 		else begin
 			if(mem_size_valid) begin
@@ -102,6 +103,9 @@ module RAM_curr_mem(
 			
 			if(done_counter == batch_size && done_counter > 0) begin
 				all_read_done <= 1;
+			end
+			else begin
+				all_read_done <= 0;
 			end
 			
 			if(ret_valid) begin
@@ -119,6 +123,9 @@ module RAM_curr_mem(
 		end
 		else if(all_read_done)begin
 			output_request <= 1;
+		end
+		else begin
+			output_request <= 0;
 		end
 	end
 	
@@ -144,7 +151,7 @@ module RAM_curr_mem(
 				if(output_result_ptr < batch_size) begin 
 					if(group_start) begin
 						output_valid		 <= 1;
-						output_data[9:0]     <= output_result_ptr;
+						output_data[9:0]     <= output_result_ptr; //read num
 						output_data[63:10]   <= 0;
 						output_data[70:64]   <= mem_size_queue[output_result_ptr];
 						output_data[127:71]  <= 0;

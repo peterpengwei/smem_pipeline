@@ -99,7 +99,8 @@ module afu_core(
 	wire FIFO_request_full, FIFO_response_full, FIFO_output_full;
 	wire FIFO_request_empty, FIFO_response_empty, FIFO_output_empty;
 	wire FIFO_request_rd_en;
-	reg FIFO_output_rd_en;
+	//reg FIFO_output_rd_en;
+	wire FIFO_output_rd_en;
 	
 	wire output_request_200M;
 	reg output_permit;
@@ -116,6 +117,7 @@ module afu_core(
 	
 	//[important] for the control of FIFO_request
 	assign FIFO_request_rd_en = ((state_BWA == RUN_1) & (!FIFO_request_empty) & (!spl_tx_rd_almostfull));
+	assign FIFO_output_rd_en = ((state_BWA == OUTPUT_1) & (!FIFO_output_empty) & (!spl_tx_wr_almostfull));
 	
 	always@(posedge CLK_400M) begin
 		if(!reset_n) begin
@@ -130,7 +132,7 @@ module afu_core(
 			RAM_400M_ptr <= 0;
 			RAM_200M_ptr <= 0;
 			//FIFO_request_rd_en <= 0;
-			FIFO_output_rd_en <= 0;
+			// FIFO_output_rd_en <= 0;
 			addr_l_400M_reg <= 0;
 			addr_l_400M_valid<= 0;
 			output_permit <= 0;
@@ -161,11 +163,20 @@ module afu_core(
 						batch_reset_n <= 0;
 						RAM_400M_ptr <= 0;
 						RAM_200M_ptr <= 0;
-						FIFO_output_rd_en <= 0;
+						// FIFO_output_rd_en <= 0;
 						addr_l_400M_reg <= 0;
 						addr_l_400M_valid<= 0;
 						output_permit <= 0;
 						output_addr <= 0;
+						
+						cor_tx_wr_valid <= 0; 
+						cor_tx_wr_addr <= 0;
+						cor_tx_data <= 0;
+						
+						cor_tx_rd_valid <= 0;
+						cor_tx_rd_addr <= 0;
+						cor_tx_rd_len <= 0;
+					
 						
 						state_BWA <= POLLING;
 					end
@@ -306,7 +317,7 @@ module afu_core(
 						cor_tx_rd_len <= 0;	
 						addr_l_400M_valid <= 0;
 						output_permit <= 1;
-						FIFO_output_rd_en <= 0;
+						// FIFO_output_rd_en <= 0;
 						
 						output_addr <= output_base;
 						
@@ -333,17 +344,20 @@ module afu_core(
 				OUTPUT_1: begin
 					if(!output_finish_200M) begin // cross clk domain
 						if(!FIFO_output_empty) begin
-							FIFO_output_rd_en <= 1;
 							state_BWA <= OUTPUT_2;
 						end
 					end
 					else begin
 						state_BWA <= FENCE;
 					end
+					
+					cor_tx_wr_valid <= 0; 
+					cor_tx_wr_addr <= 0;
+					cor_tx_data <= 0;
 				end
 				
 				OUTPUT_2: begin
-					FIFO_output_rd_en <= 0;
+					// FIFO_output_rd_en <= 0;
 					
 					if(~spl_tx_wr_almostfull) begin
 						cor_tx_wr_valid <= 1'b1; 
@@ -367,6 +381,8 @@ module afu_core(
 				
 				FINAL: begin
 					if (~spl_tx_wr_almostfull) begin
+						cor_tx_fence_valid <= 1'b0;
+						
                         cor_tx_wr_valid <= 1'b1;
                         cor_tx_dsr_valid <= 1'b0;
                         cor_tx_wr_len <= 6'h1;
