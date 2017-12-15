@@ -299,8 +299,8 @@ module Datapath(
 							curr_addr_1 <= 0;
 							ptr_curr_L1 <= ptr_curr_L00;
 							status_L1 <= status_L00;
-							is_update_ik <= 0;
-							is_add_i <= 0;
+							is_update_ik <= 1;
+							is_add_i <= 1;
 						end
 					end // end 0
 					
@@ -330,8 +330,8 @@ module Datapath(
 							curr_addr_1 <= 0;
 							ptr_curr_L1 <= ptr_curr_L00;
 							status_L1 <= status_L00;
-							is_update_ik <= 0;
-							is_add_i <= 0;
+							is_update_ik <= 1;
+							is_add_i <= 1;
 						end
 					end // end 1
 					
@@ -361,8 +361,8 @@ module Datapath(
 							curr_addr_1 <= 0;
 							ptr_curr_L1 <= ptr_curr_L00;
 							status_L1 <= status_L00;
-							is_update_ik <= 0;
-							is_add_i <= 0;
+							is_update_ik <= 1;
+							is_add_i <= 1;
 						end
 					end // end 2
 					
@@ -392,8 +392,8 @@ module Datapath(
 							curr_addr_1 <= 0;
 							ptr_curr_L1 <= ptr_curr_L00;
 							status_L1 <= status_L00;
-							is_update_ik <= 0;
-							is_add_i <= 0;
+							is_update_ik <= 1;
+							is_add_i <= 1;
 						end
 					end // end 3
 					
