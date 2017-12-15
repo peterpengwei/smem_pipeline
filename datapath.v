@@ -139,7 +139,6 @@ module Datapath(
 			min_intv_L0 <= min_intv;
 			backward_x_L0 <= backward_x;
 
-			status_L0 <= status;
 			query_L0 <= query;//only send the current query into the pipeline
 			ptr_curr_L0 <= ptr_curr;// record the status of curr and mem queue
 
