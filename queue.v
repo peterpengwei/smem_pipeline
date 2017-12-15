@@ -408,7 +408,7 @@ module Queue(
 			status_out <= BUBBLE;
 		end
 		else if (!stall) begin
-			if(next_status == F_break) begin
+			if(next_status == F_break && read_ptr_f != write_ptr_f) begin
 				//[important] pop out without memory response
 				
 				//======== forward ports =============
@@ -456,7 +456,7 @@ module Queue(
 				//=====================================
 			end
 			
-			else if (next_status == BCK_INI) begin
+			else if (next_status == BCK_INI && read_ptr_f != write_ptr_f) begin
 				//[important] pop out without memory response
 				
 				//======== forward ports =============
