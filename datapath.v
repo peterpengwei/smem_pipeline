@@ -172,6 +172,7 @@ module Datapath(
 	BWT_extend BWT_ext_U0(
 		//.status(status_L0), 
 		//------------------------------------------
+		.stall(stall),
 		 .Clk_32UI         (Clk_32UI),  
 		 .reset_BWT_extend (reset_BWT_extend),
 		 .forward_all_done (forward_all_done_L0),

@@ -242,130 +242,135 @@ module Queue(
 	assign query_status_2RAM = (status != BUBBLE && status != F_break) ? status : (status_B != BUBBLE && status_B != BCK_END) ? status_B : 6'b11_1111;
 	
 	always@(posedge Clk_32UI) begin
-		status_L0 <=  ( status != BUBBLE ) ? status : (status_B != BUBBLE) ?  status_B : BUBBLE ;
-		
-		ptr_curr_L0 <= ptr_curr; // record the status of curr and mem queue
-		read_num_L0 <= read_num;
-		ik_x0_L0 <= ik_x0;
-		ik_x1_L0 <= ik_x1;
-		ik_x2_L0 <= ik_x2;
-		ik_info_L0 <= ik_info;
-		forward_i_L0 <= forward_i;
-		min_intv_L0 <= min_intv;
-		backward_x_L0 <= backward_x;
-		
-		forward_size_n_B_L0 	<= forward_size_n_B;	
-		read_num_B_L0 			<= read_num_B;
-		min_intv_B_L0 			<= min_intv_B;
-		// reg [5:0] status_B_L0;
-		new_size_B_L0 			<= new_size_B;
-		new_last_size_B_L0 		<= new_last_size_B;
-		primary_B_L0 			<= primary_B;
-		current_rd_addr_B_L0 	<= current_rd_addr_B;
-		current_wr_addr_B_L0 	<= current_wr_addr_B;
-		mem_wr_addr_B_L0 		<= mem_wr_addr_B;
-		backward_i_B_L0 		<= backward_i_B;
-		backward_j_B_L0 		<= backward_j_B;
-		iteration_boundary_B_L0 <= iteration_boundary_B;
-		p_x0_B_L0 				<= p_x0_B;
-		p_x1_B_L0 				<= p_x1_B;
-		p_x2_B_L0 				<= p_x2_B;
-		p_info_B_L0 			<= p_info_B;
-		reserved_token_x2_B_L0 	<= reserved_token_x2_B; //reserved_token_x2 => last_token_x2_q
-		reserved_mem_info_B_L0 	<= reserved_mem_info_B; //reserved_mem_info => last_mem_info_q
-		backward_k_B_L0 		<= backward_k_B;
-		backward_l_B_L0 		<= backward_l_B; // backward_k == k, backward_l==l;
-
+		if(!stall) begin
+			status_L0 <=  ( status != BUBBLE ) ? status : (status_B != BUBBLE) ?  status_B : BUBBLE ;
+			
+			ptr_curr_L0 <= ptr_curr; // record the status of curr and mem queue
+			read_num_L0 <= read_num;
+			ik_x0_L0 <= ik_x0;
+			ik_x1_L0 <= ik_x1;
+			ik_x2_L0 <= ik_x2;
+			ik_info_L0 <= ik_info;
+			forward_i_L0 <= forward_i;
+			min_intv_L0 <= min_intv;
+			backward_x_L0 <= backward_x;
+			
+			forward_size_n_B_L0 	<= forward_size_n_B;	
+			read_num_B_L0 			<= read_num_B;
+			min_intv_B_L0 			<= min_intv_B;
+			// reg [5:0] status_B_L0;
+			new_size_B_L0 			<= new_size_B;
+			new_last_size_B_L0 		<= new_last_size_B;
+			primary_B_L0 			<= primary_B;
+			current_rd_addr_B_L0 	<= current_rd_addr_B;
+			current_wr_addr_B_L0 	<= current_wr_addr_B;
+			mem_wr_addr_B_L0 		<= mem_wr_addr_B;
+			backward_i_B_L0 		<= backward_i_B;
+			backward_j_B_L0 		<= backward_j_B;
+			iteration_boundary_B_L0 <= iteration_boundary_B;
+			p_x0_B_L0 				<= p_x0_B;
+			p_x1_B_L0 				<= p_x1_B;
+			p_x2_B_L0 				<= p_x2_B;
+			p_info_B_L0 			<= p_info_B;
+			reserved_token_x2_B_L0 	<= reserved_token_x2_B; //reserved_token_x2 => last_token_x2_q
+			reserved_mem_info_B_L0 	<= reserved_mem_info_B; //reserved_mem_info => last_mem_info_q
+			backward_k_B_L0 		<= backward_k_B;
+			backward_l_B_L0 		<= backward_l_B; // backward_k == k, backward_l==l;
+		end
 	end
 	
 	always@(posedge Clk_32UI) begin
-		status_L1 <= status_L0;
-		
-		ptr_curr_L1 <= ptr_curr_L0; // record the status of curr and mem queue
-		read_num_L1 <= read_num_L0;
-		ik_x0_L1 <= ik_x0_L0;
-		ik_x1_L1 <= ik_x1_L0;
-		ik_x2_L1 <= ik_x2_L0;
-		ik_info_L1 <= ik_info_L0;
-		forward_i_L1 <= forward_i_L0;
-		min_intv_L1 <= min_intv_L0;
-		backward_x_L1 <= backward_x_L0;
-		
-		forward_size_n_B_L1 	<= forward_size_n_B_L0;	
-		read_num_B_L1 			<= read_num_B_L0;
-		min_intv_B_L1 			<= min_intv_B_L0;
-		// reg [5:0] status_B_L0;
-		new_size_B_L1 			<= new_size_B_L0;
-		new_last_size_B_L1 		<= new_last_size_B_L0;
-		primary_B_L1 			<= primary_B_L0;
-		current_rd_addr_B_L1 	<= current_rd_addr_B_L0;
-		current_wr_addr_B_L1 	<= current_wr_addr_B_L0;
-		mem_wr_addr_B_L1 		<= mem_wr_addr_B_L0;
-		backward_i_B_L1 		<= backward_i_B_L0;
-		backward_j_B_L1 		<= backward_j_B_L0;
-		iteration_boundary_B_L1 <= iteration_boundary_B_L0;
-		p_x0_B_L1 				<= p_x0_B_L0;
-		p_x1_B_L1 				<= p_x1_B_L0;
-		p_x2_B_L1 				<= p_x2_B_L0;
-		p_info_B_L1 			<= p_info_B_L0;
-		reserved_token_x2_B_L1 	<= reserved_token_x2_B_L0; //reserved_token_x2 => last_token_x2_q
-		reserved_mem_info_B_L1 	<= reserved_mem_info_B_L0; //reserved_mem_info => last_mem_info_q
-		backward_k_B_L1 		<= backward_k_B_L0;
-		backward_l_B_L1 		<= backward_l_B_L0; // backward_k == k, backward_l==l;
+		if(!stall) begin
+			status_L1 <= status_L0;
+			
+			ptr_curr_L1 <= ptr_curr_L0; // record the status of curr and mem queue
+			read_num_L1 <= read_num_L0;
+			ik_x0_L1 <= ik_x0_L0;
+			ik_x1_L1 <= ik_x1_L0;
+			ik_x2_L1 <= ik_x2_L0;
+			ik_info_L1 <= ik_info_L0;
+			forward_i_L1 <= forward_i_L0;
+			min_intv_L1 <= min_intv_L0;
+			backward_x_L1 <= backward_x_L0;
+			
+			forward_size_n_B_L1 	<= forward_size_n_B_L0;	
+			read_num_B_L1 			<= read_num_B_L0;
+			min_intv_B_L1 			<= min_intv_B_L0;
+			// reg [5:0] status_B_L0;
+			new_size_B_L1 			<= new_size_B_L0;
+			new_last_size_B_L1 		<= new_last_size_B_L0;
+			primary_B_L1 			<= primary_B_L0;
+			current_rd_addr_B_L1 	<= current_rd_addr_B_L0;
+			current_wr_addr_B_L1 	<= current_wr_addr_B_L0;
+			mem_wr_addr_B_L1 		<= mem_wr_addr_B_L0;
+			backward_i_B_L1 		<= backward_i_B_L0;
+			backward_j_B_L1 		<= backward_j_B_L0;
+			iteration_boundary_B_L1 <= iteration_boundary_B_L0;
+			p_x0_B_L1 				<= p_x0_B_L0;
+			p_x1_B_L1 				<= p_x1_B_L0;
+			p_x2_B_L1 				<= p_x2_B_L0;
+			p_info_B_L1 			<= p_info_B_L0;
+			reserved_token_x2_B_L1 	<= reserved_token_x2_B_L0; //reserved_token_x2 => last_token_x2_q
+			reserved_mem_info_B_L1 	<= reserved_mem_info_B_L0; //reserved_mem_info => last_mem_info_q
+			backward_k_B_L1 		<= backward_k_B_L0;
+			backward_l_B_L1 		<= backward_l_B_L0; // backward_k == k, backward_l==l;
+		end
 	end
 	
 	always@(posedge Clk_32UI) begin
-		status_L2 <= status_L1;
-		ptr_curr_L2 <= ptr_curr_L1; // record the status of curr and mem queue
-		read_num_L2 <= read_num_L1;
-		ik_x0_L2 <= ik_x0_L1;
-		ik_x1_L2 <= ik_x1_L1;
-		ik_x2_L2 <= ik_x2_L1;
-		ik_info_L2 <= ik_info_L1;
-		forward_i_L2 <= forward_i_L1;
-		min_intv_L2 <= min_intv_L1;
-		backward_x_L2 <= backward_x_L1;
-		
-		forward_size_n_B_L2 	<= forward_size_n_B_L1;	
-		read_num_B_L2 			<= read_num_B_L1;
-		min_intv_B_L2 			<= min_intv_B_L1;
-		// reg [5:0] status_B_L0;
-		new_size_B_L2 			<= new_size_B_L1;
-		new_last_size_B_L2 		<= new_last_size_B_L1;
-		primary_B_L2 			<= primary_B_L1;
-		current_rd_addr_B_L2 	<= current_rd_addr_B_L1;
-		current_wr_addr_B_L2 	<= current_wr_addr_B_L1;
-		mem_wr_addr_B_L2 		<= mem_wr_addr_B_L1;
-		backward_i_B_L2 		<= backward_i_B_L1;
-		backward_j_B_L2 		<= backward_j_B_L1;
-		iteration_boundary_B_L2 <= iteration_boundary_B_L1;
-		p_x0_B_L2 				<= p_x0_B_L1;
-		p_x1_B_L2 				<= p_x1_B_L1;
-		p_x2_B_L2 				<= p_x2_B_L1;
-		p_info_B_L2 			<= p_info_B_L1;
-		reserved_token_x2_B_L2 	<= reserved_token_x2_B_L1; //reserved_token_x2 => last_token_x2_q
-		reserved_mem_info_B_L2 	<= reserved_mem_info_B_L1; //reserved_mem_info => last_mem_info_q
-		backward_k_B_L2 		<= backward_k_B_L1;
-		backward_l_B_L2 		<= backward_l_B_L1; // backward_k == k, backward_l==l;
+		if(!stall) begin
+			status_L2 <= status_L1;
+			ptr_curr_L2 <= ptr_curr_L1; // record the status of curr and mem queue
+			read_num_L2 <= read_num_L1;
+			ik_x0_L2 <= ik_x0_L1;
+			ik_x1_L2 <= ik_x1_L1;
+			ik_x2_L2 <= ik_x2_L1;
+			ik_info_L2 <= ik_info_L1;
+			forward_i_L2 <= forward_i_L1;
+			min_intv_L2 <= min_intv_L1;
+			backward_x_L2 <= backward_x_L1;
+			
+			forward_size_n_B_L2 	<= forward_size_n_B_L1;	
+			read_num_B_L2 			<= read_num_B_L1;
+			min_intv_B_L2 			<= min_intv_B_L1;
+			// reg [5:0] status_B_L0;
+			new_size_B_L2 			<= new_size_B_L1;
+			new_last_size_B_L2 		<= new_last_size_B_L1;
+			primary_B_L2 			<= primary_B_L1;
+			current_rd_addr_B_L2 	<= current_rd_addr_B_L1;
+			current_wr_addr_B_L2 	<= current_wr_addr_B_L1;
+			mem_wr_addr_B_L2 		<= mem_wr_addr_B_L1;
+			backward_i_B_L2 		<= backward_i_B_L1;
+			backward_j_B_L2 		<= backward_j_B_L1;
+			iteration_boundary_B_L2 <= iteration_boundary_B_L1;
+			p_x0_B_L2 				<= p_x0_B_L1;
+			p_x1_B_L2 				<= p_x1_B_L1;
+			p_x2_B_L2 				<= p_x2_B_L1;
+			p_info_B_L2 			<= p_info_B_L1;
+			reserved_token_x2_B_L2 	<= reserved_token_x2_B_L1; //reserved_token_x2 => last_token_x2_q
+			reserved_mem_info_B_L2 	<= reserved_mem_info_B_L1; //reserved_mem_info => last_mem_info_q
+			backward_k_B_L2 		<= backward_k_B_L1;
+			backward_l_B_L2 		<= backward_l_B_L1; // backward_k == k, backward_l==l;
+		end
 	end
-	
 	
 	always@(posedge Clk_32UI) begin
-		//received query fetch responses from RAM
-		f_data <= {	ptr_curr_L2, read_num_L2, ik_x0_L2[32:0], ik_x1_L2[32:0], ik_x2_L2[32:0], ik_info_L2[38:32], ik_info_L2[6:0], 
-					forward_i_L2, min_intv_L2, new_read_query_2Queue, backward_x_L2,
-					status_L2
-				  };
-		b_data <= {	5'b10101,new_read_query_2Queue, forward_size_n_B_L2, read_num_B_L2, min_intv_B_L2, new_size_B_L2, 
-					new_last_size_B_L2, primary_B_L2, current_rd_addr_B_L2, current_wr_addr_B_L2, mem_wr_addr_B_L2,
-					backward_i_B_L2, backward_j_B_L2, iteration_boundary_B_L2,
-					p_x0_B_L2[32:0], p_x1_B_L2[32:0], p_x2_B_L2[32:0], p_info_B_L2[38:32], p_info_B_L2[6:0],
-					reserved_token_x2_B_L2[32:0], reserved_mem_info_B_L2[6:0], backward_k_B_L2[32:0], backward_l_B_L2[32:0],
-					status_L2
-			      };
-		status_L3 <= status_L2;
+		if(!stall) begin
+			//received query fetch responses from RAM
+			f_data <= {	ptr_curr_L2, read_num_L2, ik_x0_L2[32:0], ik_x1_L2[32:0], ik_x2_L2[32:0], ik_info_L2[38:32], ik_info_L2[6:0], 
+						forward_i_L2, min_intv_L2, new_read_query_2Queue, backward_x_L2,
+						status_L2
+					  };
+			b_data <= {	5'b10101,new_read_query_2Queue, forward_size_n_B_L2, read_num_B_L2, min_intv_B_L2, new_size_B_L2, 
+						new_last_size_B_L2, primary_B_L2, current_rd_addr_B_L2, current_wr_addr_B_L2, mem_wr_addr_B_L2,
+						backward_i_B_L2, backward_j_B_L2, iteration_boundary_B_L2,
+						p_x0_B_L2[32:0], p_x1_B_L2[32:0], p_x2_B_L2[32:0], p_info_B_L2[38:32], p_info_B_L2[6:0],
+						reserved_token_x2_B_L2[32:0], reserved_mem_info_B_L2[6:0], backward_k_B_L2[32:0], backward_l_B_L2[32:0],
+						status_L2
+					  };
+			status_L3 <= status_L2;
+		end
 	end
-	
 	//------------------------------------------------
 	
 

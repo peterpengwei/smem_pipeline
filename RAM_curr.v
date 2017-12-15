@@ -1,6 +1,7 @@
 
-`define READ_NUM_WIDTH 8 
-`define MAX_READ 256
+`define READ_NUM_WIDTH 8
+//for test purpose 
+`define MAX_READ 256 
 
 module RAM_curr_mem(
 	input reset_n,

@@ -24,6 +24,8 @@
 //output: ok
 
 module BWT_extend(
+	input stall,
+	
 	input [5:0] status,
 	
 	input Clk_32UI,
@@ -57,6 +59,7 @@ module BWT_extend(
 
    
 	BWT_OCC4 BWT_OCC4_k(
+		.stall(stall),
 		.reset_BWT_extend(reset_BWT_extend),
 		.Clk_32UI       (Clk_32UI),
 		.k              (k),
@@ -75,6 +78,7 @@ module BWT_extend(
 	);
 
 	BWT_OCC4 BWT_OCC4_l(
+		.stall(stall),
 		.reset_BWT_extend(reset_BWT_extend),
 		.Clk_32UI       (Clk_32UI),
 		.k              (l),
@@ -106,6 +110,7 @@ module BWT_extend(
 	reg  [5:0] status_L1, status_L2, status_L3, status_L4;
 	
 	Pipe pipe(
+		.stall(stall),
 		.Clk_32UI(Clk_32UI),
 		
 		.ik_x0(ik_x0),
@@ -141,6 +146,7 @@ module BWT_extend(
 	
 	// L1
 	always@(posedge Clk_32UI) begin
+	if(!stall) begin
 		ok0_x2_L1 <= cnt_tl_out0 - cnt_tk_out0;
 		ok1_x2_L1 <= cnt_tl_out1 - cnt_tk_out1;
 		ok2_x2_L1 <= cnt_tl_out2 - cnt_tk_out2;
@@ -170,9 +176,10 @@ module BWT_extend(
 		forward_all_done_L1 <= forward_all_done_L0;
 		status_L1 <= status_L0;
 	end
-	
+	end
 	//L2
 	always@(posedge Clk_32UI) begin
+	if(!stall) begin
 		if(forward_all_done_L1)
 		begin
 			ok3_x1_L2 <= ik_x1_L1 + is_x1_add;
@@ -200,9 +207,11 @@ module BWT_extend(
 		ok3_x2_L2 <= ok3_x2_L1;   
 		status_L2 <= status_L1;
 	end
+	end
 	
 	//L3
 	always@(posedge Clk_32UI) begin
+	if(!stall) begin
 		if(forward_all_done_L2)
 		begin
 			ok2_x1_L3 <= ok3_x1_L2 + ok3_x2_L2;
@@ -233,9 +242,11 @@ module BWT_extend(
 		ok3_x2_L3 <= ok3_x2_L2;  
 		status_L3 <= status_L2;		
 	end
+	end
 	
 	//L4
 	always@(posedge Clk_32UI) begin
+	if(!stall) begin
 		if(forward_all_done_L3)
 		begin
 			ok1_x1_L4 <= ok2_x1_L3 + ok2_x2_L3;
@@ -268,9 +279,10 @@ module BWT_extend(
 		ok3_x2_L4 <= ok3_x2_L3;   
 		status_L4 <= status_L3;
 	end
-	
+	end
 	//L5
 	always@(posedge Clk_32UI) begin
+	if(!stall) begin
 		if(forward_all_done_L4)
 		begin
 			ok0_x1 <= ok1_x1_L4 + ok1_x2_L4;
@@ -302,7 +314,7 @@ module BWT_extend(
 		ok3_x2 <= ok3_x2_L4;   
 		status_L00 <= status_L4;
 	end
-		
+	end
 endmodule
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -318,6 +330,7 @@ endmodule
 //output is the the output of bwt_occ4: cnt[4]
 
 module BWT_OCC4(
+	input stall,
 	input reset_BWT_extend,
    input Clk_32UI,
 
@@ -366,6 +379,7 @@ module BWT_OCC4(
 	end
 	
 	always@(posedge Clk_32UI) begin
+	if(!stall) begin
 		cnt_b0_L1 <= cnt_b0;
 		
 		cnt_a0_L1 <= cnt_a0;
@@ -390,7 +404,7 @@ module BWT_OCC4(
 		
 		cnt_b3_L1 <= cnt_b3;
 	end
-	
+	end
 	//------------------------------------------------
 	reg[31:0] sum1_r, sum2_r, sum3_r, sum4_r, sum5_r, sum6_r, sum7_r, sum8_r;
 	
@@ -435,6 +449,7 @@ module BWT_OCC4(
 	end
 	
 	always@(posedge Clk_32UI) begin
+	if(!stall) begin
 		sum1_1_q <= sum1_1;
 		sum1_2_q <= sum1_2;
 		
@@ -465,7 +480,7 @@ module BWT_OCC4(
 		cnt_a2_L2 <= cnt_a2_L1; 
 		cnt_a3_L2 <= cnt_a3_L1;
 	end
-	
+	end
 	//------------------------------------------------
 	
 	reg [63:0] k_L3;
@@ -484,6 +499,7 @@ module BWT_OCC4(
 	end
 	
 	always@(posedge Clk_32UI) begin
+	if(!stall) begin
 		sum1_q <= sum1;
 		sum2_q <= sum2;
 		sum3_q <= sum3;
@@ -499,7 +515,7 @@ module BWT_OCC4(
 		cnt_a2_L3 <= cnt_a2_L2; 
 		cnt_a3_L3 <= cnt_a3_L2;
 	end
-	
+	end
 	//------------------------------------------------
 	
 	reg [31:0] total_12, total_34, total_56, total_78;
@@ -522,6 +538,7 @@ module BWT_OCC4(
 	end
 	
 	always@(posedge Clk_32UI) begin
+	if(!stall) begin
 		total_12_q <= total_12;
 		total_34_q <= total_34;
 		total_56_q <= total_56;
@@ -542,7 +559,7 @@ module BWT_OCC4(
 		cnt_a2_L4 <= cnt_a2_L3; 
 		cnt_a3_L4 <= cnt_a3_L3;
 	end
-	
+	end
 	//------------------------------------------------
     reg [63:0] k_L5;
 	reg [31:0] cnt_a0_L5,cnt_a1_L5,cnt_a2_L5,cnt_a3_L5;
@@ -561,6 +578,7 @@ module BWT_OCC4(
 	end
 	
 	always@(posedge Clk_32UI) begin
+	if(!stall) begin
 		total_1_q <= total_1;
 		total_12_qq <= total_12_q;
 		total_123_q <= total_123;
@@ -577,7 +595,7 @@ module BWT_OCC4(
 		cnt_a2_L5 <= cnt_a2_L4; 
 		cnt_a3_L5 <= cnt_a3_L4;
 	end
-	
+	end
 	//------------------------------------------------
 	reg [63:0] k_L6;
 	reg [31:0] cnt_a0_L6,cnt_a1_L6,cnt_a2_L6,cnt_a3_L6;
@@ -600,6 +618,7 @@ module BWT_OCC4(
 	end
 	
 	always@(posedge Clk_32UI) begin
+	if(!stall) begin
 		x_licheng_q <= x_licheng;
 		
 		k_L6 <= k_L5;
@@ -608,19 +627,20 @@ module BWT_OCC4(
 		cnt_a2_L6 <= cnt_a2_L5; 
 		cnt_a3_L6 <= cnt_a3_L5;
 	end
-	
+	end
 	//=================================================
    
    //L7
    assign x_new_reg = x_licheng_q - (~k_L6 & 15); 
    
-   always @(posedge Clk_32UI)
-   begin
+   always @(posedge Clk_32UI) begin
+   if(!stall) begin
    		cnt_out0 <= cnt_a0_L6 + x_new_reg[7:0];
    		cnt_out1 <= cnt_a1_L6 + x_new_reg[15:8];
    		cnt_out2 <= cnt_a2_L6 + x_new_reg[23:16];
    		cnt_out3 <= cnt_a3_L6 + x_new_reg[31:24];    			
    end  
+   end
    
    //======================================================================
 	
@@ -890,6 +910,7 @@ endmodule
 
 
 module Pipe(
+	input stall,
 	input Clk_32UI,
 	input [63:0] ik_x0, ik_x1, ik_x2,
 	input forward_all_done,
@@ -917,22 +938,27 @@ module Pipe(
 	reg [5:0] status_L0, status_L1, status_L2, status_L3, status_L4, status_L5, status_L6;
 
 	always @ (posedge Clk_32UI) begin
+	if(!stall) begin
 		ik_x0_L1 <= ik_x0;
 		ik_x1_L1 <= ik_x1;
 		ik_x2_L1 <= ik_x2;
 		forward_all_done_L1 <= forward_all_done;
 		status_L1 <= status;
 	end
+	end
 	
 	always @ (posedge Clk_32UI) begin
+	if(!stall) begin
 		ik_x0_L2 <= ik_x0_L1;
 		ik_x1_L2 <= ik_x1_L1;
 		ik_x2_L2 <= ik_x2_L1;
 		forward_all_done_L2 <= forward_all_done_L1;
 		status_L2 <= status_L1;
 	end
+	end
 	
 	always @ (posedge Clk_32UI) begin
+	if(!stall) begin
 		ik_x0_L3 <= ik_x0_L2;
 		ik_x1_L3 <= ik_x1_L2;
 		ik_x2_L3 <= ik_x2_L2;
@@ -940,8 +966,10 @@ module Pipe(
 		status_L3 <= status_L2;
 
 	end
+	end
 	
 	always @ (posedge Clk_32UI) begin
+		if(!stall) begin
 		ik_x0_L4 <= ik_x0_L3;
 		ik_x1_L4 <= ik_x1_L3;
 		ik_x2_L4 <= ik_x2_L3;
@@ -949,8 +977,9 @@ module Pipe(
 		status_L4 <= status_L3;
 
 		end
-	
+	end
 	always @ (posedge Clk_32UI) begin
+	if(!stall) begin
 		ik_x0_L5 <= ik_x0_L4;
 		ik_x1_L5 <= ik_x1_L4;
 		ik_x2_L5 <= ik_x2_L4;
@@ -958,8 +987,9 @@ module Pipe(
 		status_L5 <= status_L4;
 
 		end
-	
+	end
 	always @ (posedge Clk_32UI) begin
+	if(!stall) begin
 		ik_x0_L6 <= ik_x0_L5;
 		ik_x1_L6 <= ik_x1_L5;
 		ik_x2_L6 <= ik_x2_L5;
@@ -967,8 +997,9 @@ module Pipe(
 		status_L6 <= status_L5;
 
 		end
-	
+	end
 	always @ (posedge Clk_32UI) begin
+	if(!stall) begin
 		ik_x0_pipe <= ik_x0_L6;
 		ik_x1_pipe <= ik_x1_L6;
 		ik_x2_pipe <= ik_x2_L6;
@@ -976,5 +1007,5 @@ module Pipe(
 		status_pipe <= status_L6;
 
 	end
-	
+	end
 endmodule
