@@ -130,8 +130,23 @@ module Queue(
 	input [7:0] new_read_query_2Queue
 );
 
-	parameter WIDTH = 308 + 100; //[important] be careful not to exceed the width
-	parameter DEPTH = 384;
+	parameter WIDTH_read = 308 + 100; //[important] be careful not to exceed the width
+	parameter DEPTH = 512;
+	parameter DEPTH_log = 9;
+	
+	reg [WIDTH_read - 1 :0] RAM_forward[DEPTH-1:0];
+	reg [WIDTH_read - 1 :0] output_data, f_data, b_data;
+	reg [DEPTH_log - 1:0] read_ptr_f;
+	reg [DEPTH_log - 1:0] write_ptr_f;
+	
+	//circular queue for memory responses.
+	parameter WIDTH_memory = 768;
+	parameter Memory_Buffer_Depth_log = 6;
+	parameter Memory_Buffer_Depth = 64;
+	
+	reg [WIDTH_memory - 1:0] RAM_memory[Memory_Buffer_Depth - 1:0];
+	reg [Memory_Buffer_Depth_log - 1:0] read_ptr_m; //[important] for FIFO, the extension of ptr should be equal to that of RAM
+	reg [Memory_Buffer_Depth_log - 1:0] write_ptr_m;
 	
 	parameter F_init = 0; // F_init will disable the forward pipeline
 	parameter F_run = 1;
@@ -142,8 +157,7 @@ module Queue(
 	parameter BUBBLE = 6'b110000;
 	parameter DONE = 6'b100000;
 	
-	reg [8:0] read_ptr_f;
-	reg [8:0] write_ptr_f;
+	
 	
 	reg [5:0] status_L0;
 	reg [6:0] ptr_curr_L0; // record the status of curr and mem queue
@@ -217,7 +231,7 @@ module Queue(
 	reg [31:0] reserved_mem_info_B_L2; 					//7
 	reg [63:0] backward_k_B_L2, backward_l_B_L2; 		//33+33 
 	
-	reg [WIDTH-1:0] f_data, b_data;
+	
 	reg [5:0] status_L3;
 	
 	// 3 stage pipe to wait for the delay of retrieving query
@@ -354,8 +368,7 @@ module Queue(
 	
 	//------------------------------------------------
 	
-	reg [WIDTH - 1 :0] RAM_forward[DEPTH-1:0];
-	reg [WIDTH - 1 :0] output_data;
+
 
 	//circular queue for reads
 	always@(posedge Clk_32UI) begin
@@ -375,13 +388,7 @@ module Queue(
 		end
 	end
 	
-	//circular queue for memory responses.
-	parameter Memory_Buffer_Depth_log = 5;
-	parameter Memory_Buffer_Depth = 32;
-	
-	reg [767:0] RAM_memory[Memory_Buffer_Depth - 1:0];
-	reg [Memory_Buffer_Depth_log - 1:0] read_ptr_m; //[important] for FIFO, the extension of ptr should be equal to that of RAM
-	reg [Memory_Buffer_Depth_log - 1:0] write_ptr_m;
+
 	
 	wire memory_valid = (write_ptr_m != read_ptr_m);
 	
