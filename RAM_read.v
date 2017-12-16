@@ -4,7 +4,7 @@
 module RAM_read(
 	input reset_n,
 	input clk,
-	
+	input stall,
 	
 	// part 1: load all reads
 	input load_valid,
@@ -106,26 +106,28 @@ module RAM_read(
 			new_read_ptr <= 0;
 			// new_read_valid <= 0;			
 		end
-		else if (load_done) begin		
-			if(new_read_ptr < curr_position) begin
-				// new_read_valid <= 1;
-				
-				if(new_read) begin
-					new_read_ptr <= new_read_ptr + 1;
+		else if(!stall) begin
+			if (load_done) begin		
+				if(new_read_ptr < curr_position) begin
+					// new_read_valid <= 1;
+					
+					if(new_read) begin
+						new_read_ptr <= new_read_ptr + 1;
+					end
+					else begin
+						new_read_ptr <= new_read_ptr;
+					end
 				end
 				else begin
+					// new_read_valid <= 0;
 					new_read_ptr <= new_read_ptr;
 				end
 			end
+		
 			else begin
 				// new_read_valid <= 0;
-				new_read_ptr <= new_read_ptr;
+				new_read_ptr <= new_read_ptr;		
 			end
-		end
-		
-		else begin
-			// new_read_valid <= 0;
-			new_read_ptr <= new_read_ptr;		
 		end
 	end
 	
@@ -149,27 +151,29 @@ module RAM_read(
 			select_L1 <= 0;
 			status_L1 <= BUBBLE;
 		end
-		else if (status_query != BUBBLE && status_query != F_break && status_query != BCK_END) begin
-			case (query_position[6:5])
-				2'b00: begin
-					select_L1 <= RAM_read_1[query_read_num][255:0];
+		else if(!stall) begin
+			if (status_query != BUBBLE && status_query != F_break && status_query != BCK_END) begin
+				case (query_position[6:5])
+					2'b00: begin
+						select_L1 <= RAM_read_1[query_read_num][255:0];
+					end
+					2'b01: begin
+						select_L1 <= RAM_read_1[query_read_num][511:256];
+					end
+					2'b10: begin
+						select_L1 <= RAM_read_2[query_read_num][255:0];
+					end
+					2'b11: begin
+						select_L1 <= RAM_read_2[query_read_num][511:256];
+					end
+				endcase
+				
+				query_position_L1 <= query_position;
+				status_L1 <= status_query;	
 				end
-				2'b01: begin
-					select_L1 <= RAM_read_1[query_read_num][511:256];
-				end
-				2'b10: begin
-					select_L1 <= RAM_read_2[query_read_num][255:0];
-				end
-				2'b11: begin
-					select_L1 <= RAM_read_2[query_read_num][511:256];
-				end
-			endcase
-			
-			query_position_L1 <= query_position;
-			status_L1 <= status_query;	
-		end
-		else begin
-			status_L1 <= status_query;		
+			else begin
+				status_L1 <= status_query;		
+			end
 		end
 	end
 	
@@ -180,29 +184,31 @@ module RAM_read(
 			select_L2 <= 0;
 			status_L2 <= BUBBLE;
 		end
-		else if (status_L1 != BUBBLE) begin
-			case(query_position_L1[4:3])
-				2'b00: begin
-					select_L2 <= select_L1[63:0];
-				end
-				2'b01: begin
-					select_L2 <= select_L1[127:64];
-				end
-				2'b10: begin
-					select_L2 <= select_L1[191:128];
-				end
-				2'b11: begin
-					select_L2 <= select_L1[255:192];
-				end
-			endcase
-			
-			query_position_L2 <= query_position_L1;
-			status_L2 <= status_L1;
-		end
-		else begin
-			query_position_L2 <= 0;
-			select_L2 <= 0;
-			status_L2 <= status_L1;
+		else if(!stall) begin
+			if (status_L1 != BUBBLE) begin
+				case(query_position_L1[4:3])
+					2'b00: begin
+						select_L2 <= select_L1[63:0];
+					end
+					2'b01: begin
+						select_L2 <= select_L1[127:64];
+					end
+					2'b10: begin
+						select_L2 <= select_L1[191:128];
+					end
+					2'b11: begin
+						select_L2 <= select_L1[255:192];
+					end
+				endcase
+				
+				query_position_L2 <= query_position_L1;
+				status_L2 <= status_L1;
+			end
+			else begin
+				query_position_L2 <= 0;
+				select_L2 <= 0;
+				status_L2 <= status_L1;
+			end
 		end
 	end
 	
@@ -211,36 +217,38 @@ module RAM_read(
 		if(!reset_n) begin
 			new_read_query <= 8'b1111_1111;	
 		end
-		else if (status_L2 != BUBBLE) begin
-			case(query_position_L2[2:0])
-				3'b000: begin
-					new_read_query <= select_L2[7:0];
-				end
-				3'b001: begin
-					new_read_query <= select_L2[15:8];
-				end
-				3'b010: begin
-					new_read_query <= select_L2[23:16];
-				end
-				3'b011: begin
-					new_read_query <= select_L2[31:24];
-				end
-				3'b100: begin
-					new_read_query <= select_L2[39:32];
-				end
-				3'b101: begin
-					new_read_query <= select_L2[47:40];
-				end
-				3'b110: begin
-					new_read_query <= select_L2[55:48];
-				end
-				3'b111: begin
-					new_read_query <= select_L2[63:56];
-				end
-			endcase
-		end
-		else begin
-			new_read_query <= 8'b1111_1111;		
+		else if(!stall) begin
+			if (status_L2 != BUBBLE) begin
+				case(query_position_L2[2:0])
+					3'b000: begin
+						new_read_query <= select_L2[7:0];
+					end
+					3'b001: begin
+						new_read_query <= select_L2[15:8];
+					end
+					3'b010: begin
+						new_read_query <= select_L2[23:16];
+					end
+					3'b011: begin
+						new_read_query <= select_L2[31:24];
+					end
+					3'b100: begin
+						new_read_query <= select_L2[39:32];
+					end
+					3'b101: begin
+						new_read_query <= select_L2[47:40];
+					end
+					3'b110: begin
+						new_read_query <= select_L2[55:48];
+					end
+					3'b111: begin
+						new_read_query <= select_L2[63:56];
+					end
+				endcase
+			end
+			else begin
+				new_read_query <= 8'b1111_1111;		
+			end
 		end
 	end
 

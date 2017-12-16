@@ -213,6 +213,7 @@ module Top(
 	RAM_read ram_read(
 		.reset_n(reset_n),
 		.clk(Clk_32UI),
+		.stall(stall),
 		
 		// part 1: load all reads
 		.load_valid(load_valid),

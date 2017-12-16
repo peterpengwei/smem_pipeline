@@ -137,16 +137,29 @@ module Queue(
 	reg [WIDTH_read - 1 :0] RAM_forward[DEPTH-1:0];
 	reg [WIDTH_read - 1 :0] output_data, f_data, b_data;
 	reg [DEPTH_log - 1:0] read_ptr_f;
+	reg [DEPTH_log - 1:0] read_ptr_f_q;
 	reg [DEPTH_log - 1:0] write_ptr_f;
 	
 	//circular queue for memory responses.
 	parameter WIDTH_memory = 768;
-	parameter Memory_Buffer_Depth_log = 7;
-	parameter Memory_Buffer_Depth = 128;
+	parameter Memory_Buffer_Depth_log = 8;
+	parameter Memory_Buffer_Depth = 256;
 	
 	reg [WIDTH_memory - 1:0] RAM_memory[Memory_Buffer_Depth - 1:0];
 	reg [Memory_Buffer_Depth_log - 1:0] read_ptr_m; //[important] for FIFO, the extension of ptr should be equal to that of RAM
 	reg [Memory_Buffer_Depth_log - 1:0] write_ptr_m;
+	reg [Memory_Buffer_Depth_log - 1:0] read_ptr_m_q;
+	
+	reg memory_buffer_error;
+	reg queue_buffer_error;
+	always@(posedge Clk_32UI) begin
+		read_ptr_m_q <= read_ptr_m;
+		read_ptr_f_q <= read_ptr_f;
+		if(memory_buffer_error == 0)
+			memory_buffer_error <= ((read_ptr_m_q == write_ptr_m) & (read_ptr_m > write_ptr_m)) | ((read_ptr_m_q == write_ptr_m) & read_ptr_m_q > 0 & read_ptr_m == 0);
+		if(queue_buffer_error == 0)
+			queue_buffer_error <= ((read_ptr_f_q == write_ptr_f) & (read_ptr_f > write_ptr_f)) | ((read_ptr_f_q == write_ptr_f) & read_ptr_f_q > 0 & read_ptr_f == 0);
+	end
 	
 	parameter F_init = 0; // F_init will disable the forward pipeline
 	parameter F_run = 1;
