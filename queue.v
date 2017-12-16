@@ -141,8 +141,8 @@ module Queue(
 	
 	//circular queue for memory responses.
 	parameter WIDTH_memory = 768;
-	parameter Memory_Buffer_Depth_log = 6;
-	parameter Memory_Buffer_Depth = 64;
+	parameter Memory_Buffer_Depth_log = 7;
+	parameter Memory_Buffer_Depth = 128;
 	
 	reg [WIDTH_memory - 1:0] RAM_memory[Memory_Buffer_Depth - 1:0];
 	reg [Memory_Buffer_Depth_log - 1:0] read_ptr_m; //[important] for FIFO, the extension of ptr should be equal to that of RAM
