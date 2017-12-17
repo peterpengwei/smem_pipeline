@@ -69,51 +69,49 @@ module sim_RAM_curr();
 		.curr_we_1(curr_we_1),
 		.curr_data_1(curr_data_1), //[important]sequence: [ik_info, ik_x2, ik_x1, ik_x0]
 		.curr_addr_1(curr_addr_1),
-		.curr_q_1(curr_q_1),
+		//.curr_q_1(curr_q_1),
 		
 		//curr queue, port B
 		.curr_read_num_2(curr_read_num_2),
-		.curr_we_2(curr_we_2),
-		.curr_data_2(curr_data_2),
 		.curr_addr_2(curr_addr_2),
-		.curr_q_2(curr_q_2),
+		.curr_q_2(curr_q_2)
 		
 		//--------------------------------
 		
-		// mem queue, port A
-		.mem_read_num_1(mem_read_num_1),
-		.mem_we_1(mem_we_1),
-		.mem_data_1(mem_data_1), //[important]sequence: [p_info, p_x2, p_x1, p_x0]
-		.mem_addr_1(mem_addr_1),
-		.mem_q_1(mem_q_1),
+//		// mem queue, port A
+//		.mem_read_num_1(mem_read_num_1),
+//		.mem_we_1(mem_we_1),
+//		.mem_data_1(mem_data_1), //[important]sequence: [p_info, p_x2, p_x1, p_x0]
+//		.mem_addr_1(mem_addr_1),
+//		.mem_q_1(mem_q_1),
 		
-		//mem queue, port B
-		.mem_read_num_2(mem_read_num_2),
-		.mem_we_2(mem_we_2),
-		.mem_data_2(mem_data_2),
-		.mem_addr_2(mem_addr_2),
-		.mem_q_2(mem_q_2),
+//		//mem queue, port B
+//		.mem_read_num_2(mem_read_num_2),
+//		.mem_we_2(mem_we_2),
+//		.mem_data_2(mem_data_2),
+//		.mem_addr_2(mem_addr_2),
+//		.mem_q_2(mem_q_2),
 		
-		//---------------------------------
+//		//---------------------------------
 		
-		//mem size
-		.mem_size_valid(mem_size_valid),
-		.mem_size(mem_size),
-		.mem_size_read_num(mem_size_read_num),
+//		//mem size
+//		.mem_size_valid(mem_size_valid),
+//		.mem_size(mem_size),
+//		.mem_size_read_num(mem_size_read_num),
 		
-		//ret
-		.ret_valid(ret_valid),
-		.ret(ret),
-		.ret_read_num(ret_read_num),
+//		//ret
+//		.ret_valid(ret_valid),
+//		.ret(ret),
+//		.ret_read_num(ret_read_num),
 		
-		//---------------------------------
+//		//---------------------------------
 		
-		//output module
-		.output_request(output_request),
-		.output_permit(output_permit),
-		.output_data(output_data),
-		.output_valid(output_valid),
-		.output_finish(output_finish)
+//		//output module
+//		.output_request(output_request),
+//		.output_permit(output_permit),
+//		.output_data(output_data),
+//		.output_valid(output_valid),
+//		.output_finish(output_finish)
 
 	);
 	
@@ -179,39 +177,37 @@ module sim_RAM_curr();
 		
 		//test push/pull for curr
 		//write A
-		curr_read_num_1 = 0;
+		curr_read_num_1 = 2;
 		curr_we_1 = 1;
 		curr_data_1[63:0] = 1; 
 		curr_data_1[127:64] = 2; 
 		curr_data_1[191:128] = 3; 
 		curr_data_1[255:192] = 4; 
-		curr_addr_1 = 0;
+		curr_addr_1 = 7'h7a;
 		//write B
-		curr_read_num_2 = 1;
-		curr_we_2 = 1;
-		curr_data_2[63:0] = 5; 
-		curr_data_2[127:64] = 6; 
-		curr_data_2[191:128] = 7; 
-		curr_data_2[255:192] = 8;
-		curr_addr_2 = 1;
+//		curr_read_num_2 = 1;
+//		curr_we_2 = 1;
+//		curr_data_2[63:0] = 5; 
+//		curr_data_2[127:64] = 6; 
+//		curr_data_2[191:128] = 7; 
+//		curr_data_2[255:192] = 8;
+//		curr_addr_2 = 1;
 		
 		#`PER_H;	#`PER_H;
 		//read A
 		curr_read_num_1 = 0;
 		curr_we_1 = 0;
-		curr_data_1[63:0] = 5; 
-		curr_data_1[127:64] = 6; 
-		curr_data_1[191:128] = 7; 
-		curr_data_1[255:192] = 8; 
+		curr_data_1[63:0] = 0; 
+		curr_data_1[127:64] = 0; 
+		curr_data_1[191:128] = 0; 
+		curr_data_1[255:192] = 0; 
 		curr_addr_1 = 0;
 		//read B
-		curr_read_num_2 = 1;
-		curr_we_2 = 0;
-		curr_data_2[63:0] = 1; 
-		curr_data_2[127:64] = 2; 
-		curr_data_2[191:128] = 3; 
-		curr_data_2[255:192] = 4;
-		curr_addr_2 = 1;
+		
+
+        curr_read_num_2 = 2;
+		curr_addr_2 = 7'h7a;
+		
 		#`PER_H;	#`PER_H;
 		
 		// curr queue = 0; port A
