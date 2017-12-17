@@ -14,8 +14,10 @@
 //will all run in the pipeline
 
 //==========================
-
+`define MAX_READ 256 
 `define READ_NUM_WIDTH 8 
+`define WIDTH_read 308 + 100 //[important] be careful not to exceed the width
+`define WIDTH_memory 768
 module Queue(
 	input Clk_32UI,
 	input reset_n,
@@ -130,25 +132,21 @@ module Queue(
 	input [7:0] new_read_query_2Queue
 );
 
-	parameter WIDTH_read = 308 + 100; //[important] be careful not to exceed the width
-	parameter DEPTH = 512;
-	parameter DEPTH_log = 9;
 	
-	reg [WIDTH_read - 1 :0] RAM_forward[DEPTH-1:0];
-	reg [WIDTH_read - 1 :0] output_data, f_data, b_data;
-	reg [DEPTH_log - 1:0] read_ptr_f;
-	reg [DEPTH_log - 1:0] read_ptr_f_q;
-	reg [DEPTH_log - 1:0] write_ptr_f;
+	//[licheng] I don't understand why there must be 2*MAX_READ slots in the queue.
+	reg [`WIDTH_read - 1 :0] RAM_forward[`MAX_READ*2 - 1:0];
+	reg [`WIDTH_read - 1 :0] output_data, f_data, b_data;
+	reg [`READ_NUM_WIDTH+1 - 1:0] read_ptr_f;
+	reg [`READ_NUM_WIDTH+1 - 1:0] read_ptr_f_q;
+	reg [`READ_NUM_WIDTH+1 - 1:0] write_ptr_f;
 	
 	//circular queue for memory responses.
-	parameter WIDTH_memory = 768;
-	parameter Memory_Buffer_Depth_log = 8;
-	parameter Memory_Buffer_Depth = 256;
+
 	
-	reg [WIDTH_memory - 1:0] RAM_memory[Memory_Buffer_Depth - 1:0];
-	reg [Memory_Buffer_Depth_log - 1:0] read_ptr_m; //[important] for FIFO, the extension of ptr should be equal to that of RAM
-	reg [Memory_Buffer_Depth_log - 1:0] write_ptr_m;
-	reg [Memory_Buffer_Depth_log - 1:0] read_ptr_m_q;
+	reg [`WIDTH_memory - 1:0] RAM_memory[`MAX_READ - 1:0];
+	reg [`READ_NUM_WIDTH - 1:0] read_ptr_m; //[important] for FIFO, the extension of ptr should be equal to that of RAM
+	reg [`READ_NUM_WIDTH - 1:0] write_ptr_m;
+	reg [`READ_NUM_WIDTH - 1:0] read_ptr_m_q;
 	
 	reg memory_buffer_error;
 	reg queue_buffer_error;
