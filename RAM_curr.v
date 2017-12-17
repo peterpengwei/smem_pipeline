@@ -7,7 +7,7 @@ module RAM_curr_mem(
 	input reset_n,
 	input clk,
 	input stall,
-	input [8:0] batch_size,
+	input [`READ_NUM_WIDTH+1 - 1:0] batch_size,
 	
 	// curr queue, port A
 	input [`READ_NUM_WIDTH - 1:0] curr_read_num_1,
@@ -93,7 +93,7 @@ module RAM_curr_mem(
 	end
 	
 	//params
-	reg [8:0] done_counter;
+	reg [`READ_NUM_WIDTH+1 - 1:0] done_counter;
 	reg all_read_done;
 	
 	always@(posedge clk) begin
@@ -135,7 +135,7 @@ module RAM_curr_mem(
 		end
 	end
 	
-	reg [8:0] output_result_ptr;
+	reg [`READ_NUM_WIDTH+1 - 1:0] output_result_ptr;
 	reg [6:0] output_mem_ptr;
 	reg [6:0] curr_size;//mem size, not read size
 	reg [6:0] already_output_num; //mem number, not read number

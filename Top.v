@@ -19,7 +19,8 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 `define READ_NUM_WIDTH 8 
-
+`define MAX_READ 256
+`define CL 512
 module Top(
 	input Clk_32UI,
 	input reset_n,
@@ -27,8 +28,8 @@ module Top(
 	
 	//RAM for reads
 	input load_valid,
-	input [511:0] load_data,
-	input [8:0] batch_size,
+	input [`CL -1:0] load_data,
+	input [`READ_NUM_WIDTH+1 -1:0] batch_size,
 	
 	//memory requests / responses
 	output DRAM_valid,
@@ -43,7 +44,7 @@ module Top(
 	output output_request,
 	input output_permit,
 	
-	output [511:0] output_data,
+	output [`CL -1:0] output_data,
 	output output_valid,
 	output output_finish,
 	

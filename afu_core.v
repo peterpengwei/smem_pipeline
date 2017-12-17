@@ -1,7 +1,8 @@
 // core for pipeline SMEM kernel
 // Licheng 12.5
-`define CL = 512;
-`define MAX_READ = 512;
+`define CL 512
+`define MAX_READ 256
+`define READ_NUM_WIDTH 8
 
 module afu_core(
 	input  wire                             CLK_400M,
@@ -67,8 +68,6 @@ module afu_core(
 	parameter FINAL = 11;
 	parameter FENCE_2 = 12;
 	
-	parameter CL = 512;
-	parameter MAX_READ = 512;
 	
 	wire [57:0] hand_ptr = io_src_ptr + 50331648 + 16384 - 1;
 	wire [57:0] input_base = io_src_ptr + 50331648 + 16384;
@@ -76,21 +75,24 @@ module afu_core(
 	wire [57:0] BWT_base = io_src_ptr;
 	reg  [57:0] output_addr;
 	
+	reg polling_tag;
 	wire BWT_read_tag_0 = io_rx_data[480];
 	wire BWT_read_tag_1 = io_rx_data[482];
-	wire [9:0] batch_size_temp = io_rx_data[457:448];
 	
-	reg polling_tag;
-	reg [9:0] batch_size;
-	wire [11:0] CL_num = batch_size << 2;
-	reg [11:0] load_ptr;
-	reg [11:0] RAM_400M_ptr;
-	reg [11:0] RAM_200M_ptr;
+	//note batch size must be 1 bit wider than memory. e.g. 256 reads takes 8 bits to present.
+	wire 	[`READ_NUM_WIDTH+1 - 1:0] batch_size_temp = io_rx_data[`READ_NUM_WIDTH+1 - 1 + 448:448];	
+	reg 	[`READ_NUM_WIDTH+1 - 1:0] batch_size;
+	
+	//[licheng] very dangerous here.
+	wire 	[`READ_NUM_WIDTH+1+2 - 1:0] CL_num = batch_size << 2;
+	reg 	[`READ_NUM_WIDTH+1+2 - 1:0] load_ptr;
+	reg 	[`READ_NUM_WIDTH+1+2 - 1:0] RAM_400M_ptr;
+	reg 	[`READ_NUM_WIDTH+1+2 - 1:0] RAM_200M_ptr;
 	reg load_valid;
-	reg [511:0] load_data;
+	reg 	[`CL-1:0] load_data;
 	
 	reg batch_reset_n;
-	reg [CL-1:0] RAM_400M[MAX_READ-1:0];
+	reg 	[`CL-1:0] RAM_400M[`MAX_READ*4 - 1 :0]; // one read corresponds to 4 CLs.
 	
 	wire [31:0] addr_k_400M, addr_l_400M;
 	reg [31:0] addr_l_400M_reg;
@@ -725,7 +727,8 @@ module aFIFO
     assign PresetFull = Status & EqualAddresses;  //'Full' Fifo.
     
     always @ (posedge WClk, posedge PresetFull) begin//D Flip-Flop w/ Asynchronous Preset.
-        if(Clear_in) begin
+    // always @ (posedge WClk) begin//D Flip-Flop w/ Asynchronous Preset.    
+		if(Clear_in) begin
 			Full_out <= 0;
 		end
 		else begin
@@ -739,6 +742,7 @@ module aFIFO
     assign PresetEmpty = ~Status & EqualAddresses;  //'Empty' Fifo.
     
     always @ (posedge RClk, posedge PresetEmpty) begin //D Flip-Flop w/ Asynchronous Preset.
+	// always @ (posedge RClk) begin //D Flip-Flop w/ Asynchronous Preset.
         if(Clear_in)begin
 			Empty_out <= 1;
 		end

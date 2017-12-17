@@ -1,6 +1,7 @@
 
 `define READ_NUM_WIDTH 8 
 `define MAX_READ 256
+`define CL 512
 module RAM_read(
 	input reset_n,
 	input clk,
@@ -8,8 +9,8 @@ module RAM_read(
 	
 	// part 1: load all reads
 	input load_valid,
-	input [511:0] load_data,
-	input [8:0] batch_size,
+	input [`CL -1:0] load_data,
+	input [`READ_NUM_WIDTH+1 -1:0] batch_size,
 	output reg load_done,
 	
 	// part 2: provide new read to pipeline
@@ -43,15 +44,12 @@ module RAM_read(
 	parameter BUBBLE = 6'b110000;
 	parameter DONE = 6'b100000;
 	
-	parameter CL = 512;
+	reg [`CL - 1:0] RAM_read_1[`MAX_READ - 1:0];
+	reg [`CL - 1:0] RAM_read_2[`MAX_READ - 1:0];
+	reg [`CL - 1:0] RAM_param[`MAX_READ - 1:0];
+	reg [`CL - 1:0] RAM_ik[`MAX_READ - 1:0];
 	
-	
-	reg [CL - 1:0] RAM_read_1[`MAX_READ - 1:0];
-	reg [CL - 1:0] RAM_read_2[`MAX_READ - 1:0];
-	reg [CL - 1:0] RAM_param[`MAX_READ - 1:0];
-	reg [CL - 1:0] RAM_ik[`MAX_READ - 1:0];
-	
-	reg [8:0] curr_position;	
+	reg [`READ_NUM_WIDTH+1 -1:0] curr_position;	
 	reg [1:0] arbiter;
 	
 	//part 1: load all reads
