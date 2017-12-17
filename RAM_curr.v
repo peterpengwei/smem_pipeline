@@ -57,8 +57,8 @@ module RAM_curr_mem(
 	//33+33+33+14 = 113 bits
 	
 	//512 reads * 2 queue/read * 101 slots / queue * 113 bits/slots = 1.7M
-	reg [112:0] curr_queue [`MAX_READ - 1:0][100:0];
-	reg [112:0] mem_queue  [`MAX_READ - 1:0][100:0];
+	reg [112:0] curr_queue [15:0];
+	reg [112:0] mem_queue  [15:0];
 	reg [6:0] mem_size_queue[`MAX_READ - 1:0]; //mem_size = 7bits;
 	reg [6:0] ret_queue[`MAX_READ - 1:0] ; //ret = 7 bits;
 	
@@ -67,13 +67,13 @@ module RAM_curr_mem(
 		
 		//port A
 		if(curr_we_1) begin
-			curr_queue[curr_read_num_1][curr_addr_1] <= {curr_data_1[230:224],curr_data_1[198:192],curr_data_1[160:128],curr_data_1[96:64],curr_data_1[32:0]};
+			curr_queue[{curr_read_num_1,curr_addr_1}] <= {curr_data_1[230:224],curr_data_1[198:192],curr_data_1[160:128],curr_data_1[96:64],curr_data_1[32:0]};
 			//curr_q_1 <= curr_data_1;
 		end
 		
 		//[very important] use stall signal as the read_en. 
 		if(!stall) begin
-			{curr_q_2[230:224],curr_q_2[198:192],curr_q_2[160:128],curr_q_2[96: 64],curr_q_2[32: 0]} <= curr_queue[curr_read_num_2][curr_addr_2];
+			{curr_q_2[230:224],curr_q_2[198:192],curr_q_2[160:128],curr_q_2[96: 64],curr_q_2[32: 0]} <= curr_queue[{curr_read_num_2,curr_addr_2}];
 			{curr_q_2[255:231],curr_q_2[223:199],curr_q_2[191:161],curr_q_2[127:97],curr_q_2[63:33]} <= 0;
 		end
 	end
@@ -82,12 +82,12 @@ module RAM_curr_mem(
 	always@(posedge clk) begin
 			//port A
 			if(mem_we_1) begin
-				mem_queue[mem_read_num_1][mem_addr_1] <= {mem_data_1[230:224],mem_data_1[198:192],mem_data_1[160:128],mem_data_1[96:64],mem_data_1[32:0]};
+				mem_queue[{mem_read_num_1,mem_addr_1}] <= {mem_data_1[230:224],mem_data_1[198:192],mem_data_1[160:128],mem_data_1[96:64],mem_data_1[32:0]};
 				//mem_q_1 <= mem_data_1;
 			end
 			
 			if(!stall) begin
-				{mem_q_1[230:224],mem_q_1[198:192],mem_q_1[160:128],mem_q_1[96:64],mem_q_1[32:0]} <= mem_queue[mem_read_num_1][mem_addr_1];
+				{mem_q_1[230:224],mem_q_1[198:192],mem_q_1[160:128],mem_q_1[96:64],mem_q_1[32:0]} <= mem_queue[{mem_read_num_1,mem_addr_1}];
 				{mem_q_1[255:231],mem_q_1[223:199],mem_q_1[191:161],mem_q_1[127:97],mem_q_1[63:33]} <= 0;
 			end
 	end
@@ -140,7 +140,8 @@ module RAM_curr_mem(
 	reg [6:0] curr_size;//mem size, not read size
 	reg [6:0] already_output_num; //mem number, not read number
 	reg group_start; //indicate the initial of a read's data
-	
+	wire [6:0] already_output_num_add1;
+	assign already_output_num_add1 = already_output_num + 1;
 	always@(posedge clk) begin
 		if(!reset_n) begin
 			output_result_ptr <= 0;
@@ -170,17 +171,17 @@ module RAM_curr_mem(
 					else if(already_output_num < curr_size - 1) begin
 						output_valid <= 1;
 						
-						{output_data[230:224],output_data[198:192],output_data[160:128],output_data[96:64],output_data[32:0]} <= mem_queue[output_result_ptr][already_output_num];
+						{output_data[230:224],output_data[198:192],output_data[160:128],output_data[96:64],output_data[32:0]} <= mem_queue[{output_result_ptr,already_output_num}];
 						{output_data[255:231],output_data[223:199],output_data[191:161],output_data[127:97],output_data[63:33]} <= 0;
 						
-						{output_data[486:480],output_data[454:448],output_data[416:384],output_data[352:320],output_data[288:256]} <= mem_queue[output_result_ptr][already_output_num + 1];
+						{output_data[486:480],output_data[454:448],output_data[416:384],output_data[352:320],output_data[288:256]} <= mem_queue[{output_result_ptr,already_output_num_add1}];
 						{output_data[511:487],output_data[479:455],output_data[447:417],output_data[383:353],output_data[319:289]} <= 0;
 						already_output_num <= already_output_num + 2;	
 					end
 					else if(already_output_num == curr_size - 1) begin
 						output_valid <= 1;
 						
-						{output_data[230:224],output_data[198:192],output_data[160:128],output_data[96:64],output_data[32:0]} <= mem_queue[output_result_ptr][already_output_num];
+						{output_data[230:224],output_data[198:192],output_data[160:128],output_data[96:64],output_data[32:0]} <= mem_queue[{output_result_ptr,already_output_num}];
 						{output_data[255:231],output_data[223:199],output_data[191:161],output_data[127:97],output_data[63:33]} <= 0;
 						output_data[511:256] <= 0;
 						
