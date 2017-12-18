@@ -68,6 +68,9 @@ module afu_core(
 	parameter FINAL = 11;
 	parameter FENCE_2 = 12;
 	
+	parameter IDLE_1 = 13;
+	parameter IDLE_2 = 14;
+	parameter IDLE_3 = 15;
 	
 	wire [57:0] hand_ptr = io_src_ptr + 50331648 + 16384 - 1;
 	wire [57:0] input_base = io_src_ptr + 50331648 + 16384;
@@ -175,11 +178,80 @@ module afu_core(
 						cor_tx_wr_addr <= 0;
 						cor_tx_data <= 0;	
 						cor_tx_fence_valid <= 0;
-						state_BWA <= POLLING;
+						state_BWA <= IDLE_1;
 					end
 					else begin
 						state_BWA <= IDLE;
 					end
+				end
+				
+				IDLE_1: begin
+					cor_tx_rd_valid <= 0;
+					cor_tx_rd_addr <= 0;
+					cor_tx_rd_len <= 0;
+					batch_size <= 0;
+					//polling_tag <= 0;
+					load_ptr <= 0;
+					batch_reset_n <= 0;
+					RAM_400M_ptr <= 0;
+					RAM_200M_ptr <= 0;
+					// FIFO_output_rd_en <= 0;
+					addr_l_400M_reg <= 0;
+					addr_l_400M_valid<= 0;
+					output_permit <= 0;
+					output_addr <= 0;
+					
+					cor_tx_wr_valid <= 0; 
+					cor_tx_wr_addr <= 0;
+					cor_tx_data <= 0;	
+					cor_tx_fence_valid <= 0;
+					state_BWA <= IDLE_2;
+				end
+				
+				IDLE_2: begin
+					cor_tx_rd_valid <= 0;
+					cor_tx_rd_addr <= 0;
+					cor_tx_rd_len <= 0;
+					batch_size <= 0;
+					//polling_tag <= 0;
+					load_ptr <= 0;
+					batch_reset_n <= 0;
+					RAM_400M_ptr <= 0;
+					RAM_200M_ptr <= 0;
+					// FIFO_output_rd_en <= 0;
+					addr_l_400M_reg <= 0;
+					addr_l_400M_valid<= 0;
+					output_permit <= 0;
+					output_addr <= 0;
+					
+					cor_tx_wr_valid <= 0; 
+					cor_tx_wr_addr <= 0;
+					cor_tx_data <= 0;	
+					cor_tx_fence_valid <= 0;
+					state_BWA <= IDLE_3;
+				end
+				
+				IDLE_3: begin
+					cor_tx_rd_valid <= 0;
+					cor_tx_rd_addr <= 0;
+					cor_tx_rd_len <= 0;
+					batch_size <= 0;
+					//polling_tag <= 0;
+					load_ptr <= 0;
+					batch_reset_n <= 0;
+					RAM_400M_ptr <= 0;
+					RAM_200M_ptr <= 0;
+					// FIFO_output_rd_en <= 0;
+					addr_l_400M_reg <= 0;
+					addr_l_400M_valid<= 0;
+					output_permit <= 0;
+					output_addr <= 0;
+					
+					cor_tx_wr_valid <= 0; 
+					cor_tx_wr_addr <= 0;
+					cor_tx_data <= 0;	
+					cor_tx_fence_valid <= 0;
+					state_BWA <= POLLING;
 				end
 				
 				// POLLING -------------------
@@ -531,6 +603,7 @@ module afu_core(
 	// request FIFO
 	aFIFO #(.DATA_WIDTH(64), .ADDRESS_WIDTH(4)) FIFO_request(
 		.Clear_in(!core_start),
+		.CLK_400M(CLK_400M),
 		
 		//200M
 		.Data_in({addr_k, addr_l}),
@@ -549,6 +622,7 @@ module afu_core(
 	//response FIFO
 	aFIFO #(.DATA_WIDTH(1024), .ADDRESS_WIDTH(4)) FIFO_response(
 		.Clear_in(!core_start),
+		.CLK_400M(CLK_400M),
 		
 		//400M
 		.Data_in({CL_2, CL_1}),
@@ -567,6 +641,7 @@ module afu_core(
 	//output FIFO
 	aFIFO #(.DATA_WIDTH(512), .ADDRESS_WIDTH(4)) FIFO_output(
 		.Clear_in(!core_start),
+		.CLK_400M(CLK_400M),
 		
 		//200M
 		.Data_in(output_data_200M),
@@ -647,6 +722,7 @@ module aFIFO
      output reg                          Full_out,
      input wire                          WriteEn_in,
      input wire                          WClk,
+	 input wire 						 CLK_400M,
 	 
      input wire                          Clear_in);
 
@@ -658,7 +734,9 @@ module aFIFO
     wire                                Set_Status, Rst_Status;
     reg                                 Status;
     wire                                PresetFull, PresetEmpty;
-    
+    // reg                                PresetFull_q, PresetEmpty_q;
+	
+	// always@(posedge )
     //////////////Code///////////////
     //Data ports logic:
     //(Uses a dual-port RAM).
@@ -725,9 +803,9 @@ module aFIFO
             
     //'Full_out' logic for the writing port:
     assign PresetFull = Status & EqualAddresses;  //'Full' Fifo.
-    
-    always @ (posedge WClk, posedge PresetFull) begin//D Flip-Flop w/ Asynchronous Preset.
-    // always @ (posedge WClk) begin//D Flip-Flop w/ Asynchronous Preset.    
+	    
+	// always @ (posedge WClk  or posedge PresetFull) begin  
+	always @(negedge WClk) begin
 		if(Clear_in) begin
 			Full_out <= 0;
 		end
@@ -738,12 +816,13 @@ module aFIFO
 				Full_out <= 0;
 		end
     end       
+	
     //'Empty_out' logic for the reading port:
     assign PresetEmpty = ~Status & EqualAddresses;  //'Empty' Fifo.
-    
-    always @ (posedge RClk, posedge PresetEmpty) begin //D Flip-Flop w/ Asynchronous Preset.
-	// always @ (posedge RClk) begin //D Flip-Flop w/ Asynchronous Preset.
-        if(Clear_in)begin
+	
+	// always @ (posedge RClk or posedge PresetEmpty) begin
+	always @(negedge RClk) begin
+		if(Clear_in)begin
 			Empty_out <= 1;
 		end
 		else begin
@@ -752,8 +831,8 @@ module aFIFO
 			else
 				Empty_out <= 0;
 		end
-	
 	end
+
             
 endmodule
 
