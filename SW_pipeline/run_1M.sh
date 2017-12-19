@@ -1,0 +1,1 @@
+./helloSPLlb mem -t 1 -b 8192  -Ma -R '@RG	ID:HCC1954	LB:HCC1954	SM:HCC1954' /curr/bug/genomics/ReferenceMetadata/human_g1k_v37.fasta /curr/bug/genomics/InputFiles/HCC1954_1_1Mreads.fq /curr/bug/genomics/InputFiles/HCC1954_2_1Mreads.fq
