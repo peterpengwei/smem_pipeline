@@ -771,6 +771,7 @@ void bwt_smem1_batched(smem_i **itr, int *ori_start, int *max_i, int start_width
 			  	mem_out.info = *mem_ptr;
 			  	mem_ptr++;
 
+			  	//[licheng]modify the interface of SW-HW
 			  	mem_ptr += 4;
 			    kv_push_bwtintv_t(mem[curr_idx], mem_out); //insert all mem_out into the mem tree
 			  }
