@@ -192,7 +192,6 @@ module Top(
 	wire mem_we_1;
 	wire [255:0] mem_data_1; //[important]sequence: [p_info, p_x2, p_x1, p_x0]
 	wire [6:0] mem_addr_1;
-	wire [255:0] mem_q_1;
 	
 	//---------------------------------
 	
@@ -564,7 +563,6 @@ module Top(
 		.mem_we_1(mem_we_1),
 		.mem_data_1(mem_data_1), //[important]sequence: [p_info, p_x2, p_x1, p_x0]
 		.mem_addr_1(mem_addr_1),
-		.mem_q_1(mem_q_1),
 		
 		//---------------------------------
 		
