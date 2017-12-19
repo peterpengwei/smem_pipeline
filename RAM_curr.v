@@ -87,16 +87,25 @@ module RAM_curr_mem(
 
 	end */
 	reg [`READ_NUM_WIDTH+1 - 1:0] output_result_ptr;
-	reg [6:0] already_output_num; //mem number, not read number
-	wire [`CURR_QUEUE_ADDR_WIDTH-1 : 0] mem_addr = mem_we_1 ? (mem_read_num_1 * `READ_LEN + mem_addr_1) : (output_result_ptr * `READ_LEN + already_output_num);
-	wire [112:0] mem_q_out;
+	reg [6:0] already_output_num, already_output_num_q; //mem number, not read number
+	
+	wire [`CURR_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A = mem_we_1 ? (mem_read_num_1 * `READ_LEN + mem_addr_1) : (output_result_ptr * `READ_LEN + already_output_num);
+	wire [`CURR_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_B = (output_result_ptr * `READ_LEN + already_output_num + 1);
+	
+	wire [112:0] mem_q_out_A, mem_q_out_B;
+	
 	RAM_Mem_Queue mem_queue(
 		.clk(clk),
 		
 		.mem_we_1(mem_we_1),
-		.addr(mem_addr),
-		.data({mem_data_1[230:224],mem_data_1[198:192],mem_data_1[160:128],mem_data_1[96:64],mem_data_1[32:0]}),
-		.q(mem_q_out)
+		.addr_1(mem_addr_A),
+		.data_1({mem_data_1[230:224],mem_data_1[198:192],mem_data_1[160:128],mem_data_1[96:64],mem_data_1[32:0]}),
+		.q_1(mem_q_out_A),
+		
+		.mem_we_2(0),
+		.addr_2(mem_addr_B),
+		.data_2(0),
+		.q_2(mem_q_out_B)
 	);
 	
 	//params
@@ -151,6 +160,7 @@ module RAM_curr_mem(
 	reg group_start_q;
 	
 	always@(posedge clk) group_start_q <= group_start;
+	always@(posedge clk) already_output_num_q <= already_output_num;
 	
 	always@(*) begin
 		if(group_start_q) begin
@@ -161,9 +171,23 @@ module RAM_curr_mem(
 			output_data[159:128] = {25'b0, ret_queue[output_result_ptr]};
 			output_data[511:160] = 0;
 		end
-		else begin
-			{output_data[230:224],output_data[198:192],output_data[160:128],output_data[96:64],output_data[32:0]} = mem_q_out;
+		else if(already_output_num_q < curr_size - 1) begin
+			{output_data[230:224],output_data[198:192],output_data[160:128],output_data[96:64],output_data[32:0]} = mem_q_out_A;
 			{output_data[255:231],output_data[223:199],output_data[191:161],output_data[127:97],output_data[63:33]} = 0;
+			
+			{output_data[486:480],output_data[454:448],output_data[416:384],output_data[352:320],output_data[288:256]} <= mem_q_out_B;
+			{output_data[511:487],output_data[479:455],output_data[447:417],output_data[383:353],output_data[319:289]} <= 0;
+		end
+		else if(already_output_num_q == curr_size - 1) begin
+			{output_data[230:224],output_data[198:192],output_data[160:128],output_data[96:64],output_data[32:0]} = mem_q_out_A;
+			{output_data[255:231],output_data[223:199],output_data[191:161],output_data[127:97],output_data[63:33]} = 0;
+			
+			{output_data[486:480],output_data[454:448],output_data[416:384],output_data[352:320],output_data[288:256]} <= 0;
+			{output_data[511:487],output_data[479:455],output_data[447:417],output_data[383:353],output_data[319:289]} <= 0;
+		end
+		else begin
+			output_data = 0;
+		
 		end
 	end
 	
@@ -195,27 +219,27 @@ module RAM_curr_mem(
 						already_output_num <= 0;
 						odd_even_flag <= 0;
 					end
-					else if(already_output_num < curr_size) begin
-/* 						if(odd_even_flag == 0) begin
-							output_valid <= 0;
+					else if(already_output_num < curr_size - 1) begin
+ 						// if(odd_even_flag == 0) begin
+							// output_valid <= 0;
 							
 							// {output_data[230:224],output_data[198:192],output_data[160:128],output_data[96:64],output_data[32:0]} <= mem_data_q;
 							// {output_data[255:231],output_data[223:199],output_data[191:161],output_data[127:97],output_data[63:33]} <= 0;
 						
-							odd_even_flag <= 1;
-						end
-						else if (odd_even_flag == 1) begin
-							output_valid <= 1;
+							// odd_even_flag <= 1;
+						// end
+						// else if (odd_even_flag == 1) begin
+							// output_valid <= 1;
 							
 							// {output_data[486:480],output_data[454:448],output_data[416:384],output_data[352:320],output_data[288:256]} <= mem_data_q;
 							// {output_data[511:487],output_data[479:455],output_data[447:417],output_data[383:353],output_data[319:289]} <= 0;
 
-							odd_even_flag <= 0;
-						end */
+							// odd_even_flag <= 0;
+						// end 
 						output_valid <= 1;
-						already_output_num <= already_output_num + 1;
+						already_output_num <= already_output_num + 2;
 					end
-					// else if(already_output_num == curr_size - 1) begin				
+					else if(already_output_num == curr_size - 1) begin				
 						
 						// if(odd_even_flag == 0) begin							
 							// {output_data[230:224],output_data[198:192],output_data[160:128],output_data[96:64],output_data[32:0]} <= mem_data_q;
@@ -229,10 +253,10 @@ module RAM_curr_mem(
 							// {output_data[511:487],output_data[479:455],output_data[447:417],output_data[383:353],output_data[319:289]} <= 0;
 						// end
 						
-						// output_valid <= 1;
+						output_valid <= 1;
 						// odd_even_flag <= 0;
-						// already_output_num <= already_output_num + 1;						
-					// end
+						already_output_num <= already_output_num + 1;						
+					end
 					else if(already_output_num == curr_size) begin
 						output_valid <= 0; //[important] during the output process there will be a gap between each mem group!
 						output_result_ptr <= output_result_ptr + 1;
@@ -285,18 +309,30 @@ module RAM_Mem_Queue(
 	input clk,
 	
 	input mem_we_1,
-	input [`CURR_QUEUE_ADDR_WIDTH-1 : 0] addr,
-	input [112:0] data,
-	output reg [112:0] q
+	input [`CURR_QUEUE_ADDR_WIDTH-1 : 0] addr_1,
+	input [112:0] data_1,
+	output reg [112:0] q_1,
+	
+	input mem_we_2,
+	input [`CURR_QUEUE_ADDR_WIDTH-1 : 0] addr_2,
+	input [112:0] data_2,
+	output reg [112:0] q_2
 );
 	reg [112:0] mem_queue  [`MAX_READ*`READ_LEN - 1:0];
 	
 	always@(posedge clk) begin
 		if(mem_we_1) begin
-			mem_queue[addr] <= data;
+			mem_queue[addr_1] <= data_1;
 		end
 		else begin
-			q <= mem_queue[addr];
+			q_1 <= mem_queue[addr_1];
+		end
+		
+		if(mem_we_2) begin
+			mem_queue[addr_2] <= data_2;
+		end
+		else begin
+			q_2 <= mem_queue[addr_2];
 		end
 	end
 
