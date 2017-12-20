@@ -683,10 +683,7 @@ module afu_core(
 		
 		.output_data(output_data_200M),
 		.output_valid(output_valid_200M),
-		.output_finish (output_finish_200M),
-		
-		.backward_i_q_test(backward_i_q_test), 
-		.backward_j_q_test(backward_j_q_test)
+		.output_finish (output_finish_200M)
 		
 	);
 	
@@ -714,7 +711,7 @@ module aFIFO
      //Reading port
     (output reg  [DATA_WIDTH-1:0]        Data_out, 
 	 output reg  						 Data_valid,
-     output reg                          Empty_out,
+     output                           Empty_out,
      input wire                          ReadEn_in,
      input wire                          RClk,        
      //Writing port.	 
@@ -821,17 +818,18 @@ module aFIFO
     assign PresetEmpty = ~Status & EqualAddresses;  //'Empty' Fifo.
 	
 	// always @ (posedge RClk or posedge PresetEmpty) begin
-	always @(negedge RClk) begin
-		if(Clear_in)begin
-			Empty_out <= 1;
-		end
-		else begin
-			if (PresetEmpty)
-				Empty_out <= 1;
-			else
-				Empty_out <= 0;
-		end
-	end
+	// always @(negedge RClk) begin
+		// if(Clear_in)begin
+			// Empty_out <= 1;
+		// end
+		// else begin
+			// if (PresetEmpty)
+				// Empty_out <= 1;
+			// else
+				// Empty_out <= 0;
+		// end
+	// end
+	assign Empty_out = PresetEmpty;
 
             
 endmodule
