@@ -5,6 +5,7 @@
 module sim_afu_core();
 
 	reg                             CLK_400M;
+	reg                             CLK_200M;
     reg                             reset_n;
     
 	//---------------------------------------------------
@@ -56,6 +57,7 @@ module sim_afu_core();
 	//==========================
 	
 	initial forever #`PER_HH CLK_400M=!CLK_400M;
+	initial forever #`PER_HH #`PER_HH CLK_200M=!CLK_200M;
 	
 	always@(posedge CLK_400M)begin
 	   if(cor_tx_rd_valid) begin
@@ -74,6 +76,7 @@ module sim_afu_core();
 	
 	initial begin
 		CLK_400M = 1;
+		CLK_200M = 1;
 		reset_n = 0;
 		
 		//---------------------------------------------------
@@ -124,12 +127,26 @@ module sim_afu_core();
 		#`PER_H;
 		#`PER_H;
 		#`PER_H;
+		#`PER_H;
+		#`PER_H;
+		#`PER_H;
+		#`PER_H;
+		#`PER_H;
+		#`PER_H;
+		#`PER_H;
+		#`PER_H;
 		
 		io_rx_rd_valid = 1;
 		io_rx_data[480] = 1; 
 		io_rx_data[457:448] = 1; //batch size = 1;
 		
 		#`PER_H;
+		
+		io_rx_rd_valid = 1;
+        io_rx_data[480] = 1; 
+        io_rx_data[457:448] = 1; //batch size = 1;
+        
+        #`PER_H;
 		
 		io_rx_rd_valid = 0;io_rx_data = 0;
 		io_rx_data = 0;
@@ -143,8 +160,15 @@ module sim_afu_core();
 		io_rx_rd_valid = 1;
 
 		io_rx_data = 512'h00000203030303020000020002000300010303030301030303030100000200030200020200000003010000010301010302030203020300020302010301000303;#`PER_H;
+		io_rx_data = 512'h00000203030303020000020002000300010303030301030303030100000200030200020200000003010000010301010302030203020300020302010301000303;#`PER_H;
+		
 		io_rx_data = 512'h00000000000000000000000000000000000000000000000000000001020203030300030002020302000001020301030000020203020303030303010301020100;#`PER_H;
+		io_rx_data = 512'h00000000000000000000000000000000000000000000000000000001020203030300030002020302000001020301030000020203020303030303010301020100;#`PER_H;
+		
 		io_rx_data = 512'h00000000000000000000000000000000000000000000000000000000000000000000000000000000000000009d383ea00000000000000001000000000000000f;#`PER_H;
+		io_rx_data = 512'h00000000000000000000000000000000000000000000000000000000000000000000000000000000000000009d383ea00000000000000001000000000000000f;#`PER_H;
+		
+		io_rx_data = 512'h0000000105c9618800000000b8e1c8c3000000006bfa2ffe00000000000000000000000000000010000000004ce798c5000000006bfa2fff00000000b8e1c8c4;#`PER_H;
 		io_rx_data = 512'h0000000105c9618800000000b8e1c8c3000000006bfa2ffe00000000000000000000000000000010000000004ce798c5000000006bfa2fff00000000b8e1c8c4;#`PER_H;
 		
 		io_rx_rd_valid = 0;io_rx_data = 0;
@@ -677,6 +701,21 @@ module sim_afu_core();
 		#`PER_H;
 		#`PER_H;
 		
+		#`PER_H;
+		#`PER_H;
+		#`PER_H;
+		#`PER_H;
+		#`PER_H;
+		#`PER_H;
+		#`PER_H;
+		#`PER_H;
+		
+		io_rx_rd_valid = 1;
+		io_rx_data[482] = 1; 
+		io_rx_data[457:448] = 1; //batch size = 1;
+		
+		#`PER_H;
+		
 		io_rx_rd_valid = 1;
 		io_rx_data[482] = 1; 
 		io_rx_data[457:448] = 1; //batch size = 1;
@@ -695,8 +734,15 @@ module sim_afu_core();
 		io_rx_rd_valid = 1;
 
 		io_rx_data = 512'h00000203030303020000020002000300010303030301030303030100000200030200020200000003010000010301010302030203020300020302010301000303;#`PER_H;
+		io_rx_data = 512'h00000203030303020000020002000300010303030301030303030100000200030200020200000003010000010301010302030203020300020302010301000303;#`PER_H;
+		
 		io_rx_data = 512'h00000000000000000000000000000000000000000000000000000001020203030300030002020302000001020301030000020203020303030303010301020100;#`PER_H;
+		io_rx_data = 512'h00000000000000000000000000000000000000000000000000000001020203030300030002020302000001020301030000020203020303030303010301020100;#`PER_H;
+		
 		io_rx_data = 512'h00000000000000000000000000000000000000000000000000000000000000000000000000000000000000009d383ea00000000000000001000000000000000f;#`PER_H;
+		io_rx_data = 512'h00000000000000000000000000000000000000000000000000000000000000000000000000000000000000009d383ea00000000000000001000000000000000f;#`PER_H;
+		
+		io_rx_data = 512'h0000000105c9618800000000b8e1c8c3000000006bfa2ffe00000000000000000000000000000010000000004ce798c5000000006bfa2fff00000000b8e1c8c4;#`PER_H;
 		io_rx_data = 512'h0000000105c9618800000000b8e1c8c3000000006bfa2ffe00000000000000000000000000000010000000004ce798c5000000006bfa2fff00000000b8e1c8c4;#`PER_H;
 		
 		io_rx_rd_valid = 0;io_rx_data = 0;
@@ -1228,54 +1274,31 @@ module sim_afu_core();
 	end
 	
 	afu_core uut(
-	.CLK_400M(CLK_400M),
-    .reset_n(reset_n),
-    
-	//---------------------------------------------------
-    //.spl_enable(spl_enable),
-	.core_start(core_start),
-	//---------------------------------------------------
-	
-    .spl_reset(spl_reset),
-    
-    // TX_RD request, afu_core --> afu_io
-    .spl_tx_rd_almostfull(spl_tx_rd_almostfull),
-    .cor_tx_rd_valid(cor_tx_rd_valid),
-    .cor_tx_rd_addr(cor_tx_rd_addr),
-    .cor_tx_rd_len(cor_tx_rd_len),  //[licheng]useless.
-    
-    
-    // TX_WR request, afu_core --> afu_io
-    .spl_tx_wr_almostfull(spl_tx_wr_almostfull),    
-    .cor_tx_wr_valid(cor_tx_wr_valid),
-    .cor_tx_dsr_valid(cor_tx_dsr_valid),
-    .cor_tx_fence_valid(cor_tx_fence_valid),
-    .cor_tx_done_valid(cor_tx_done_valid),
-    .cor_tx_wr_addr(cor_tx_wr_addr), 
-    .cor_tx_wr_len(cor_tx_wr_len), 
-    .cor_tx_data(cor_tx_data),
-             
-    // RX_RD response, afu_io --> afu_core
-    .io_rx_rd_valid(io_rx_rd_valid),
-    .io_rx_data(io_rx_data),    
-                 
-    // afu_csr --> afu_core, afu_id
-    .csr_id_valid(csr_id_valid),
-    .csr_id_done(csr_id_done),    
-    .csr_id_addr(csr_id_addr),
+        .CLK_400M(CLK_400M),
+        .CLK_200M(CLK_200M),
         
-     // afu_csr --> afu_core, afu_ctx   
-    .csr_ctx_base_valid(csr_ctx_base_valid),
-    .csr_ctx_base(csr_ctx_base),
-
-	.dsm_base_addr(dsm_base_addr),	
-	.io_src_ptr(io_src_ptr),
-	.io_dst_ptr(io_dst_ptr),
-	
-	.backward_i_q_test(backward_i_q_test), 
-	.backward_j_q_test(backward_j_q_test)
-
-);
+        .reset_n(reset_n),
+        .core_start(core_start),
+        
+        // TX_RD request, afu_core --> afu_io
+        .spl_tx_rd_almostfull(spl_tx_rd_almostfull),
+        .cor_tx_rd_valid(cor_tx_rd_valid),
+        .cor_tx_rd_addr(cor_tx_rd_addr),    
+        
+        // TX_WR request, afu_core --> afu_io
+        .spl_tx_wr_almostfull(spl_tx_wr_almostfull),    
+        .cor_tx_wr_valid(cor_tx_wr_valid),
+        .cor_tx_fence_valid(cor_tx_fence_valid),
+        .cor_tx_wr_addr(cor_tx_wr_addr), 
+        .cor_tx_data(cor_tx_data),
+                 
+        // RX_RD response, afu_io --> afu_core
+        .io_rx_rd_valid(io_rx_rd_valid),
+        .io_rx_data(io_rx_data),    
+                     
+        .io_src_ptr(io_src_ptr),
+        .io_dst_ptr(io_dst_ptr)
+    );
 
 endmodule
 

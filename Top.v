@@ -30,6 +30,7 @@ module Top(
 	input load_valid,
 	input [`CL -1:0] load_data,
 	input [`READ_NUM_WIDTH+1 -1:0] batch_size,
+	output read_load_done,
 	
 	//memory requests / responses
 	output DRAM_valid,
@@ -140,6 +141,7 @@ module Top(
 	
 	// part 1: load all reads
 	wire load_done;
+	assign read_load_done = load_done;
 	
 	// part 2: provide new read to pipeline	
 	wire new_read;
