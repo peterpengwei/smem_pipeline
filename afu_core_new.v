@@ -219,20 +219,23 @@ module afu_core(
 	
 	reg [57:0] FIFO_request_Data_in_1, FIFO_request_Data_in_2;
 	reg FIFO_request_WriteEn_in_2;
+	wire [`READ_NUM_WIDTH-1:0] DRAM_read_num;
+	wire [`READ_NUM_WIDTH-1:0] DRAM_read_num_out;
+	wire [`READ_NUM_WIDTH-1:0] DRAM_read_num_out;
 	
 	// request FIFO addr k
-	aFIFO_2w_1r #(.DATA_WIDTH(58), .ADDRESS_WIDTH(4)) FIFO_request(
+	aFIFO_2w_1r #(.DATA_WIDTH(58+`READ_NUM_WIDTH), .ADDRESS_WIDTH(4)) FIFO_request(
 		.Clear_in(!core_start),
 		
 		//200M
-		.Data_in_1(FIFO_request_Data_in_1),
-		.Data_in_2(FIFO_request_Data_in_2),
+		.Data_in_1({DRAM_read_num, FIFO_request_Data_in_1}),
+		.Data_in_2({DRAM_read_num, FIFO_request_Data_in_2}),
 		.WriteEn_in_2(FIFO_request_WriteEn_in_2),
 		.Full_out(),
 		.WClk(CLK_200M),
 		
 		//400M
-		.Data_out(FIFO_request_Data_out),
+		.Data_out({DRAM_read_num_out, FIFO_request_Data_out}),
 		.Data_valid(FIFO_request_Data_valid),
 		.ReadEn_in(1),
 		.Empty_out(),
@@ -405,14 +408,14 @@ module afu_core(
 				RUN: begin
 					if(!output_request_200M) begin
 						//send out request
-						if(!stall) begin
+						// if(!stall) begin
 							FIFO_request_Data_in_1 <= BWT_base + addr_k[31:4];
 							FIFO_request_Data_in_2 <= BWT_base + addr_l[31:4];
 							FIFO_request_WriteEn_in_2 <= DRAM_valid;
-						end
-						else begin
-							FIFO_request_WriteEn_in_2 <= 0;
-						end
+						// end
+						// else begin
+							// FIFO_request_WriteEn_in_2 <= 0;
+						// end
 						
 						//get response
 						DRAM_get <= both_valid;
@@ -428,7 +431,7 @@ module afu_core(
 				end
 				
 				OUTPUT: begin
-					if(!stall) begin
+					// if(!stall) begin
 						if(!output_finish_200M) begin
 							FIFO_output_WriteEn_in <= output_valid_200M;
 							FIFO_output_Data_in[512+57:512] <= output_addr + output_base;
@@ -442,10 +445,10 @@ module afu_core(
 							FIFO_output_Data_in[511:0]      <= {1'b1,511'b0}; //fence
 							state <= FINAL;					
 						end
-					end
-					else begin
-						FIFO_output_WriteEn_in <= 0;
-					end					
+					// end
+					// else begin
+						// FIFO_output_WriteEn_in <= 0;
+					// end					
 				end
 				
 				FINAL : begin
@@ -500,6 +503,7 @@ module afu_core(
 		//memory requests / responses
 		.DRAM_valid(DRAM_valid),
 		.addr_k(addr_k), .addr_l(addr_l),
+		.DRAM_read_num(DRAM_read_num),
 		
 		.DRAM_get(DRAM_get), //[important] need testing
 		.cnt_a0 (CL_1_200M[31:0]),		.cnt_a1 (CL_1_200M[95:64]),		.cnt_a2 (CL_1_200M[159:128]),	.cnt_a3 (CL_1_200M[223:192]),

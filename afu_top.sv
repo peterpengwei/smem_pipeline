@@ -2,8 +2,8 @@ import ccip_if_pkg::*;
 module afu_top #(
     parameter NEXT_DFH_BYTE_OFFSET = 0
 ) (
-    input  wire                             CLK_400M,
-	//input wire 								CLK_200M,
+    input  wire                             clk,
+    input  wire                             CLK_200M,
     input  wire                             spl_reset,
 
     // AFU TX read request
@@ -62,42 +62,45 @@ module afu_top #(
 	wire [63:0] 					 io_src_ptr;
 	wire [63:0] 					 io_dst_ptr;
 	wire [63:0] dsm_base_addr;	
-	
-	reg CLK_200M;
-	always@(posedge CLK_400M) begin
-		if(spl_reset) begin
-			CLK_200M <= 0;
-		end
-		else begin
-		
-			CLK_200M <= !CLK_200M;
-		end
-	end
-	
 	afu_core afu_core(
-		.CLK_400M(CLK_400M),
+		.CLK_400M(clk),
 		.CLK_200M(CLK_200M),
 		.reset_n(core_reset_n),
 		
 		.core_start(core_start),
+		.spl_reset(spl_reset),
 		
 		// TX_RD request, afu_core --> afu_io
 		.spl_tx_rd_almostfull(spl_tx_rd_almostfull),
 		.cor_tx_rd_valid(cor_tx_rd_valid),
 		.cor_tx_rd_addr(cor_tx_rd_addr),
+		.cor_tx_rd_len(cor_tx_rd_len),  // in CL, 0-64, 1-1, 2-2, ...63-63
 		
 		
 		// TX_WR request, afu_core --> afu_io
 		.spl_tx_wr_almostfull(spl_tx_wr_almostfull),    
 		.cor_tx_wr_valid(cor_tx_wr_valid),
+		.cor_tx_dsr_valid(cor_tx_dsr_valid),
 		.cor_tx_fence_valid(cor_tx_fence_valid),
+		.cor_tx_done_valid(cor_tx_done_valid),
 		.cor_tx_wr_addr(cor_tx_wr_addr), 
+		.cor_tx_wr_len(cor_tx_wr_len), 
 		.cor_tx_data(cor_tx_data),
 				 
 		// RX_RD response, afu_io --> afu_core
 		.io_rx_rd_valid(io_rx_rd_valid),
 		.io_rx_data(io_rx_data),    
 					 
+		// afu_csr --> afu_core, afu_id
+		.csr_id_valid(csr_id_valid),
+		.csr_id_done(csr_id_done),    
+		.csr_id_addr(csr_id_addr),
+			
+		 // afu_csr --> afu_core, afu_ctx   
+		.csr_ctx_base_valid(csr_ctx_base_valid),
+		.csr_ctx_base(csr_ctx_base),
+		
+		.dsm_base_addr(dsm_base_addr),
 		.io_src_ptr(io_src_ptr),
 		.io_dst_ptr(io_dst_ptr)
 	);
@@ -106,7 +109,7 @@ module afu_top #(
         .NEXT_DFH_BYTE_OFFSET(NEXT_DFH_BYTE_OFFSET)
     ) afu_io (
 	
-		.clk(CLK_400M),
+		.clk(clk),
 		.spl_reset(spl_reset),
 
 		// AFU TX read request

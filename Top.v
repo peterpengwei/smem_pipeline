@@ -35,6 +35,7 @@ module Top(
 	//memory requests / responses
 	output DRAM_valid,
 	output [31:0] addr_k, addr_l,
+	output [`READ_NUM_WIDTH-1:0] DRAM_read_num,
 	
 	input DRAM_get,
 	input [31:0] cnt_a0,cnt_a1,cnt_a2,cnt_a3,
@@ -211,6 +212,7 @@ module Top(
 	assign DRAM_valid = DRAM_valid_F | DRAM_valid_B;
 	assign addr_k = DRAM_valid_F ? addr_k_F : DRAM_valid_B ? addr_k_B : 0;
 	assign addr_l = DRAM_valid_F ? addr_l_F : DRAM_valid_B ? addr_l_B : 0;
+	assign DRAM_read_num = DRAM_valid_F ? read_num_out : DRAM_valid_B? read_num_B : 8'b1111_1111;
 	
 	RAM_read ram_read(
 		.reset_n(reset_n),

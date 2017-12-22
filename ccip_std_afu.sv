@@ -57,30 +57,30 @@ module ccip_std_afu(
 logic afu_clk;
 assign afu_clk = pClk;
 
-// logic afu_reset;
+ logic afu_reset;
 
-// t_if_ccip_Rx   afck_cp2af_sRx;
-// t_if_ccip_Tx   afck_af2cp_sTx;
+ t_if_ccip_Rx   afck_cp2af_sRx;
+ t_if_ccip_Tx   afck_af2cp_sTx;
 
 //
 // Clock crossing FIFO to connect the fast CCI-P interface to the
 // slower AFU.
 //
-// ccip_async_shim
-//   afu_clock_crossing
-//    (
+ ccip_async_shim
+   afu_clock_crossing
+    (
 //     // Blue bitstream interface (pClk)
-//     .bb_softreset(pck_cp2af_softReset),
-//     .bb_clk(pClk),
-//     .bb_rx(pck_cp2af_sRx),
-//     .bb_tx(pck_af2cp_sTx),
+     .bb_softreset(pck_cp2af_softReset),
+     .bb_clk(pClk),
+     .bb_rx(pck_cp2af_sRx),
+     .bb_tx(pck_af2cp_sTx),
 
 //     // AFU
-//     .afu_softreset(afu_reset),
-//     .afu_clk(afu_clk),
-//     .afu_rx(afck_cp2af_sRx),
-//     .afu_tx(afck_af2cp_sTx)
-//     );
+     .afu_softreset(afu_reset),
+     .afu_clk(afu_clk),
+     .afu_rx(afck_cp2af_sRx),
+     .afu_tx(afck_af2cp_sTx)
+     );
 
 // ====================================================================
 //
@@ -117,9 +117,9 @@ ccip_wires_to_mpf
 map_ifc
 (
   .pClk(afu_clk),
-  .pck_cp2af_softReset(pck_cp2af_softReset),
-  .pck_cp2af_sRx(pck_cp2af_sRx),
-  .pck_af2cp_sTx(pck_af2cp_sTx),
+  .pck_cp2af_softReset(afu_reset),
+  .pck_cp2af_sRx(afck_cp2af_sRx),
+  .pck_af2cp_sTx(afck_af2cp_sTx),
   .*
 );
 
@@ -173,7 +173,7 @@ cci_mpf
   // that writes retire in order and the reads correspond to the
   // most recent write.
   //
-  // ***  Even when set to 1, MPF guarantees order only within
+  // ***   set to 1, MPF guarantees order only within
   // ***  a given virtual channel.  There is no guarantee of
   // ***  order across virtual channels and no guarantee when
   // ***  using eVC_VA, since it spreads requests across all
@@ -281,8 +281,8 @@ end
 afu_top #(
   .NEXT_DFH_BYTE_OFFSET ( MPF_DFH_MMIO_ADDR )
 ) afu_top (
-  .CLK_400M                  ( afu_clk ),
-  //.CLK_200M(pClkDiv2),
+  .clk                  ( afu_clk ),
+  .CLK_200M(pClkDiv2),
   .spl_reset            ( fiu.reset ),
   // AFU TX read request
   .spl_tx_rd_almostfull ( mpf2af_sRxPort.c0TxAlmFull ),
