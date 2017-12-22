@@ -4,29 +4,67 @@
 
 module afu_core(
 	input  wire                             CLK_400M,
-	input  wire 							CLK_200M,
-    input  wire                             reset_n,   
+	input  wire                             CLK_200M,
+    input  wire                             reset_n,
+    
+	//---------------------------------------------------
+    //input  wire                             spl_enable,
 	input  wire 							core_start,
+	//---------------------------------------------------
+	
+    input  wire                             spl_reset,
     
     // TX_RD request, afu_core --> afu_io
     input  wire                             spl_tx_rd_almostfull,
     output reg                              cor_tx_rd_valid,
-    output reg  [57:0]                      cor_tx_rd_addr,   
+    output reg  [57:0]                      cor_tx_rd_addr,
+    output reg  [5:0]                       cor_tx_rd_len,  //[licheng]useless.
+    
     
     // TX_WR request, afu_core --> afu_io
     input  wire                             spl_tx_wr_almostfull,    
     output reg                              cor_tx_wr_valid,
+    output reg                              cor_tx_dsr_valid,
     output reg                              cor_tx_fence_valid,
+    output                               cor_tx_done_valid,
     output reg  [57:0]                      cor_tx_wr_addr, 
+    output reg  [5:0]                       cor_tx_wr_len, 
     output reg  [511:0]                     cor_tx_data,
              
     // RX_RD response, afu_io --> afu_core
     input  wire                             io_rx_rd_valid,
     input  wire [511:0]                     io_rx_data,    
+                 
+    // afu_csr --> afu_core, afu_id
+    input  wire                             csr_id_valid,
+    output reg                              csr_id_done,    
+    input  wire [31:0]                      csr_id_addr,
+        
+     // afu_csr --> afu_core, afu_ctx   
+    input  wire                             csr_ctx_base_valid,
+    input  wire [57:0]                      csr_ctx_base,
+
+	input  [63:0]	dsm_base_addr,	
+	input  [63:0] 						io_src_ptr,
+	input  [63:0] 						io_dst_ptr,
 	
-	input  [63:0] 							io_src_ptr,
-	input  [63:0] 							io_dst_ptr
+	//for test
+	output [6:0] backward_i_q_test,
+	output [6:0] backward_j_q_test
 );
+	assign cor_tx_done_valid = 1'b0;
+	// reg CLK_200M;
+	// always@(posedge CLK_400M) begin
+		// if(!reset_n) begin
+			// CLK_200M <= 0;
+		// end
+		// else begin
+		
+			// CLK_200M <= !CLK_200M;
+		// end
+	// end
+	
+	
 	reg batch_reset_n;
 	// 400M domain
 	reg spl_tx_rd_almostfull_q, spl_tx_wr_almostfull_q;
@@ -41,7 +79,7 @@ module afu_core(
 	wire [57:0] FIFO_request_Data_out;
 	
 	always@(posedge CLK_400M) begin
-		if(!batch_reset_n) begin
+		if(!reset_n) begin
 			cor_tx_rd_valid <= 0;
 			cor_tx_rd_addr <= 0;
 		end
@@ -60,7 +98,7 @@ module afu_core(
 	reg FIFO_response_l_WriteEn_in;
 	
 	always@(posedge CLK_400M) begin
-		if(!batch_reset_n) begin
+		if(!reset_n) begin
 			odd_even_tag_in <= 0;
 			
 			FIFO_response_k_Data_in <= 0;
@@ -92,7 +130,7 @@ module afu_core(
 	wire [512+57:0] FIFO_output_Data_out;
 	
 	always@(posedge CLK_400M) begin
-		if(!batch_reset_n) begin
+		if(!reset_n) begin
 			cor_tx_wr_valid <= 0;
 			cor_tx_fence_valid <= 0;
 			cor_tx_wr_addr <= 0; 
@@ -100,7 +138,7 @@ module afu_core(
 		end
 		else begin
 			cor_tx_wr_valid <= FIFO_output_Data_valid;
-			cor_tx_fence_valid <= FIFO_output_Data_out[511]; //[licheng] use the 511 bit to represent fence valid.
+			cor_tx_fence_valid <= FIFO_output_Data_out[511] & FIFO_output_Data_valid; //[licheng] use the 511 bit to represent fence valid.
 			cor_tx_wr_addr <= FIFO_output_Data_out[512+57:512];
 			cor_tx_data	<= FIFO_output_Data_out[511:0];
 		end
@@ -229,15 +267,15 @@ module afu_core(
 	reg  [57:0] output_addr;
 	wire [57:0] licheng_tx_wr_addr = output_addr + output_base;
 	
-	parameter IDLE 		= 7'b000_0001;
-	parameter POLLING_1 = 7'b000_0010;
-	parameter POLLING_2 = 7'b000_0100;
-	parameter LOAD_READ = 7'b000_1000;
-	parameter RUN 		= 7'b001_0000;
-	parameter OUTPUT 	= 7'b010_0000;
-	parameter FINAL 	= 7'b100_0000;
-	
-	reg [6:0] state;
+	parameter IDLE 		= 8'b0000_0001;
+	parameter POLLING_1 = 8'b0000_0010;
+	parameter POLLING_2 = 8'b0000_0100;
+	parameter LOAD_READ = 8'b0000_1000;
+	parameter RUN 		= 8'b0001_0000;
+	parameter OUTPUT 	= 8'b0010_0000;
+	parameter FINAL 	= 8'b0100_0000;
+	parameter FINAL_2 	= 8'b1000_0000;
+	reg [7:0] state;
 	
 	
 	wire read_load_done;
@@ -275,7 +313,7 @@ module afu_core(
 			case(state)
 				IDLE: begin
 					batch_reset_n <= 0;
-					state <= POLLING_1;
+					
 					//never reset polling_tag!
 					load_ptr <= 0;
 					output_addr<= 0;
@@ -288,6 +326,8 @@ module afu_core(
 					
 					FIFO_output_WriteEn_in <= 0;
 					FIFO_request_WriteEn_in_2 <= 0;
+					FIFO_output_Data_in <= 0;
+					if(core_start)state <= POLLING_1;
 				end
 				
 				POLLING_1: begin
@@ -391,10 +431,10 @@ module afu_core(
 					if(!stall) begin
 						if(!output_finish_200M) begin
 							FIFO_output_WriteEn_in <= output_valid_200M;
-							FIFO_output_Data_in[512+57:512] <= licheng_tx_wr_addr;
+							FIFO_output_Data_in[512+57:512] <= output_addr + output_base;
 							FIFO_output_Data_in[511:0]      <= output_data_200M;
 						
-							output_addr <= output_addr + 1;
+							if(output_valid_200M) output_addr <= output_addr + 1;
 						end
 						else begin
 							FIFO_output_WriteEn_in 			<= 1;
@@ -414,12 +454,30 @@ module afu_core(
 						FIFO_output_Data_in[512+57:512] <= hand_ptr;
 						FIFO_output_Data_in[511:480]    <= 16;
 						FIFO_output_Data_in[479:0]    <= 0;
+						state <= FINAL_2;
+					
+					end
+					else begin
+						FIFO_output_WriteEn_in <= 0;
+					end	
+				end
+				
+				FINAL_2: begin
+					if(!stall) begin
+
+						FIFO_output_WriteEn_in 			<= 1;
+						FIFO_output_Data_in[512+57:512] <= 0;
+						FIFO_output_Data_in[511:0]      <= {1'b1,511'b0}; //fence
+
 						state <= IDLE;
 					
 					end
 					else begin
 						FIFO_output_WriteEn_in <= 0;
 					end	
+				
+				
+				
 				end
 		
 				

@@ -102,9 +102,9 @@ module RAM_curr_mem(
 		.data_1({mem_data_1[230:224],mem_data_1[198:192],mem_data_1[160:128],mem_data_1[96:64],mem_data_1[32:0]}),
 		.q_1(mem_q_out_A),
 		
-		.mem_we_2(0),
+		.mem_we_2(1'b0),
 		.addr_2(mem_addr_B),
-		.data_2(0),
+		.data_2(113'b0),
 		.q_2(mem_q_out_B)
 	);
 	

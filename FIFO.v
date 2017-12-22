@@ -122,18 +122,20 @@ module aFIFO
     //'Empty_out' logic for the reading port:
     assign PresetEmpty = ~Status & EqualAddresses;  //'Empty' Fifo.
 	assign Empty_out = PresetEmpty;
-	// always @ (posedge RClk or posedge PresetEmpty) begin
+	
+	reg Empty_out_licheng;
+	always @ (posedge RClk or posedge PresetEmpty) begin
 	// always @(negedge RClk) begin
-		// if(Clear_in)begin
-			// Empty_out <= 1;
-		// end
-		// else begin
-			// if (PresetEmpty)
-				// Empty_out <= 1;
-			// else
-				// Empty_out <= 0;
-		// end
-	// end
+		if(Clear_in)begin
+			Empty_out_licheng <= 1;
+		end
+		else begin
+			if (PresetEmpty)
+				Empty_out_licheng <= 1;
+			else
+				Empty_out_licheng <= 0;
+		end
+	end
 
             
 endmodule
@@ -241,7 +243,7 @@ module aFIFO_2w_1r
             
     //'Full_out' logic for the writing port:
     assign PresetFull = Status & EqualAddresses;  //'Full' Fifo.
-	assign Full_out = PresetFull;
+	assign Full_out = 1'b0;
 	// always @ (posedge WClk  or posedge PresetFull) begin  
 	// always @(negedge WClk) begin
 		// if(Clear_in) begin
@@ -258,7 +260,22 @@ module aFIFO_2w_1r
     //'Empty_out' logic for the reading port:
     assign PresetEmpty = ~Status & EqualAddresses;  //'Empty' Fifo.
 	assign Empty_out = PresetEmpty;
-
+	
+	
+	reg Empty_out_licheng;
+	always @ (posedge RClk or posedge PresetEmpty) begin
+	// always @(negedge RClk) begin
+		if(Clear_in)begin
+			Empty_out_licheng <= 1;
+		end
+		else begin
+			if (PresetEmpty)
+				Empty_out_licheng <= 1;
+			else
+				Empty_out_licheng <= 0;
+		end
+	end
+	
             
 endmodule
 
