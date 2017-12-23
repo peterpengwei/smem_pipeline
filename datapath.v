@@ -592,23 +592,66 @@ module Datapath(
 		end
 	end // end always
 	
+	//==============================================================
+	reg [6:0] forward_i_L22;
+    reg [6:0] min_intv_L22;
+	reg [6:0] backward_x_L22;
+    
+    reg [5:0] status_L22;
+    reg [6:0] ptr_curr_L22;// record the status of curr and mem queue
+
+    
+    reg [`READ_NUM_WIDTH - 1:0] read_num_L22;
+    reg [63:0] ik_x0_L22, ik_x1_L22, ik_x2_L22, ik_info_L22;
+	
+	reg [63:0] forward_k_temp_L22;
+	reg [63:0] forward_l_temp_L22;
+	reg [63:0] forward_k_temp_L22_minus;
+	reg [63:0] forward_l_temp_L22_minus;
+	
+	always@(posedge Clk_32UI) begin
+		if(!reset_BWT_extend) begin
+			status_L22 <= BUBBLE;
+		
+		end
+		else if(!stall) begin
+			forward_i_L22 		<= forward_i_L2;
+			min_intv_L22 		<= min_intv_L2;
+			backward_x_L22 		<= backward_x_L2;
+			status_L22 			<= status_L2;
+			ptr_curr_L22 		<= ptr_curr_L2;
+			read_num_L22 		<= read_num_L2;
+			ik_x0_L22 			<= ik_x0_L2;
+			ik_x1_L22 			<= ik_x1_L2;
+			ik_x2_L22 			<= ik_x2_L2;
+			ik_info_L22 		<= ik_info_L2;
+			forward_k_temp_L22 	<= forward_k_temp_L2;
+			forward_l_temp_L22 	<= forward_l_temp_L2;
+			forward_k_temp_L22_minus 	<= forward_k_temp_L2_minus;
+			forward_l_temp_L22_minus 	<= forward_l_temp_L2_minus;		
+		end
+	
+	end
+	
+	
+	//==============================================================
 	//-----------------------------------------------------
 	//L3 end of forward pipeline, send out memory request
 	
-	wire is_k_minus = forward_k_temp_L2 >= primary;
-	wire is_l_minus = forward_l_temp_L2 >= primary;
-	wire [63:0] forward_k_L2 = is_k_minus ? forward_k_temp_L2_minus : forward_k_temp_L2;
-    wire [63:0] forward_l_L2 = is_l_minus ? forward_l_temp_L2_minus : forward_l_temp_L2;
+	wire is_k_minus = forward_k_temp_L22 >= primary;
+	wire is_l_minus = forward_l_temp_L22 >= primary;
+	wire [63:0] forward_k_L22 = is_k_minus ? forward_k_temp_L22_minus : forward_k_temp_L22;
+    wire [63:0] forward_l_L22 = is_l_minus ? forward_l_temp_L22_minus : forward_l_temp_L22;
 	
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
 			status_out <= BUBBLE;
 		end
 		else if(!stall) begin
-			if(status_L2 == F_init || status_L2 == F_run) begin //if break, no memory access and no next query
+			if(status_L22 == F_init || status_L22 == F_run) begin //if break, no memory access and no next query
 				DRAM_valid <= 1;
-				addr_k <= {forward_k_L2[34:7], 4'b0};
-				addr_l <= {forward_l_L2[34:7], 4'b0};
+				addr_k <= {forward_k_L22[34:7], 4'b0};
+				addr_l <= {forward_l_L22[34:7], 4'b0};
 			end
 			else begin
 				DRAM_valid <= 0;
@@ -616,26 +659,26 @@ module Datapath(
 				addr_l <= 0;
 			end
 			
-			if (status_L2 == F_init) begin
+			if (status_L22 == F_init) begin
 				status_out <= F_run;
 			end
 			else begin
-				status_out <= status_L2;
+				status_out <= status_L22;
 			end
 			
 			
 
-			ptr_curr_out<= ptr_curr_L2; // record the status of curr and mem queue
-			read_num_out<= read_num_L2;
-			ik_x0_out<= ik_x0_L2; 
-			ik_x1_out<= ik_x1_L2; 
-			ik_x2_out<= ik_x2_L2; 
-			ik_info_out<= ik_info_L2;
-			forward_i_out <= forward_i_L2;
-			min_intv_out <= min_intv_L2;
-			backward_x_out <= backward_x_L2;
+			ptr_curr_out<= ptr_curr_L22; // record the status of curr and mem queue
+			read_num_out<= read_num_L22;
+			ik_x0_out<= ik_x0_L22; 
+			ik_x1_out<= ik_x1_L22; 
+			ik_x2_out<= ik_x2_L22; 
+			ik_info_out<= ik_info_L22;
+			forward_i_out <= forward_i_L22;
+			min_intv_out <= min_intv_L22;
+			backward_x_out <= backward_x_L22;
 			
-			next_query_position <= forward_i_L2;
+			next_query_position <= forward_i_L22;
 		end
 		else begin
 			//[very important] in case the DRAM_valid is kept valid during stall. 

@@ -4,22 +4,22 @@ input wire rst,
 input wire stall,
 
 //data used in this stage
-input wire [63:0] p_x0_q,p_x1_q,p_x2_q,p_info_q,
+input wire [63:0] p_x0_licheng,p_x1_licheng,p_x2_licheng,p_info_licheng,
 
-input wire [8:0] read_num_q,
-input wire [5:0] status_q,
-input wire [63:0] primary_q,
-input wire [6:0] current_rd_addr_q,
-input wire [6:0] forward_size_n_q,
-input wire [6:0] new_size_q,
-input wire [6:0] new_last_size_q,
-input wire [6:0] current_wr_addr_q,mem_wr_addr_q,
-input wire [6:0] backward_i_q, backward_j_q,
-input wire [7:0] output_c_q, //[licheng]useless
-input wire [6:0] min_intv_q,
-input wire finish_sign_q,iteration_boundary_q,
-input wire [63:0]	reserved_token_x2_q,
-input wire [31:0]	reserved_mem_info_q,
+input wire [8:0] read_num_licheng,
+input wire [5:0] status_licheng,
+input wire [63:0] primary_licheng,
+input wire [6:0] current_rd_addr_licheng,
+input wire [6:0] forward_size_n_licheng,
+input wire [6:0] new_size_licheng,
+input wire [6:0] new_last_size_licheng,
+input wire [6:0] current_wr_addr_licheng,mem_wr_addr_licheng,
+input wire [6:0] backward_i_licheng, backward_j_licheng,
+input wire [7:0] output_c_licheng, //[licheng]useless
+input wire [6:0] min_intv_licheng,
+input wire finish_sign_licheng,iteration_boundary_licheng,
+input wire [63:0]	reserved_token_x2_licheng,
+input wire [31:0]	reserved_mem_info_licheng,
 
 output reg [8:0] read_num,
 output reg [6:0] current_rd_addr,
@@ -54,6 +54,56 @@ output reg [5:0] status
 	BCK_END = 6'h6,	//110
 	BUBBLE  = 6'h30,
 	DONE	= 6'b100000;
+	
+
+	reg [63:0] p_x0_q,p_x1_q,p_x2_q,p_info_q;
+
+	reg [8:0] read_num_q;
+	reg [5:0] status_q;
+	reg [63:0] primary_q;
+	reg [6:0] current_rd_addr_q;
+	reg [6:0] forward_size_n_q;
+	reg [6:0] new_size_q;
+	reg [6:0] new_last_size_q;
+	reg [6:0] current_wr_addr_q,mem_wr_addr_q;
+	reg [6:0] backward_i_q, backward_j_q;
+	reg [7:0] output_c_q; //[licheng]useless
+	reg [6:0] min_intv_q;
+	reg finish_sign_q,iteration_boundary_q;
+	reg [63:0]	reserved_token_x2_q;
+	reg [31:0]	reserved_mem_info_q;
+	
+	always@(posedge clk) begin
+		if(!rst) begin
+			status_q <= BUBBLE;
+		end
+		else if(!stall) begin
+			p_x0_q 					<= p_x0_licheng;
+			p_x1_q 					<= p_x1_licheng;
+			p_x2_q 					<= p_x2_licheng;
+			p_info_q 				<= p_info_licheng;
+			read_num_q 				<= read_num_licheng;
+			status_q 				<= status_licheng;
+			primary_q 				<= primary_licheng;
+			current_rd_addr_q 		<= current_rd_addr_licheng;
+			forward_size_n_q 		<= forward_size_n_licheng;
+			new_size_q 				<= new_size_licheng;
+			new_last_size_q 		<= new_last_size_licheng;
+			current_wr_addr_q 		<= current_wr_addr_licheng;
+			mem_wr_addr_q 			<= mem_wr_addr_licheng;
+			backward_i_q 			<= backward_i_licheng;
+			backward_j_q 			<= backward_j_licheng;
+			output_c_q 				<= output_c_licheng;
+			min_intv_q 				<= min_intv_licheng;
+			finish_sign_q 			<= finish_sign_licheng;
+			iteration_boundary_q	<= iteration_boundary_licheng;
+			reserved_token_x2_q 	<= reserved_token_x2_licheng;
+			reserved_mem_info_q 	<= reserved_mem_info_licheng;
+		end
+	end
+
+
+
 
 
 	//signals handled to READ parse unit
