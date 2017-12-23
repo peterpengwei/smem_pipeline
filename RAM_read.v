@@ -52,6 +52,7 @@ module RAM_read(
 	reg [`READ_NUM_WIDTH+1 -1:0] curr_position;	
 	reg [1:0] arbiter;
 	
+	wire [`CL-1:0] compress_load_data;
 	//part 1: load all reads
 	always@(posedge clk) begin
 		if(!reset_n) begin
@@ -63,8 +64,8 @@ module RAM_read(
 			if (load_valid) begin
 				arbiter <= arbiter + 1;
 				case(arbiter) 
-					2'b00: RAM_read_1[curr_position] <= load_data;
-					2'b01: RAM_read_2[curr_position] <= load_data;
+					2'b00: RAM_read_1[curr_position] <= compress_load_data;
+					2'b01: RAM_read_2[curr_position] <= compress_load_data;
 					2'b10: RAM_param[curr_position] <= load_data;
 					2'b11: begin 
 						RAM_ik[curr_position] <= load_data;
@@ -143,6 +144,10 @@ module RAM_read(
 	reg [5:0] status_L2;
 	
 	//first level extraction 101 -> 32
+	
+	wire [`CL-1:0] compress_RAM_read_1_query;
+	wire [`CL-1:0] compress_RAM_read_2_query;
+	
 	always@(posedge clk) begin
 		if(!reset_n) begin
 			query_position_L1 <= 0;
@@ -150,28 +155,28 @@ module RAM_read(
 			status_L1 <= BUBBLE;
 		end
 		else if(!stall) begin
-			if (status_query != BUBBLE && status_query != F_break && status_query != BCK_END) begin
+			// if (status_query != BUBBLE && status_query != F_break && status_query != BCK_END) begin
 				case (query_position[6:5])
 					2'b00: begin
-						select_L1 <= RAM_read_1[query_read_num][255:0];
+						select_L1 <= compress_RAM_read_1_query[255:0];
 					end
 					2'b01: begin
-						select_L1 <= RAM_read_1[query_read_num][511:256];
+						select_L1 <= compress_RAM_read_1_query[511:256];
 					end
 					2'b10: begin
-						select_L1 <= RAM_read_2[query_read_num][255:0];
+						select_L1 <= compress_RAM_read_2_query[255:0];
 					end
 					2'b11: begin
-						select_L1 <= RAM_read_2[query_read_num][511:256];
+						select_L1 <= compress_RAM_read_2_query[511:256];
 					end
 				endcase
 				
 				query_position_L1 <= query_position;
 				status_L1 <= status_query;	
-				end
-			else begin
-				status_L1 <= status_query;		
-			end
+				// end
+			// else begin
+				// status_L1 <= status_query;		
+			// end
 		end
 	end
 	
@@ -249,5 +254,206 @@ module RAM_read(
 			end
 		end
 	end
+	
+	assign compress_load_data = {
+		6'bxxxxxx,load_data[505:504],
+		6'bxxxxxx,load_data[497:496],
+		6'bxxxxxx,load_data[489:488],
+		6'bxxxxxx,load_data[481:480],
+		6'bxxxxxx,load_data[473:472],
+		6'bxxxxxx,load_data[465:464],
+		6'bxxxxxx,load_data[457:456],
+		6'bxxxxxx,load_data[449:448],
+		6'bxxxxxx,load_data[441:440],
+		6'bxxxxxx,load_data[433:432],
+		6'bxxxxxx,load_data[425:424],
+		6'bxxxxxx,load_data[417:416],
+		6'bxxxxxx,load_data[409:408],
+		6'bxxxxxx,load_data[401:400],
+		6'bxxxxxx,load_data[393:392],
+		6'bxxxxxx,load_data[385:384],
+		6'bxxxxxx,load_data[377:376],
+		6'bxxxxxx,load_data[369:368],
+		6'bxxxxxx,load_data[361:360],
+		6'bxxxxxx,load_data[353:352],
+		6'bxxxxxx,load_data[345:344],
+		6'bxxxxxx,load_data[337:336],
+		6'bxxxxxx,load_data[329:328],
+		6'bxxxxxx,load_data[321:320],
+		6'bxxxxxx,load_data[313:312],
+		6'bxxxxxx,load_data[305:304],
+		6'bxxxxxx,load_data[297:296],
+		6'bxxxxxx,load_data[289:288],
+		6'bxxxxxx,load_data[281:280],
+		6'bxxxxxx,load_data[273:272],
+		6'bxxxxxx,load_data[265:264],
+		6'bxxxxxx,load_data[257:256],
+		6'bxxxxxx,load_data[249:248],
+		6'bxxxxxx,load_data[241:240],
+		6'bxxxxxx,load_data[233:232],
+		6'bxxxxxx,load_data[225:224],
+		6'bxxxxxx,load_data[217:216],
+		6'bxxxxxx,load_data[209:208],
+		6'bxxxxxx,load_data[201:200],
+		6'bxxxxxx,load_data[193:192],
+		6'bxxxxxx,load_data[185:184],
+		6'bxxxxxx,load_data[177:176],
+		6'bxxxxxx,load_data[169:168],
+		6'bxxxxxx,load_data[161:160],
+		6'bxxxxxx,load_data[153:152],
+		6'bxxxxxx,load_data[145:144],
+		6'bxxxxxx,load_data[137:136],
+		6'bxxxxxx,load_data[129:128],
+		6'bxxxxxx,load_data[121:120],
+		6'bxxxxxx,load_data[113:112],
+		6'bxxxxxx,load_data[105:104],
+		6'bxxxxxx,load_data[97:96],
+		6'bxxxxxx,load_data[89:88],
+		6'bxxxxxx,load_data[81:80],
+		6'bxxxxxx,load_data[73:72],
+		6'bxxxxxx,load_data[65:64],
+		6'bxxxxxx,load_data[57:56],
+		6'bxxxxxx,load_data[49:48],
+		6'bxxxxxx,load_data[41:40],
+		6'bxxxxxx,load_data[33:32],
+		6'bxxxxxx,load_data[25:24],
+		6'bxxxxxx,load_data[17:16],
+		6'bxxxxxx,load_data[9:8],
+		6'bxxxxxx,load_data[1:0]
+	};
+	
+	assign compress_RAM_read_1_query = {
+		6'b000000,RAM_read_1[query_read_num][505:504],
+		6'b000000,RAM_read_1[query_read_num][497:496],
+		6'b000000,RAM_read_1[query_read_num][489:488],
+		6'b000000,RAM_read_1[query_read_num][481:480],
+		6'b000000,RAM_read_1[query_read_num][473:472],
+		6'b000000,RAM_read_1[query_read_num][465:464],
+		6'b000000,RAM_read_1[query_read_num][457:456],
+		6'b000000,RAM_read_1[query_read_num][449:448],
+		6'b000000,RAM_read_1[query_read_num][441:440],
+		6'b000000,RAM_read_1[query_read_num][433:432],
+		6'b000000,RAM_read_1[query_read_num][425:424],
+		6'b000000,RAM_read_1[query_read_num][417:416],
+		6'b000000,RAM_read_1[query_read_num][409:408],
+		6'b000000,RAM_read_1[query_read_num][401:400],
+		6'b000000,RAM_read_1[query_read_num][393:392],
+		6'b000000,RAM_read_1[query_read_num][385:384],
+		6'b000000,RAM_read_1[query_read_num][377:376],
+		6'b000000,RAM_read_1[query_read_num][369:368],
+		6'b000000,RAM_read_1[query_read_num][361:360],
+		6'b000000,RAM_read_1[query_read_num][353:352],
+		6'b000000,RAM_read_1[query_read_num][345:344],
+		6'b000000,RAM_read_1[query_read_num][337:336],
+		6'b000000,RAM_read_1[query_read_num][329:328],
+		6'b000000,RAM_read_1[query_read_num][321:320],
+		6'b000000,RAM_read_1[query_read_num][313:312],
+		6'b000000,RAM_read_1[query_read_num][305:304],
+		6'b000000,RAM_read_1[query_read_num][297:296],
+		6'b000000,RAM_read_1[query_read_num][289:288],
+		6'b000000,RAM_read_1[query_read_num][281:280],
+		6'b000000,RAM_read_1[query_read_num][273:272],
+		6'b000000,RAM_read_1[query_read_num][265:264],
+		6'b000000,RAM_read_1[query_read_num][257:256],
+		6'b000000,RAM_read_1[query_read_num][249:248],
+		6'b000000,RAM_read_1[query_read_num][241:240],
+		6'b000000,RAM_read_1[query_read_num][233:232],
+		6'b000000,RAM_read_1[query_read_num][225:224],
+		6'b000000,RAM_read_1[query_read_num][217:216],
+		6'b000000,RAM_read_1[query_read_num][209:208],
+		6'b000000,RAM_read_1[query_read_num][201:200],
+		6'b000000,RAM_read_1[query_read_num][193:192],
+		6'b000000,RAM_read_1[query_read_num][185:184],
+		6'b000000,RAM_read_1[query_read_num][177:176],
+		6'b000000,RAM_read_1[query_read_num][169:168],
+		6'b000000,RAM_read_1[query_read_num][161:160],
+		6'b000000,RAM_read_1[query_read_num][153:152],
+		6'b000000,RAM_read_1[query_read_num][145:144],
+		6'b000000,RAM_read_1[query_read_num][137:136],
+		6'b000000,RAM_read_1[query_read_num][129:128],
+		6'b000000,RAM_read_1[query_read_num][121:120],
+		6'b000000,RAM_read_1[query_read_num][113:112],
+		6'b000000,RAM_read_1[query_read_num][105:104],
+		6'b000000,RAM_read_1[query_read_num][97:96],
+		6'b000000,RAM_read_1[query_read_num][89:88],
+		6'b000000,RAM_read_1[query_read_num][81:80],
+		6'b000000,RAM_read_1[query_read_num][73:72],
+		6'b000000,RAM_read_1[query_read_num][65:64],
+		6'b000000,RAM_read_1[query_read_num][57:56],
+		6'b000000,RAM_read_1[query_read_num][49:48],
+		6'b000000,RAM_read_1[query_read_num][41:40],
+		6'b000000,RAM_read_1[query_read_num][33:32],
+		6'b000000,RAM_read_1[query_read_num][25:24],
+		6'b000000,RAM_read_1[query_read_num][17:16],
+		6'b000000,RAM_read_1[query_read_num][9:8],
+		6'b000000,RAM_read_1[query_read_num][1:0]	
+	};
 
+	assign compress_RAM_read_2_query = {
+		6'b000000,RAM_read_2[query_read_num][505:504],
+		6'b000000,RAM_read_2[query_read_num][497:496],
+		6'b000000,RAM_read_2[query_read_num][489:488],
+		6'b000000,RAM_read_2[query_read_num][481:480],
+		6'b000000,RAM_read_2[query_read_num][473:472],
+		6'b000000,RAM_read_2[query_read_num][465:464],
+		6'b000000,RAM_read_2[query_read_num][457:456],
+		6'b000000,RAM_read_2[query_read_num][449:448],
+		6'b000000,RAM_read_2[query_read_num][441:440],
+		6'b000000,RAM_read_2[query_read_num][433:432],
+		6'b000000,RAM_read_2[query_read_num][425:424],
+		6'b000000,RAM_read_2[query_read_num][417:416],
+		6'b000000,RAM_read_2[query_read_num][409:408],
+		6'b000000,RAM_read_2[query_read_num][401:400],
+		6'b000000,RAM_read_2[query_read_num][393:392],
+		6'b000000,RAM_read_2[query_read_num][385:384],
+		6'b000000,RAM_read_2[query_read_num][377:376],
+		6'b000000,RAM_read_2[query_read_num][369:368],
+		6'b000000,RAM_read_2[query_read_num][361:360],
+		6'b000000,RAM_read_2[query_read_num][353:352],
+		6'b000000,RAM_read_2[query_read_num][345:344],
+		6'b000000,RAM_read_2[query_read_num][337:336],
+		6'b000000,RAM_read_2[query_read_num][329:328],
+		6'b000000,RAM_read_2[query_read_num][321:320],
+		6'b000000,RAM_read_2[query_read_num][313:312],
+		6'b000000,RAM_read_2[query_read_num][305:304],
+		6'b000000,RAM_read_2[query_read_num][297:296],
+		6'b000000,RAM_read_2[query_read_num][289:288],
+		6'b000000,RAM_read_2[query_read_num][281:280],
+		6'b000000,RAM_read_2[query_read_num][273:272],
+		6'b000000,RAM_read_2[query_read_num][265:264],
+		6'b000000,RAM_read_2[query_read_num][257:256],
+		6'b000000,RAM_read_2[query_read_num][249:248],
+		6'b000000,RAM_read_2[query_read_num][241:240],
+		6'b000000,RAM_read_2[query_read_num][233:232],
+		6'b000000,RAM_read_2[query_read_num][225:224],
+		6'b000000,RAM_read_2[query_read_num][217:216],
+		6'b000000,RAM_read_2[query_read_num][209:208],
+		6'b000000,RAM_read_2[query_read_num][201:200],
+		6'b000000,RAM_read_2[query_read_num][193:192],
+		6'b000000,RAM_read_2[query_read_num][185:184],
+		6'b000000,RAM_read_2[query_read_num][177:176],
+		6'b000000,RAM_read_2[query_read_num][169:168],
+		6'b000000,RAM_read_2[query_read_num][161:160],
+		6'b000000,RAM_read_2[query_read_num][153:152],
+		6'b000000,RAM_read_2[query_read_num][145:144],
+		6'b000000,RAM_read_2[query_read_num][137:136],
+		6'b000000,RAM_read_2[query_read_num][129:128],
+		6'b000000,RAM_read_2[query_read_num][121:120],
+		6'b000000,RAM_read_2[query_read_num][113:112],
+		6'b000000,RAM_read_2[query_read_num][105:104],
+		6'b000000,RAM_read_2[query_read_num][97:96],
+		6'b000000,RAM_read_2[query_read_num][89:88],
+		6'b000000,RAM_read_2[query_read_num][81:80],
+		6'b000000,RAM_read_2[query_read_num][73:72],
+		6'b000000,RAM_read_2[query_read_num][65:64],
+		6'b000000,RAM_read_2[query_read_num][57:56],
+		6'b000000,RAM_read_2[query_read_num][49:48],
+		6'b000000,RAM_read_2[query_read_num][41:40],
+		6'b000000,RAM_read_2[query_read_num][33:32],
+		6'b000000,RAM_read_2[query_read_num][25:24],
+		6'b000000,RAM_read_2[query_read_num][17:16],
+		6'b000000,RAM_read_2[query_read_num][9:8],
+		6'b000000,RAM_read_2[query_read_num][1:0]
+	
+	};
 endmodule
