@@ -1155,6 +1155,10 @@ reg[6:0] backward_x_L12;
 			L2_3   	<= 64'h0000_0001_05c9_6188; 
 		end
 	end
+	
+	wire [63:0] ik_x0_L0_ik_x2_L0_A;
+	wire [63:0] ik_x1_L0_ik_x2_L0_B;
+	
 	Pipe_yth pipe(
 		.Clk_32UI(Clk_32UI),
 		.stall(stall),	
@@ -1167,6 +1171,8 @@ reg[6:0] backward_x_L12;
 		.ik_x0_pipe(ik_x0_L0),
 		.ik_x1_pipe(ik_x1_L0),
 		.ik_x2_pipe(ik_x2_L0),
+		.ik_x0_L0_ik_x2_L0_A(ik_x0_L0_ik_x2_L0_A),
+		.ik_x1_L0_ik_x2_L0_B(ik_x1_L0_ik_x2_L0_B),
 		.forward_all_done_pipe(forward_all_done_L0)		
 
 	);
@@ -1186,8 +1192,8 @@ reg[6:0] backward_x_L12;
 	reg [63:0] ok0_x0_L3, ok1_x0_L3, ok2_x0_L3, ok3_x0_L3;
 	reg [63:0] ok0_x0_L4, ok1_x0_L4, ok2_x0_L4, ok3_x0_L4;
 
-	reg is_x1_add, is_x0_add;
-	
+	reg is_x1_add_A, is_x1_add_B, is_x0_add_C, is_x0_add_D;
+	wire [63:0] primary_add_1 = primary + 1;
 	// L1 ///level8
 	always@(posedge Clk_32UI) begin
 	if(stall) begin
@@ -1204,8 +1210,6 @@ reg[6:0] backward_x_L12;
 		ok1_x1_L1 <= ok1_x1_L1;
 		ok2_x1_L1 <= ok2_x1_L1;
 		ok3_x1_L1 <= ok3_x1_L1;			
-		is_x1_add <= is_x1_add;
-		is_x0_add <= is_x0_add;
 
 		ik_x1_L1 <= ik_x1_L1;
 		ik_x0_L1 <= ik_x0_L1;
@@ -1224,7 +1228,8 @@ reg[6:0] backward_x_L12;
 			ok2_x0_L1 <= L2_2 + cnt_tk_out2 + 1;
 			ok3_x0_L1 <= L2_3 + cnt_tk_out3 + 1;
 			
-			is_x1_add <= (ik_x0_L0 <= primary) && (ik_x0_L0 + ik_x2_L0 - 1 >= primary); // for use in next stage
+			is_x1_add_A <= (ik_x0_L0 <= primary);
+			is_x1_add_B <= (ik_x0_L0_ik_x2_L0_A - 1 >= primary); // for use in next stage		
 		end
 		
 		else begin
@@ -1233,7 +1238,8 @@ reg[6:0] backward_x_L12;
 			ok2_x1_L1 <= L2_2 + cnt_tk_out2 + 1;
 			ok3_x1_L1 <= L2_3 + cnt_tk_out3 + 1;
 			
-			is_x0_add <= (ik_x1_L0 <= primary_q) && (ik_x1_L0 + ik_x2_L0 - 1 >= primary_q);
+			is_x0_add_C <= (ik_x1_L0 <= primary);
+			is_x0_add_D <= (ik_x1_L0_ik_x2_L0_B - 1 >= primary);
 		end
 		
 		ik_x1_L1 <= ik_x1_L0;
@@ -1266,7 +1272,7 @@ reg[6:0] backward_x_L12;
 	else begin
 	if(forward_all_done_L1)
 		begin
-			ok3_x1_L2 <= ik_x1_L1 + is_x1_add;
+			ok3_x1_L2 <= ik_x1_L1 + (is_x1_add_A & is_x1_add_B);
 			
 			ok0_x0_L2 <= ok0_x0_L1;
 			ok1_x0_L2 <= ok1_x0_L1;
@@ -1275,7 +1281,7 @@ reg[6:0] backward_x_L12;
 		end
 		
 		else begin
-			ok3_x0_L2 <= ik_x0_L1 + is_x0_add;
+			ok3_x0_L2 <= ik_x0_L1 + (is_x0_add_C & is_x0_add_D);
 			
 			ok0_x1_L2 <= ok0_x1_L1;
 			ok1_x1_L2 <= ok1_x1_L1;
@@ -2265,7 +2271,8 @@ module Pipe_yth(
 
 	
 	output reg [63:0] ik_x0_pipe, ik_x1_pipe, ik_x2_pipe,
-
+	output reg [63:0] ik_x0_L0_ik_x2_L0_A,
+	output reg [63:0] ik_x1_L0_ik_x2_L0_B,
 	output reg forward_all_done_pipe
 );
 	
@@ -2398,6 +2405,9 @@ module Pipe_yth(
 		ik_x1_pipe <= ik_x1_L6;
 		ik_x2_pipe <= ik_x2_L6;
 		forward_all_done_pipe <= forward_all_done_L6;
+		
+		ik_x0_L0_ik_x2_L0_A <= ik_x0_L6 + ik_x2_L6;
+		ik_x1_L0_ik_x2_L0_B <= ik_x1_L6 + ik_x2_L6;
 
 		end
 	end

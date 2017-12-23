@@ -52,7 +52,7 @@ module BWT_extend(
 	
 	output reg [5:0] status_L00
 );
-      
+    
 	wire finish_k, finish_l, BWT_2occ4_finish;
 	wire [31:0] cnt_tk_out0,cnt_tk_out1,cnt_tk_out2,cnt_tk_out3;
 	wire [31:0] cnt_tl_out0,cnt_tl_out1,cnt_tl_out2,cnt_tl_out3;
@@ -98,6 +98,8 @@ module BWT_extend(
 	
 	//=================================================
 	wire [63:0] ik_x0_L0, ik_x1_L0, ik_x2_L0;
+	wire [63:0] ik_x0_L0_ik_x2_L0_A;
+	wire [63:0] ik_x1_L0_ik_x2_L0_B;
 	reg  [63:0] ik_x0_L1, ik_x1_L1, ik_x2_L1;
 	
 	wire forward_all_done_L0;
@@ -122,6 +124,8 @@ module BWT_extend(
 		.ik_x0_pipe(ik_x0_L0),
 		.ik_x1_pipe(ik_x1_L0),
 		.ik_x2_pipe(ik_x2_L0),
+		.ik_x0_L0_ik_x2_L0_A(ik_x0_L0_ik_x2_L0_A),
+		.ik_x1_L0_ik_x2_L0_B(ik_x1_L0_ik_x2_L0_B),
 		.forward_all_done_pipe(forward_all_done_L0),		
 		.status_pipe(status_L0)
 	);
@@ -141,8 +145,8 @@ module BWT_extend(
 	reg [63:0] ok0_x0_L3, ok1_x0_L3, ok2_x0_L3, ok3_x0_L3;
 	reg [63:0] ok0_x0_L4, ok1_x0_L4, ok2_x0_L4, ok3_x0_L4;
 	
-
-	reg is_x1_add, is_x0_add;
+	wire [63:0] primary_add_1 = primary + 1;
+	reg is_x1_add_A, is_x1_add_B, is_x0_add_C, is_x0_add_D;
 	
 	// L1
 	always@(posedge Clk_32UI) begin
@@ -159,7 +163,8 @@ module BWT_extend(
 			ok2_x0_L1 <= L2_2 + cnt_tk_out2 + 1;
 			ok3_x0_L1 <= L2_3 + cnt_tk_out3 + 1;
 			
-			is_x1_add <= (ik_x0_L0 <= primary) && (ik_x0_L0 + ik_x2_L0 - 1 >= primary); // for use in next stage
+			is_x1_add_A <= (ik_x0_L0 <= primary);
+			is_x1_add_B <= (ik_x0_L0_ik_x2_L0_A - 1 >= primary); // for use in next stage
 		end
 		
 		else begin
@@ -168,7 +173,8 @@ module BWT_extend(
 			ok2_x1_L1 <= L2_2 + cnt_tk_out2 + 1;
 			ok3_x1_L1 <= L2_3 + cnt_tk_out3 + 1;
 			
-			is_x0_add <= (ik_x1_L0 <= primary) && (ik_x1_L0 + ik_x2_L0 - 1 >= primary);
+			is_x0_add_C <= (ik_x1_L0 <= primary);
+			is_x0_add_D <= (ik_x1_L0_ik_x2_L0_B - 1 >= primary);
 		end
 		
 		ik_x1_L1 <= ik_x1_L0;
@@ -182,7 +188,7 @@ module BWT_extend(
 	if(!stall) begin
 		if(forward_all_done_L1)
 		begin
-			ok3_x1_L2 <= ik_x1_L1 + is_x1_add;
+			ok3_x1_L2 <= ik_x1_L1 + (is_x1_add_A & is_x1_add_B);
 			
 			ok0_x0_L2 <= ok0_x0_L1;
 			ok1_x0_L2 <= ok1_x0_L1;
@@ -191,7 +197,7 @@ module BWT_extend(
 		end
 		
 		else begin
-			ok3_x0_L2 <= ik_x0_L1 + is_x0_add;
+			ok3_x0_L2 <= ik_x0_L1 + (is_x0_add_C & is_x0_add_D);
 			
 			ok0_x1_L2 <= ok0_x1_L1;
 			ok1_x1_L2 <= ok1_x1_L1;
@@ -917,6 +923,8 @@ module Pipe(
 	input [5:0] status,
 	
 	output reg [63:0] ik_x0_pipe, ik_x1_pipe, ik_x2_pipe,
+	output reg [63:0] ik_x0_L0_ik_x2_L0_A,
+	output reg [63:0] ik_x1_L0_ik_x2_L0_B,
 	output reg [5:0] status_pipe,
 	output reg forward_all_done_pipe
 );
@@ -1005,7 +1013,9 @@ module Pipe(
 		ik_x2_pipe <= ik_x2_L6;
 		forward_all_done_pipe <= forward_all_done_L6;
 		status_pipe <= status_L6;
-
+		
+		ik_x0_L0_ik_x2_L0_A <= ik_x0_L6 + ik_x2_L6;
+		ik_x1_L0_ik_x2_L0_B <= ik_x1_L6 + ik_x2_L6;
 	end
 	end
 endmodule
