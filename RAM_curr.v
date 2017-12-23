@@ -66,38 +66,72 @@ module RAM_curr_mem(
 	reg [6:0] mem_size_queue[`MAX_READ - 1:0]; //mem_size = 7bits;
 	reg [6:0] ret_queue[`MAX_READ - 1:0] ; //ret = 7 bits;
 	
+	wire [`CURR_QUEUE_ADDR_WIDTH-1 : 0] curr_addr_A =  curr_read_num_1 * `READ_LEN + curr_addr_1;
+	wire [`CURR_QUEUE_ADDR_WIDTH-1 : 0] curr_addr_B =  curr_read_num_2 * `READ_LEN + curr_addr_2;
+	wire [112:0] curr_data_A = {curr_data_1[230:224],curr_data_1[198:192],curr_data_1[160:128],curr_data_1[96:64],curr_data_1[32:0]};
+	
+	//add one pipeline stage for RAM write
+	reg curr_we_1_q;
+	reg [`CURR_QUEUE_ADDR_WIDTH-1 : 0] curr_addr_A_q;
+	reg [112:0] curr_data_A_q;
+	
+	always@(posedge clk) begin
+		curr_we_1_q <= curr_we_1;
+		curr_addr_A_q <= curr_addr_A;
+		curr_data_A_q <= curr_data_A;
+	end
+	
 	RAM_Curr_Queue curr_queue(
 		.clk(clk),
 		
-		.curr_we_1(curr_we_1),
-		.addr_1(curr_read_num_1 * `READ_LEN + curr_addr_1),
-		.data({curr_data_1[230:224],curr_data_1[198:192],curr_data_1[160:128],curr_data_1[96:64],curr_data_1[32:0]}),
+		.curr_we_1(curr_we_1_q),
+		.addr_1(curr_addr_A_q),
+		.data(curr_data_A_q),
 		
 		.read_en(!stall),
-		.addr_2(curr_read_num_2 * `READ_LEN + curr_addr_2),
+		.addr_2(curr_addr_B),
 		.q({curr_q_2[230:224],curr_q_2[198:192],curr_q_2[160:128],curr_q_2[96: 64],curr_q_2[32: 0]})
 	);
 	assign {curr_q_2[255:231],curr_q_2[223:199],curr_q_2[191:161],curr_q_2[127:97],curr_q_2[63:33]} = 0;
 	
-
+	
+	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A = (mem_read_num_1 * `READ_MAX_MEM + mem_addr_1);
+	wire [112:0] mem_data_A = {mem_data_1[230:224],mem_data_1[198:192],mem_data_1[160:128],mem_data_1[96:64],mem_data_1[32:0]};
 	reg [`READ_NUM_WIDTH+1 - 1:0] output_result_ptr;
 	reg [6:0] already_output_num, already_output_num_q; //mem number, not read number
 	
-	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A = mem_we_1 ? (mem_read_num_1 * `READ_MAX_MEM + mem_addr_1) : (output_result_ptr * `READ_MAX_MEM + already_output_num);
-	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_B = (output_result_ptr * `READ_MAX_MEM + already_output_num + 1);
+	//add one pipeline stage for mem write
+	reg mem_we_1_q;
+	reg [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_q;
+	reg [112:0] mem_data_A_q;
+	
+	always@(posedge clk) begin
+		mem_we_1_q <= mem_we_1;
+		mem_addr_A_q <= mem_addr_A;
+		mem_data_A_q <= mem_data_A;
+	end
+	
+	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_out = (output_result_ptr * `READ_MAX_MEM + already_output_num);
+	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_B_out = (output_result_ptr * `READ_MAX_MEM + already_output_num + 1);
+	
+	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_q_MUX = mem_we_1_q ? mem_addr_A_q : mem_addr_A_out;
+
+	
 	
 	wire [112:0] mem_q_out_A, mem_q_out_B;
+	
+
 	
 	RAM_Mem_Queue mem_queue(
 		.clk(clk),
 		
-		.mem_we_1(mem_we_1),
-		.addr_1(mem_addr_A),
-		.data_1({mem_data_1[230:224],mem_data_1[198:192],mem_data_1[160:128],mem_data_1[96:64],mem_data_1[32:0]}),
+		.mem_we_1(mem_we_1_q),
+		.addr_1(mem_addr_A_q_MUX),
+		.data_1(mem_data_A_q),
 		.q_1(mem_q_out_A),
 		
 		.mem_we_2(1'b0),
-		.addr_2(mem_addr_B),
+		.addr_2(mem_addr_B_out),
 		.data_2(113'b0),
 		.q_2(mem_q_out_B)
 	);
