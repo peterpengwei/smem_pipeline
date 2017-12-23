@@ -14,8 +14,8 @@
 //will all run in the pipeline
 
 //==========================
-`define MAX_READ 256 
-`define READ_NUM_WIDTH 8 
+`define MAX_READ 64 
+`define READ_NUM_WIDTH 6 
 `define WIDTH_read 308 + 100 //[important] be careful not to exceed the width
 `define WIDTH_memory 768
 module Queue(

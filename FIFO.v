@@ -123,7 +123,7 @@ module aFIFO
     assign PresetEmpty = ~Status & EqualAddresses;  //'Empty' Fifo.
 	assign Empty_out = PresetEmpty;
 	
-	reg Empty_out_licheng;
+/* 	reg Empty_out_licheng;
 	always @ (posedge RClk or posedge PresetEmpty) begin
 	// always @(negedge RClk) begin
 		if(Clear_in)begin
@@ -135,7 +135,7 @@ module aFIFO
 			else
 				Empty_out_licheng <= 0;
 		end
-	end
+	end */
 
             
 endmodule
@@ -262,7 +262,7 @@ module aFIFO_2w_1r
 	assign Empty_out = PresetEmpty;
 	
 	
-	reg Empty_out_licheng;
+/* 	reg Empty_out_licheng;
 	always @ (posedge RClk or posedge PresetEmpty) begin
 	// always @(negedge RClk) begin
 		if(Clear_in)begin
@@ -274,7 +274,7 @@ module aFIFO_2w_1r
 			else
 				Empty_out_licheng <= 0;
 		end
-	end
+	end */
 	
             
 endmodule

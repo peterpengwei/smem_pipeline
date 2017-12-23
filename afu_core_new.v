@@ -1,6 +1,6 @@
 `define CL 512
-`define MAX_READ 256
-`define READ_NUM_WIDTH 8
+`define MAX_READ 64
+`define READ_NUM_WIDTH 6
 
 module afu_core(
 	input  wire                             CLK_400M,

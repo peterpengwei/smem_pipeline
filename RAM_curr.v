@@ -1,9 +1,11 @@
 
-`define READ_NUM_WIDTH 8
+`define READ_NUM_WIDTH 6
 //for test purpose 
-`define MAX_READ 256 
+`define MAX_READ 64 
 `define READ_LEN 101
 `define CURR_QUEUE_ADDR_WIDTH 15
+`define MEM_QUEUE_ADDR_WIDTH 12
+`define READ_MAX_MEM 40
 module RAM_curr_mem(
 	input reset_n,
 	input clk,
@@ -77,20 +79,12 @@ module RAM_curr_mem(
 	);
 	assign {curr_q_2[255:231],curr_q_2[223:199],curr_q_2[191:161],curr_q_2[127:97],curr_q_2[63:33]} = 0;
 	
-	
-/* 	//mem queue
-	always@(posedge clk) begin
-		//port A
-		if(mem_we_1) begin
-			mem_queue[mem_read_num_1 * `READ_LEN + mem_addr_1] <= {mem_data_1[230:224],mem_data_1[198:192],mem_data_1[160:128],mem_data_1[96:64],mem_data_1[32:0]};
-		end
 
-	end */
 	reg [`READ_NUM_WIDTH+1 - 1:0] output_result_ptr;
 	reg [6:0] already_output_num, already_output_num_q; //mem number, not read number
 	
-	wire [`CURR_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A = mem_we_1 ? (mem_read_num_1 * `READ_LEN + mem_addr_1) : (output_result_ptr * `READ_LEN + already_output_num);
-	wire [`CURR_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_B = (output_result_ptr * `READ_LEN + already_output_num + 1);
+	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A = mem_we_1 ? (mem_read_num_1 * `READ_MAX_MEM + mem_addr_1) : (output_result_ptr * `READ_MAX_MEM + already_output_num);
+	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_B = (output_result_ptr * `READ_MAX_MEM + already_output_num + 1);
 	
 	wire [112:0] mem_q_out_A, mem_q_out_B;
 	
@@ -309,16 +303,16 @@ module RAM_Mem_Queue(
 	input clk,
 	
 	input mem_we_1,
-	input [`CURR_QUEUE_ADDR_WIDTH-1 : 0] addr_1,
+	input [`MEM_QUEUE_ADDR_WIDTH-1 : 0] addr_1,
 	input [112:0] data_1,
 	output reg [112:0] q_1,
 	
 	input mem_we_2,
-	input [`CURR_QUEUE_ADDR_WIDTH-1 : 0] addr_2,
+	input [`MEM_QUEUE_ADDR_WIDTH-1 : 0] addr_2,
 	input [112:0] data_2,
 	output reg [112:0] q_2
 );
-	reg [112:0] mem_queue  [`MAX_READ*`READ_LEN - 1:0];
+	reg [112:0] mem_queue  [`MAX_READ*`READ_MAX_MEM - 1:0];
 	
 	always@(posedge clk) begin
 		if(mem_we_1) begin

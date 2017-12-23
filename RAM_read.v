@@ -1,6 +1,6 @@
 
-`define READ_NUM_WIDTH 8 
-`define MAX_READ 256
+`define READ_NUM_WIDTH 6 
+`define MAX_READ 64
 `define CL 512
 module RAM_read(
 	input reset_n,
