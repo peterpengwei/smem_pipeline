@@ -155,7 +155,6 @@ module RAM_read(
 			status_L1 <= BUBBLE;
 		end
 		else if(!stall) begin
-			// if (status_query != BUBBLE && status_query != F_break && status_query != BCK_END) begin
 				case (query_position[6:5])
 					2'b00: begin
 						select_L1 <= compress_RAM_read_1_query[255:0];
@@ -172,11 +171,7 @@ module RAM_read(
 				endcase
 				
 				query_position_L1 <= query_position;
-				status_L1 <= status_query;	
-				// end
-			// else begin
-				// status_L1 <= status_query;		
-			// end
+
 		end
 	end
 	
@@ -188,7 +183,6 @@ module RAM_read(
 			status_L2 <= BUBBLE;
 		end
 		else if(!stall) begin
-			if (status_L1 != BUBBLE) begin
 				case(query_position_L1[4:3])
 					2'b00: begin
 						select_L2 <= select_L1[63:0];
@@ -205,13 +199,7 @@ module RAM_read(
 				endcase
 				
 				query_position_L2 <= query_position_L1;
-				status_L2 <= status_L1;
-			end
-			else begin
-				query_position_L2 <= 0;
-				select_L2 <= 0;
-				status_L2 <= status_L1;
-			end
+
 		end
 	end
 	
@@ -221,7 +209,6 @@ module RAM_read(
 			new_read_query <= 8'b1111_1111;	
 		end
 		else if(!stall) begin
-			if (status_L2 != BUBBLE) begin
 				case(query_position_L2[2:0])
 					3'b000: begin
 						new_read_query <= select_L2[7:0];
@@ -247,11 +234,10 @@ module RAM_read(
 					3'b111: begin
 						new_read_query <= select_L2[63:56];
 					end
+					
+					default: new_read_query <= 8'bxxxx_xxxx;
 				endcase
-			end
-			else begin
-				new_read_query <= 8'b1111_1111;		
-			end
+
 		end
 	end
 	

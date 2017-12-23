@@ -248,10 +248,11 @@ module Queue(
 	// 3 stage pipe to wait for the delay of retrieving query
 	//------------------------------------------------
 	
-	assign query_position_2RAM = (status != BUBBLE && status != F_break) ? next_query_position : (status_B != BUBBLE && status_B != BCK_END) ? output_c_B : 8'b1111_1111;
-	assign query_read_num_2RAM = (status != BUBBLE && status != F_break) ? read_num : (status_B != BUBBLE && status_B != BCK_END) ? read_num_B : 9'b1_1111_1111;
-	assign query_status_2RAM = (status != BUBBLE && status != F_break) ? status : (status_B != BUBBLE && status_B != BCK_END) ? status_B : 6'b11_1111;
-	
+	assign query_position_2RAM = (status != BUBBLE ) ? next_query_position : (status_B != BUBBLE ) ? output_c_B : 8'b1111_1111;
+	assign query_read_num_2RAM = (status != BUBBLE ) ? read_num : (status_B != BUBBLE ) ? read_num_B : 9'b1_1111_1111;
+	//assign query_status_2RAM = (status != BUBBLE && status != F_break) ? status : (status_B != BUBBLE && status_B != BCK_END) ? status_B : 6'b11_1111;
+	assign query_status_2RAM = status;
+
 	always@(posedge Clk_32UI) begin
 		if(!stall) begin
 			status_L0 <=  ( status != BUBBLE ) ? status : (status_B != BUBBLE) ?  status_B : BUBBLE ;
