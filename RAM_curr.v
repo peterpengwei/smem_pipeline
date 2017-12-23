@@ -121,8 +121,9 @@ module RAM_curr_mem(
 	end
 	
 	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_q_MUX = mem_we_1_q ? mem_addr_A_q : mem_addr_A_out_q;
-
-	
+	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_MUX = mem_we_1? mem_addr_A: mem_addr_A_out;
+	reg  [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_MUX_q;
+	always@(posedge clk) mem_addr_A_MUX_q <= mem_addr_A_MUX;
 	
 	wire [112:0] mem_q_out_A, mem_q_out_B;
 	
@@ -133,7 +134,7 @@ module RAM_curr_mem(
 		.read_en(!stall),
 		
 		.mem_we_1(mem_we_1_q),
-		.addr_1(mem_addr_A_q_MUX),
+		.addr_1(mem_addr_A_MUX_q),
 		.data_1(mem_data_A_q),
 		.q_1(mem_q_out_A),
 		
