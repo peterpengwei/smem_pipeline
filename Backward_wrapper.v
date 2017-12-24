@@ -69,6 +69,10 @@ module Backward_wrapper(
 	output [63:0]	reserved_token_x2, //reserved_token_x2 => last_token_x2_q
 	output [31:0]	reserved_mem_info, //reserved_mem_info => last_mem_info_q
 	
+	output [5:0] status_query_B,
+	output [`READ_NUM_WIDTH - 1:0] read_num_query_B,
+	output [6:0] next_query_position_B,
+	
 	//================================================
 	output [8:0] curr_read_num_2,
 	output [6:0] curr_addr_2,
@@ -312,6 +316,11 @@ module Backward_wrapper(
 	
 	
 	Backward_data_path backward_datapath(
+		//[licheng] query request one cycle ahead
+		.next_query_position_B(next_query_position_B),
+		.read_num_query_B(read_num_query_B),
+		.status_query_B(status_query_B),
+	
 		.clk				(clk),  
 		.rst				(rst),
 		.stall				(stall),

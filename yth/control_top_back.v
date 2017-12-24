@@ -52,6 +52,10 @@ output  [8:0] read_num_S2,
 output  [6:0] current_rd_addr_S2,
 
 //stage 3 ////final stage output
+output [5:0] status_query_B,
+output [`READ_NUM_WIDTH - 1:0] read_num_query_B,
+output [6:0] next_query_position_B,
+
 output  [8:0] read_num,
 output  [6:0] forward_size_n,
 output  [6:0] new_size,
@@ -297,7 +301,12 @@ CAL_KL bc3(
 	.backward_j(backward_j),
 	.output_c(output_c),
 	.min_intv(min_intv),
-
+	
+	//[licheng] query request one cycle ahead
+	.next_query_position_B(next_query_position_B),
+	.read_num_query_B(read_num_query_B),
+	.status_query_B(status_query_B),
+ 
 	//outputing finish_sign+read_num+mem_size to another module
 	.finish_sign(finish_sign),
 	.mem_size(mem_size),

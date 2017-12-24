@@ -84,6 +84,10 @@ module Backward_data_path(
 	output [6:0] current_rd_addr_2,
 ////////////////////////////////////////////////////////////////
 
+	output [5:0] status_query_B,
+	output [`READ_NUM_WIDTH - 1:0] read_num_query_B,
+	output [6:0] next_query_position_B,
+	
 	//output to queue
 	output [8:0] read_num,
 	output [6:0] forward_size_n,
@@ -303,6 +307,11 @@ control_top_back bck_ctrl(
 	.output_c(output_c),
 	.min_intv(min_intv),
 	.iteration_boundary(iteration_boundary),
+	
+	//[licheng] query request one cycle ahead
+	.next_query_position_B(next_query_position_B),
+	.read_num_query_B(read_num_query_B),
+	.status_query_B(status_query_B),
 
 	//output to bwt_extend but not used in control logic
 	.backward_k(backward_k),

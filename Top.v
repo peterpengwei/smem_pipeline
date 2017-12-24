@@ -81,8 +81,14 @@ module Top(
 	wire [6:0] backward_x_out;
 	
 	wire [6:0] next_query_position;
+	wire [5:0] status_query;
+	wire [`READ_NUM_WIDTH - 1:0] read_num_query;
 	
 	//from backward to queue
+	wire [6:0] next_query_position_B;
+	wire [5:0] status_query_B;
+	wire [`READ_NUM_WIDTH - 1:0] read_num_query_B;
+	
 	wire [6:0] forward_size_n_B;	
 	wire [`READ_NUM_WIDTH - 1:0] read_num_B;
 	wire [6:0] min_intv_B;
@@ -154,10 +160,10 @@ module Top(
 	
 	
 	//part 3: provide new query to queue
-	wire [5:0] status_query;
-	wire [6:0] query_position;
-	wire [`READ_NUM_WIDTH - 1:0] query_read_num;
-	wire [7:0] new_read_query;
+	wire [5:0] status_query_queue;
+	wire [6:0] query_position_queue;
+	wire [`READ_NUM_WIDTH - 1:0] query_read_num_queue;
+	wire [7:0] new_read_query_RAM_read;
 	
 	//part 4: parameters
 	wire [63:0] primary, L2_0, L2_1, L2_2, L2_3;
@@ -237,10 +243,10 @@ module Top(
 		.new_min_intv(new_min_intv),
 		
 		//part 3: provide new query to queue
-		.status_query(status_query),
-		.query_position(query_position),
-		.query_read_num(query_read_num),
-		.new_read_query(new_read_query),
+		.status_query_RAM_read(status_query_queue),
+		.query_position_RAM_read(query_position_queue),
+		.query_read_num_RAM_read(query_read_num_queue),
+		.new_read_query_RAM_read(new_read_query_RAM_read),
 		
 		//part 4: parameters
 		.primary(primary), 
@@ -289,6 +295,8 @@ module Top(
 		.backward_x_out(backward_x_out),
 		
 		.next_query_position(next_query_position),
+		.status_query(status_query),
+		.read_num_query(read_num_query),
 		
 		//to RAM
 		.curr_read_num_1(curr_read_num_1_F),
@@ -303,6 +311,11 @@ module Top(
 	
 	//backward datapath
 	Backward_wrapper backward_wrapper(
+		//[licheng] query request one cycle ahead
+		.next_query_position_B(next_query_position_B),
+		.read_num_query_B(read_num_query_B),
+		.status_query_B(status_query_B),
+	
 		.clk(Clk_32UI),  
 		.rst(reset_n),
 		.stall(stall),
@@ -414,6 +427,14 @@ module Top(
 	
 	
 	Queue queue(
+		.next_query_position_B(next_query_position_B),
+		.read_num_query_B(read_num_query_B),
+		.status_query_B(status_query_B),
+		
+		.next_query_position(next_query_position),
+		.read_num_query(read_num_query),
+		.status_query(status_query),
+		
 		.Clk_32UI(Clk_32UI),
 		.reset_n(reset_n),
 		.stall(stall),
@@ -448,7 +469,7 @@ module Top(
 		.min_intv(min_intv_out),
 		.backward_x(backward_x_out),
 		
-		.next_query_position(next_query_position),
+
 		
 		//queue to forward
 		.status_out(status),
@@ -531,10 +552,10 @@ module Top(
 		.new_min_intv(new_min_intv),
 		
 		//fetch new query at the start of queue
-		.query_position_2RAM(query_position),
-		.query_read_num_2RAM(query_read_num),
-		.query_status_2RAM(status_query),
-		.new_read_query_2Queue(new_read_query)
+		.query_position_2RAM(query_position_queue),
+		.query_read_num_2RAM(query_read_num_queue),
+		.query_status_2RAM(status_query_queue),
+		.new_read_query_2Queue(new_read_query_RAM_read)
 	);
 	
 	assign curr_we_1 		= curr_we_1_F | curr_we_1_B ;

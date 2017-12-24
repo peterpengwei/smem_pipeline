@@ -25,10 +25,10 @@ module RAM_read(
 	output [6:0] new_min_intv,
 	
 	//part 3: provide new query to queue
-	input [5:0] status_query,
-	input [6:0] query_position,
-	input [`READ_NUM_WIDTH - 1:0] query_read_num,
-	output reg [7:0] new_read_query,
+	input [5:0] status_query_RAM_read,
+	input [6:0] query_position_RAM_read,
+	input [`READ_NUM_WIDTH - 1:0] query_read_num_RAM_read,
+	output reg [7:0] new_read_query_RAM_read,
 	
 	//part 4: provide primary,  L2
 	output [63:0] primary,
@@ -138,13 +138,11 @@ module RAM_read(
 	end
 	
 	//part 3: provide new query to queue	
-	wire [8:0] lower = {query_position[5:0],3'b000};
-	wire [8:0] upper = {query_position[5:0],3'b111};
 	
 	reg [255:0] select_L1; //contain 32 querys
 	reg [63:0] select_L2;
 	
-	reg [6:0] query_position_L1;
+	reg [6:0] query_position_L1, query_position_q;
 	reg [6:0] query_position_L2;
 	
 	reg [5:0] status_L1;
@@ -154,6 +152,17 @@ module RAM_read(
 	
 	wire [`CL-1:0] compress_RAM_read_1_query;
 	wire [`CL-1:0] compress_RAM_read_2_query;
+	reg [`CL-1:0] compress_RAM_read_1_query_q;
+	reg [`CL-1:0] compress_RAM_read_2_query_q;
+	
+	//add one pipeline stage
+	always@(posedge clk) begin
+		if(!stall) begin
+			compress_RAM_read_1_query_q <= compress_RAM_read_1_query;
+			compress_RAM_read_2_query_q <= compress_RAM_read_2_query;
+			query_position_q <= query_position_RAM_read;
+		end
+	end
 	
 	always@(posedge clk) begin
 		if(!reset_n) begin
@@ -162,22 +171,22 @@ module RAM_read(
 			status_L1 <= BUBBLE;
 		end
 		else if(!stall) begin
-				case (query_position[6:5])
+				case (query_position_q[6:5])
 					2'b00: begin
-						select_L1 <= compress_RAM_read_1_query[255:0];
+						select_L1 <= compress_RAM_read_1_query_q[255:0];
 					end
 					2'b01: begin
-						select_L1 <= compress_RAM_read_1_query[511:256];
+						select_L1 <= compress_RAM_read_1_query_q[511:256];
 					end
 					2'b10: begin
-						select_L1 <= compress_RAM_read_2_query[255:0];
+						select_L1 <= compress_RAM_read_2_query_q[255:0];
 					end
 					2'b11: begin
-						select_L1 <= compress_RAM_read_2_query[511:256];
+						select_L1 <= compress_RAM_read_2_query_q[511:256];
 					end
 				endcase
 				
-				query_position_L1 <= query_position;
+				query_position_L1 <= query_position_q;
 
 		end
 	end
@@ -213,36 +222,36 @@ module RAM_read(
 	//third level extraction 8 -> 1
 	always@(posedge clk) begin
 		if(!reset_n) begin
-			new_read_query <= 8'b1111_1111;	
+			new_read_query_RAM_read <= 8'b1111_1111;	
 		end
 		else if(!stall) begin
 				case(query_position_L2[2:0])
 					3'b000: begin
-						new_read_query <= select_L2[7:0];
+						new_read_query_RAM_read <= select_L2[7:0];
 					end
 					3'b001: begin
-						new_read_query <= select_L2[15:8];
+						new_read_query_RAM_read <= select_L2[15:8];
 					end
 					3'b010: begin
-						new_read_query <= select_L2[23:16];
+						new_read_query_RAM_read <= select_L2[23:16];
 					end
 					3'b011: begin
-						new_read_query <= select_L2[31:24];
+						new_read_query_RAM_read <= select_L2[31:24];
 					end
 					3'b100: begin
-						new_read_query <= select_L2[39:32];
+						new_read_query_RAM_read <= select_L2[39:32];
 					end
 					3'b101: begin
-						new_read_query <= select_L2[47:40];
+						new_read_query_RAM_read <= select_L2[47:40];
 					end
 					3'b110: begin
-						new_read_query <= select_L2[55:48];
+						new_read_query_RAM_read <= select_L2[55:48];
 					end
 					3'b111: begin
-						new_read_query <= select_L2[63:56];
+						new_read_query_RAM_read <= select_L2[63:56];
 					end
 					
-					default: new_read_query <= 8'bxxxx_xxxx;
+					default: new_read_query_RAM_read <= 8'bxxxx_xxxx;
 				endcase
 
 		end
@@ -316,137 +325,137 @@ module RAM_read(
 	};
 	
 	assign compress_RAM_read_1_query = {
-		6'b000000,RAM_read_1[query_read_num][505:504],
-		6'b000000,RAM_read_1[query_read_num][497:496],
-		6'b000000,RAM_read_1[query_read_num][489:488],
-		6'b000000,RAM_read_1[query_read_num][481:480],
-		6'b000000,RAM_read_1[query_read_num][473:472],
-		6'b000000,RAM_read_1[query_read_num][465:464],
-		6'b000000,RAM_read_1[query_read_num][457:456],
-		6'b000000,RAM_read_1[query_read_num][449:448],
-		6'b000000,RAM_read_1[query_read_num][441:440],
-		6'b000000,RAM_read_1[query_read_num][433:432],
-		6'b000000,RAM_read_1[query_read_num][425:424],
-		6'b000000,RAM_read_1[query_read_num][417:416],
-		6'b000000,RAM_read_1[query_read_num][409:408],
-		6'b000000,RAM_read_1[query_read_num][401:400],
-		6'b000000,RAM_read_1[query_read_num][393:392],
-		6'b000000,RAM_read_1[query_read_num][385:384],
-		6'b000000,RAM_read_1[query_read_num][377:376],
-		6'b000000,RAM_read_1[query_read_num][369:368],
-		6'b000000,RAM_read_1[query_read_num][361:360],
-		6'b000000,RAM_read_1[query_read_num][353:352],
-		6'b000000,RAM_read_1[query_read_num][345:344],
-		6'b000000,RAM_read_1[query_read_num][337:336],
-		6'b000000,RAM_read_1[query_read_num][329:328],
-		6'b000000,RAM_read_1[query_read_num][321:320],
-		6'b000000,RAM_read_1[query_read_num][313:312],
-		6'b000000,RAM_read_1[query_read_num][305:304],
-		6'b000000,RAM_read_1[query_read_num][297:296],
-		6'b000000,RAM_read_1[query_read_num][289:288],
-		6'b000000,RAM_read_1[query_read_num][281:280],
-		6'b000000,RAM_read_1[query_read_num][273:272],
-		6'b000000,RAM_read_1[query_read_num][265:264],
-		6'b000000,RAM_read_1[query_read_num][257:256],
-		6'b000000,RAM_read_1[query_read_num][249:248],
-		6'b000000,RAM_read_1[query_read_num][241:240],
-		6'b000000,RAM_read_1[query_read_num][233:232],
-		6'b000000,RAM_read_1[query_read_num][225:224],
-		6'b000000,RAM_read_1[query_read_num][217:216],
-		6'b000000,RAM_read_1[query_read_num][209:208],
-		6'b000000,RAM_read_1[query_read_num][201:200],
-		6'b000000,RAM_read_1[query_read_num][193:192],
-		6'b000000,RAM_read_1[query_read_num][185:184],
-		6'b000000,RAM_read_1[query_read_num][177:176],
-		6'b000000,RAM_read_1[query_read_num][169:168],
-		6'b000000,RAM_read_1[query_read_num][161:160],
-		6'b000000,RAM_read_1[query_read_num][153:152],
-		6'b000000,RAM_read_1[query_read_num][145:144],
-		6'b000000,RAM_read_1[query_read_num][137:136],
-		6'b000000,RAM_read_1[query_read_num][129:128],
-		6'b000000,RAM_read_1[query_read_num][121:120],
-		6'b000000,RAM_read_1[query_read_num][113:112],
-		6'b000000,RAM_read_1[query_read_num][105:104],
-		6'b000000,RAM_read_1[query_read_num][97:96],
-		6'b000000,RAM_read_1[query_read_num][89:88],
-		6'b000000,RAM_read_1[query_read_num][81:80],
-		6'b000000,RAM_read_1[query_read_num][73:72],
-		6'b000000,RAM_read_1[query_read_num][65:64],
-		6'b000000,RAM_read_1[query_read_num][57:56],
-		6'b000000,RAM_read_1[query_read_num][49:48],
-		6'b000000,RAM_read_1[query_read_num][41:40],
-		6'b000000,RAM_read_1[query_read_num][33:32],
-		6'b000000,RAM_read_1[query_read_num][25:24],
-		6'b000000,RAM_read_1[query_read_num][17:16],
-		6'b000000,RAM_read_1[query_read_num][9:8],
-		6'b000000,RAM_read_1[query_read_num][1:0]	
+		6'b000000,RAM_read_1[query_read_num_RAM_read][505:504],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][497:496],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][489:488],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][481:480],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][473:472],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][465:464],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][457:456],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][449:448],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][441:440],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][433:432],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][425:424],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][417:416],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][409:408],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][401:400],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][393:392],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][385:384],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][377:376],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][369:368],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][361:360],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][353:352],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][345:344],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][337:336],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][329:328],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][321:320],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][313:312],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][305:304],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][297:296],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][289:288],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][281:280],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][273:272],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][265:264],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][257:256],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][249:248],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][241:240],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][233:232],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][225:224],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][217:216],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][209:208],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][201:200],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][193:192],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][185:184],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][177:176],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][169:168],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][161:160],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][153:152],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][145:144],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][137:136],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][129:128],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][121:120],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][113:112],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][105:104],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][97:96],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][89:88],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][81:80],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][73:72],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][65:64],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][57:56],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][49:48],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][41:40],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][33:32],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][25:24],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][17:16],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][9:8],
+		6'b000000,RAM_read_1[query_read_num_RAM_read][1:0]	
 	};
 
 	assign compress_RAM_read_2_query = {
-		6'b000000,RAM_read_2[query_read_num][505:504],
-		6'b000000,RAM_read_2[query_read_num][497:496],
-		6'b000000,RAM_read_2[query_read_num][489:488],
-		6'b000000,RAM_read_2[query_read_num][481:480],
-		6'b000000,RAM_read_2[query_read_num][473:472],
-		6'b000000,RAM_read_2[query_read_num][465:464],
-		6'b000000,RAM_read_2[query_read_num][457:456],
-		6'b000000,RAM_read_2[query_read_num][449:448],
-		6'b000000,RAM_read_2[query_read_num][441:440],
-		6'b000000,RAM_read_2[query_read_num][433:432],
-		6'b000000,RAM_read_2[query_read_num][425:424],
-		6'b000000,RAM_read_2[query_read_num][417:416],
-		6'b000000,RAM_read_2[query_read_num][409:408],
-		6'b000000,RAM_read_2[query_read_num][401:400],
-		6'b000000,RAM_read_2[query_read_num][393:392],
-		6'b000000,RAM_read_2[query_read_num][385:384],
-		6'b000000,RAM_read_2[query_read_num][377:376],
-		6'b000000,RAM_read_2[query_read_num][369:368],
-		6'b000000,RAM_read_2[query_read_num][361:360],
-		6'b000000,RAM_read_2[query_read_num][353:352],
-		6'b000000,RAM_read_2[query_read_num][345:344],
-		6'b000000,RAM_read_2[query_read_num][337:336],
-		6'b000000,RAM_read_2[query_read_num][329:328],
-		6'b000000,RAM_read_2[query_read_num][321:320],
-		6'b000000,RAM_read_2[query_read_num][313:312],
-		6'b000000,RAM_read_2[query_read_num][305:304],
-		6'b000000,RAM_read_2[query_read_num][297:296],
-		6'b000000,RAM_read_2[query_read_num][289:288],
-		6'b000000,RAM_read_2[query_read_num][281:280],
-		6'b000000,RAM_read_2[query_read_num][273:272],
-		6'b000000,RAM_read_2[query_read_num][265:264],
-		6'b000000,RAM_read_2[query_read_num][257:256],
-		6'b000000,RAM_read_2[query_read_num][249:248],
-		6'b000000,RAM_read_2[query_read_num][241:240],
-		6'b000000,RAM_read_2[query_read_num][233:232],
-		6'b000000,RAM_read_2[query_read_num][225:224],
-		6'b000000,RAM_read_2[query_read_num][217:216],
-		6'b000000,RAM_read_2[query_read_num][209:208],
-		6'b000000,RAM_read_2[query_read_num][201:200],
-		6'b000000,RAM_read_2[query_read_num][193:192],
-		6'b000000,RAM_read_2[query_read_num][185:184],
-		6'b000000,RAM_read_2[query_read_num][177:176],
-		6'b000000,RAM_read_2[query_read_num][169:168],
-		6'b000000,RAM_read_2[query_read_num][161:160],
-		6'b000000,RAM_read_2[query_read_num][153:152],
-		6'b000000,RAM_read_2[query_read_num][145:144],
-		6'b000000,RAM_read_2[query_read_num][137:136],
-		6'b000000,RAM_read_2[query_read_num][129:128],
-		6'b000000,RAM_read_2[query_read_num][121:120],
-		6'b000000,RAM_read_2[query_read_num][113:112],
-		6'b000000,RAM_read_2[query_read_num][105:104],
-		6'b000000,RAM_read_2[query_read_num][97:96],
-		6'b000000,RAM_read_2[query_read_num][89:88],
-		6'b000000,RAM_read_2[query_read_num][81:80],
-		6'b000000,RAM_read_2[query_read_num][73:72],
-		6'b000000,RAM_read_2[query_read_num][65:64],
-		6'b000000,RAM_read_2[query_read_num][57:56],
-		6'b000000,RAM_read_2[query_read_num][49:48],
-		6'b000000,RAM_read_2[query_read_num][41:40],
-		6'b000000,RAM_read_2[query_read_num][33:32],
-		6'b000000,RAM_read_2[query_read_num][25:24],
-		6'b000000,RAM_read_2[query_read_num][17:16],
-		6'b000000,RAM_read_2[query_read_num][9:8],
-		6'b000000,RAM_read_2[query_read_num][1:0]
+		6'b000000,RAM_read_2[query_read_num_RAM_read][505:504],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][497:496],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][489:488],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][481:480],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][473:472],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][465:464],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][457:456],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][449:448],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][441:440],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][433:432],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][425:424],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][417:416],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][409:408],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][401:400],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][393:392],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][385:384],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][377:376],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][369:368],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][361:360],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][353:352],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][345:344],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][337:336],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][329:328],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][321:320],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][313:312],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][305:304],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][297:296],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][289:288],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][281:280],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][273:272],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][265:264],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][257:256],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][249:248],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][241:240],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][233:232],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][225:224],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][217:216],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][209:208],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][201:200],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][193:192],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][185:184],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][177:176],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][169:168],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][161:160],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][153:152],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][145:144],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][137:136],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][129:128],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][121:120],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][113:112],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][105:104],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][97:96],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][89:88],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][81:80],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][73:72],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][65:64],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][57:56],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][49:48],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][41:40],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][33:32],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][25:24],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][17:16],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][9:8],
+		6'b000000,RAM_read_2[query_read_num_RAM_read][1:0]
 	
 	};
 endmodule

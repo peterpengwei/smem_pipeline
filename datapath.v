@@ -34,8 +34,12 @@ module Datapath(
 	output reg [6:0] min_intv_out,
 	output reg [6:0] backward_x_out,
 	
-	output reg [6:0] next_query_position,
+	
 	//----------------------------
+	
+	output reg [5:0] status_query,
+	output reg [`READ_NUM_WIDTH - 1:0] read_num_query,
+	output reg [6:0] next_query_position,
 	
 	output reg [`READ_NUM_WIDTH - 1:0] curr_read_num_1,
 	output reg curr_we_1,
@@ -271,14 +275,18 @@ module Datapath(
 			curr_addr_1 <= 0;
 		end
 		else if(!stall) begin
+			curr_read_num_1 <= read_num_L00;
+			curr_data_1 <= {ik_info_L00, ik_x2_L00, ik_x1_L00, ik_x0_L00};
+			curr_addr_1 <= ptr_curr_L00;
+			
 			if(status_L00 == F_run) begin
+
 				case(query_L00) 
 					0: begin
 						if (ok3_x2_L0 != ik_x2_L00) begin
-							curr_read_num_1 <= read_num_L00;
+							
 							curr_we_1 <= 1;
-							curr_data_1 <= {ik_info_L00, ik_x2_L00, ik_x1_L00, ik_x0_L00};
-							curr_addr_1 <= ptr_curr_L00;
+							
 							ptr_curr_L1 <= ptr_curr_L00 + 1;
 							
 							if (ok3_x2_L0 < min_intv_L00) begin
@@ -293,10 +301,8 @@ module Datapath(
 							end
 						end
 						else begin
-							curr_read_num_1 <= 0;
 							curr_we_1 <= 0;
-							curr_data_1 <= 0;
-							curr_addr_1 <= 0;
+
 							ptr_curr_L1 <= ptr_curr_L00;
 							status_L1 <= status_L00;
 							is_update_ik <= 1;
@@ -306,10 +312,7 @@ module Datapath(
 					
 					1: begin
 						if (ok2_x2_L0 != ik_x2_L00) begin
-							curr_read_num_1 <= read_num_L00;
 							curr_we_1 <= 1;
-							curr_data_1 <= {ik_info_L00, ik_x2_L00, ik_x1_L00, ik_x0_L00};
-							curr_addr_1 <= ptr_curr_L00;
 							ptr_curr_L1 <= ptr_curr_L00 + 1;
 							
 							if (ok2_x2_L0 < min_intv_L00) begin
@@ -324,10 +327,8 @@ module Datapath(
 							end
 						end
 						else begin
-							curr_read_num_1 <= 0;
 							curr_we_1 <= 0;
-							curr_data_1 <= 0;
-							curr_addr_1 <= 0;
+
 							ptr_curr_L1 <= ptr_curr_L00;
 							status_L1 <= status_L00;
 							is_update_ik <= 1;
@@ -337,10 +338,7 @@ module Datapath(
 					
 					2: begin
 						if (ok1_x2_L0 != ik_x2_L00) begin
-							curr_read_num_1 <= read_num_L00;
 							curr_we_1 <= 1;
-							curr_data_1 <= {ik_info_L00, ik_x2_L00, ik_x1_L00, ik_x0_L00};
-							curr_addr_1 <= ptr_curr_L00;
 							ptr_curr_L1 <= ptr_curr_L00 + 1;
 							
 							if (ok1_x2_L0 < min_intv_L00) begin
@@ -355,10 +353,8 @@ module Datapath(
 							end
 						end
 						else begin
-							curr_read_num_1 <= 0;
 							curr_we_1 <= 0;
-							curr_data_1 <= 0;
-							curr_addr_1 <= 0;
+
 							ptr_curr_L1 <= ptr_curr_L00;
 							status_L1 <= status_L00;
 							is_update_ik <= 1;
@@ -368,10 +364,7 @@ module Datapath(
 					
 					3: begin
 						if (ok0_x2_L0 != ik_x2_L00) begin
-							curr_read_num_1 <= read_num_L00;
 							curr_we_1 <= 1;
-							curr_data_1 <= {ik_info_L00, ik_x2_L00, ik_x1_L00, ik_x0_L00};
-							curr_addr_1 <= ptr_curr_L00;
 							ptr_curr_L1 <= ptr_curr_L00 + 1;
 							
 							if (ok0_x2_L0 < min_intv_L00) begin
@@ -386,10 +379,8 @@ module Datapath(
 							end
 						end
 						else begin
-							curr_read_num_1 <= 0;
 							curr_we_1 <= 0;
-							curr_data_1 <= 0;
-							curr_addr_1 <= 0;
+
 							ptr_curr_L1 <= ptr_curr_L00;
 							status_L1 <= status_L00;
 							is_update_ik <= 1;
@@ -398,10 +389,8 @@ module Datapath(
 					end // end 3
 					
 					default: begin // equal to else		
-						curr_read_num_1 <= read_num_L00;
 						curr_we_1 <= 1;
-						curr_data_1 <= {ik_info_L00, ik_x2_L00, ik_x1_L00, ik_x0_L00};
-						curr_addr_1 <= ptr_curr_L00;
+
 						ptr_curr_L1 <= ptr_curr_L00 + 1;
 
 						status_L1 <= F_break; // if (ok[c].x[2] < min_intv) break;
@@ -412,17 +401,11 @@ module Datapath(
 			end
 			else if(status_L00 == F_break) begin
 				if(forward_i_L00 == Len) begin
-					curr_read_num_1 <= read_num_L00;
 					curr_we_1 <= 1;
-					curr_data_1 <= {ik_info_L00, ik_x2_L00, ik_x1_L00, ik_x0_L00}; 
-					curr_addr_1 <= ptr_curr_L00;
 					ptr_curr_L1 <= ptr_curr_L00 + 1;
 				end
 				else begin
-					curr_read_num_1 <= 0;
 					curr_we_1 <= 0;
-					curr_data_1 <= 0; 
-					curr_addr_1 <= 0;
 					ptr_curr_L1 <= ptr_curr_L00;
 				end
 				
@@ -434,10 +417,7 @@ module Datapath(
 			
 			end
 			else begin
-				curr_read_num_1 <= 0;
 				curr_we_1 <= 0;
-				curr_data_1 <= 0;
-				curr_addr_1 <= 0;
 				ptr_curr_L1 <= ptr_curr_L00;
 				status_L1 <= status_L00; // if (ok[c].x[2] < min_intv) break;
 				is_update_ik <= 0; // after break, "ik = ok[c]; ik.info = i + 1;" won't be executed.
@@ -629,6 +609,11 @@ module Datapath(
 			forward_l_temp_L22 	<= forward_l_temp_L2;
 			forward_k_temp_L22_minus 	<= forward_k_temp_L2_minus;
 			forward_l_temp_L22_minus 	<= forward_l_temp_L2_minus;		
+			
+			//query request one cycle ahead
+			status_query <= status_L2;
+			read_num_query <= read_num_L2;
+			next_query_position <= forward_i_L2;
 		end
 	
 	end
@@ -678,7 +663,7 @@ module Datapath(
 			min_intv_out <= min_intv_L22;
 			backward_x_out <= backward_x_L22;
 			
-			next_query_position <= forward_i_L22;
+
 		end
 		else begin
 			//[very important] in case the DRAM_valid is kept valid during stall. 

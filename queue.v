@@ -47,6 +47,8 @@ module Queue(
 	
 	//forward query position
 	input [6:0] next_query_position,
+	input [`READ_NUM_WIDTH - 1 :0] read_num_query,
+	input [5:0] status_query,
 	
 	//Queue -> Forward Pipeline
 	output reg [5:0] status_out,
@@ -61,6 +63,13 @@ module Queue(
 	//======================================================================
 	
 	//Backward Pipelie -> Queue
+	
+	//backward query position
+	input [6:0] next_query_position_B,
+	input [`READ_NUM_WIDTH - 1 :0] read_num_query_B,
+	input [5:0] status_query_B,
+	
+	
 	//[important] should stay unchanged during stall condition
 	input [6:0] forward_size_n_B,	
 	input [`READ_NUM_WIDTH - 1 :0] read_num_B,
@@ -248,10 +257,10 @@ module Queue(
 	// 3 stage pipe to wait for the delay of retrieving query
 	//------------------------------------------------
 	
-	assign query_position_2RAM = (status != BUBBLE ) ? next_query_position : output_c_B ;
-	assign query_read_num_2RAM = (status != BUBBLE ) ? read_num :  read_num_B ;
+	assign query_position_2RAM = (status_query != BUBBLE ) ? next_query_position : next_query_position_B ;
+	assign query_read_num_2RAM = (status_query != BUBBLE ) ? read_num_query :  read_num_query_B ;
 	//assign query_status_2RAM = (status != BUBBLE && status != F_break) ? status : (status_B != BUBBLE && status_B != BCK_END) ? status_B : 6'b11_1111;
-	assign query_status_2RAM = status;
+	assign query_status_2RAM = status_query;
 
 	always@(posedge Clk_32UI) begin
 		if(!stall) begin

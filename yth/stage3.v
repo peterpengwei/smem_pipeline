@@ -24,7 +24,12 @@ input wire [31:0]	reserved_mem_info_licheng,
 output reg [8:0] read_num,
 output reg [6:0] current_rd_addr,
 
-//data handled to next stage (store to read queue)
+//[licheng] query request one cycle ahead
+output reg [5:0] status_query_B,
+output reg [`READ_NUM_WIDTH - 1:0] read_num_query_B,
+output reg [6:0] next_query_position_B,
+	
+//data handled to next stage (store to read queue)	
 output reg [6:0] forward_size_n,
 output reg [6:0] new_size,
 output reg [63:0] primary,
@@ -99,6 +104,10 @@ output reg [5:0] status
 			iteration_boundary_q	<= iteration_boundary_licheng;
 			reserved_token_x2_q 	<= reserved_token_x2_licheng;
 			reserved_mem_info_q 	<= reserved_mem_info_licheng;
+			
+			status_query_B			<= status_licheng;
+			read_num_query_B		<= read_num_licheng;
+			next_query_position_B   <= backward_i_licheng;
 		end
 	end
 
