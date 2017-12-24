@@ -67,7 +67,7 @@ module afu_top #(
 		.CLK_200M(CLK_200M),
 		.reset_n(core_reset_n),
 		
-		.core_start(core_start),
+		.core_start_d(core_start),
 		.spl_reset(spl_reset),
 		
 		// TX_RD request, afu_core --> afu_io

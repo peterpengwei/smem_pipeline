@@ -9,7 +9,7 @@ module afu_core(
     
 	//---------------------------------------------------
     //input  wire                             spl_enable,
-	input  wire 							core_start,
+	input  wire 							core_start_d,
 	//---------------------------------------------------
 	
     input  wire                             spl_reset,
@@ -53,17 +53,9 @@ module afu_core(
 	output [6:0] backward_j_q_test
 );
 	assign cor_tx_done_valid = 1'b0;
-	// reg CLK_200M;
-	// always@(posedge CLK_400M) begin
-		// if(!reset_n) begin
-			// CLK_200M <= 0;
-		// end
-		// else begin
-		
-			// CLK_200M <= !CLK_200M;
-		// end
-	// end
 	
+	reg core_start;
+	always@(posedge CLK_200M) core_start <= core_start_d;
 	
 	reg batch_reset_n;
 	// 400M domain
@@ -138,7 +130,7 @@ module afu_core(
 		end
 		else begin
 			cor_tx_wr_valid <= FIFO_output_Data_valid;
-			cor_tx_fence_valid <= FIFO_output_Data_out[511] & FIFO_output_Data_valid; //[licheng] use the 511 bit to represent fence valid.
+			cor_tx_fence_valid <= FIFO_output_Data_out[511]; //[licheng] use the 511 bit to represent fence valid.
 			cor_tx_wr_addr <= FIFO_output_Data_out[512+57:512];
 			cor_tx_data	<= FIFO_output_Data_out[511:0];
 		end
