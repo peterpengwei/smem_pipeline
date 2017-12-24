@@ -92,13 +92,20 @@ module RAM_read(
 	
 	assign new_read_num = new_read_valid ? new_read_ptr : 9'b1_1111_1111;
 	
-	assign new_ik_x0   = new_read_valid ? RAM_ik[new_read_ptr][63:0] : 64'h1111_1111_1111_1111;
-	assign new_ik_x1   = new_read_valid ? RAM_ik[new_read_ptr][127:64] : 64'h1111_1111_1111_1111;
-	assign new_ik_x2   = new_read_valid ? RAM_ik[new_read_ptr][191:128] : 64'h1111_1111_1111_1111;
-	assign new_ik_info = new_read_valid ? RAM_ik[new_read_ptr][255:192] : 64'h1111_1111_1111_1111;
-	assign new_forward_i = new_read_valid ? RAM_param[new_read_ptr][6:0] : 7'b111_1111;
-	assign new_min_intv = new_read_valid ? RAM_param[new_read_ptr][70:64] : 7'b111_1111;
+	assign new_ik_x0[32:0]   = RAM_ik[new_read_ptr][32:0];
+	assign new_ik_x1[32:0]   = RAM_ik[new_read_ptr][96:64];
+	assign new_ik_x2[32:0]   = RAM_ik[new_read_ptr][160:128];
+	assign new_ik_info[6:0] = RAM_ik[new_read_ptr][198:192];
+	assign new_ik_info[38:32] = RAM_ik[new_read_ptr][230:224];
+	assign new_forward_i = RAM_param[new_read_ptr][6:0];
+	assign new_min_intv = RAM_param[new_read_ptr][70:64];
 	
+	assign new_ik_x0[63:33] = 0;
+	assign new_ik_x1[63:33] = 0;
+	assign new_ik_x2[63:33] = 0;
+	assign new_ik_info[63:39] = 0;
+	assign new_ik_info[31:7] = 0;
+						
 	assign new_read_valid = reset_n & load_done & (new_read_ptr < curr_position) ;
 	always@(posedge clk) begin
 		if(!reset_n) begin

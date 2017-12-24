@@ -248,8 +248,8 @@ module Queue(
 	// 3 stage pipe to wait for the delay of retrieving query
 	//------------------------------------------------
 	
-	assign query_position_2RAM = (status != BUBBLE ) ? next_query_position : (status_B != BUBBLE ) ? output_c_B : 8'b1111_1111;
-	assign query_read_num_2RAM = (status != BUBBLE ) ? read_num : (status_B != BUBBLE ) ? read_num_B : 9'b1_1111_1111;
+	assign query_position_2RAM = (status != BUBBLE ) ? next_query_position : output_c_B ;
+	assign query_read_num_2RAM = (status != BUBBLE ) ? read_num :  read_num_B ;
 	//assign query_status_2RAM = (status != BUBBLE && status != F_break) ? status : (status_B != BUBBLE && status_B != BCK_END) ? status_B : 6'b11_1111;
 	assign query_status_2RAM = status;
 
@@ -450,33 +450,7 @@ module Queue(
 				read_ptr_f <= read_ptr_f + 1;
 				
 				//======== backward ports =============
-				ik_x0_new_q <= 0;
-				ik_x1_new_q <= 0;
-				ik_x2_new_q <= 0;
-				backward_x_q <= 0; // x
-				backward_c_q <= 0; // next bp
-				forward_all_done <= 0;
-				forward_size_n_q <= 0; //foward curr array size	
-				read_num_q <= 0;
-				min_intv_q <= 0;	//
 				status_q <= BUBBLE;
-				new_size_q <= 0;
-				new_last_size_q <= 0;
-				primary_q <= 0;
-				current_rd_addr_q <= 0;
-				current_wr_addr_q <= 0;
-				mem_wr_addr_q <= 0;
-				backward_i_q <= 0; 
-				backward_j_q <= 0;
-				iteration_boundary_q <= 0;
-				p_x0_q <= 0; // same as ik in forward datapath <= 0; store the p_x0 value into queue
-				p_x1_q <= 0;
-				p_x2_q <= 0;
-				p_info_q <= 0;
-				last_token_x2_q <= 0; //pushed to queue
-				last_mem_info_q <= 0;
-				k_q <= 0;
-				l_q <= 0;
 				//=====================================
 			end
 			
@@ -485,17 +459,6 @@ module Queue(
 				
 				//======== forward ports =============
 				status_out <= BUBBLE;
-				ptr_curr_out <= 7'b111_1111;
-				read_num_out <= 10'b11_1111_1111; 
-				ik_x0_out <= 64'h1111_1111_1111_1111; 
-				ik_x1_out <= 64'h1111_1111_1111_1111;  
-				ik_x2_out <= 64'h1111_1111_1111_1111;  
-				//ik_info_out <= 64'h1111_1111_1111_1111; 
-				//forward_i_out <= 7'b111_1111;
-				//min_intv_out <= 7'b111_1111; 
-				//query_out <= 8'b1111_1111; 
-				
-				backward_x_out <= 7'b111_1111;
 				//=====================================
 						
 				//======== backward initial ===========
@@ -534,49 +497,12 @@ module Queue(
 						ik_info_out[31:7] <= 0;
 						
 						//======== backward ports =============
-						ik_x0_new_q <= 0;
-						ik_x1_new_q <= 0;
-						ik_x2_new_q <= 0;
-						backward_x_q <= 0; // x
-						backward_c_q <= 0; // next bp
-						forward_all_done <= 0;
-						forward_size_n_q <= 0; //foward curr array size	
-						read_num_q <= 0;
-						min_intv_q <= 0;	//
 						status_q <= BUBBLE;
-						new_size_q <= 0;
-						new_last_size_q <= 0;
-						primary_q <= 0;
-						current_rd_addr_q <= 0;
-						current_wr_addr_q <= 0;
-						mem_wr_addr_q <= 0;
-						backward_i_q <= 0; 
-						backward_j_q <= 0;
-						iteration_boundary_q <= 0;
-						p_x0_q <= 0; // same as ik in forward datapath <= 0; store the p_x0 value into queue
-						p_x1_q <= 0;
-						p_x2_q <= 0;
-						p_info_q <= 0;
-						last_token_x2_q <= 0; //pushed to queue
-						last_mem_info_q <= 0;
-						k_q <= 0;
-						l_q <= 0;
 						//=====================================
 					end
 					else if (next_status == BCK_RUN) begin
 						//=========== forward ports ==============
 						status_out <= BUBBLE;
-						ptr_curr_out <= 7'b111_1111;
-						read_num_out <= 10'b11_1111_1111; 
-						ik_x0_out <= 64'h1111_1111_1111_1111; 
-						ik_x1_out <= 64'h1111_1111_1111_1111;  
-						ik_x2_out <= 64'h1111_1111_1111_1111;  
-						ik_info_out <= 64'h1111_1111_1111_1111; 
-						forward_i_out <= 7'b111_1111;
-						min_intv_out <= 7'b111_1111; 
-						query_out <= 8'b1111_1111; 
-						
-						backward_x_out <= 7'b111_1111;
 						//==========================================
 						
 						//=========== backward ports ===============
@@ -611,65 +537,8 @@ module Queue(
 					
 					//-------------------
                     status_out <= BUBBLE;
-                    ptr_curr_out <= 7'b111_1111;
-                    read_num_out <= 10'b11_1111_1111; 
-                    ik_x0_out <= 64'h1111_1111_1111_1111; 
-                    ik_x1_out <= 64'h1111_1111_1111_1111;  
-                    ik_x2_out <= 64'h1111_1111_1111_1111;  
-                    ik_info_out <= 64'h1111_1111_1111_1111; 
-                    forward_i_out <= 7'b111_1111;
-                    min_intv_out <= 7'b111_1111; 
-                    query_out <= 8'b1111_1111; 
-					
-					backward_x_out <= 7'b111_1111;
-                    //-------------------
-					
-					// cnt_a0_out <= 32'h1111_1111;
-					// cnt_a1_out <= 32'h1111_1111;
-					// cnt_a2_out <= 32'h1111_1111;
-					// cnt_a3_out <= 32'h1111_1111;
-					// cnt_b0_out <= 64'h1111_1111_1111_1111;
-					// cnt_b1_out <= 64'h1111_1111_1111_1111;
-					// cnt_b2_out <= 64'h1111_1111_1111_1111;
-					// cnt_b3_out <= 64'h1111_1111_1111_1111;
-					// cntl_a0_out <= 32'h1111_1111;
-					// cntl_a1_out <= 32'h1111_1111;
-					// cntl_a2_out <= 32'h1111_1111;
-					// cntl_a3_out <= 32'h1111_1111;
-					// cntl_b0_out <= 64'h1111_1111_1111_1111;
-					// cntl_b1_out <= 64'h1111_1111_1111_1111;
-					// cntl_b2_out <= 64'h1111_1111_1111_1111;
-					// cntl_b3_out <= 64'h1111_1111_1111_1111;
-                    
-					read_ptr_f <= read_ptr_f;
-					
-					ik_x0_new_q <= 0;
-					ik_x1_new_q <= 0;
-					ik_x2_new_q <= 0;
-					backward_x_q <= 0; // x
-					backward_c_q <= 0; // next bp
-					forward_all_done <= 0;
-					forward_size_n_q <= 0; //foward curr array size	
-					read_num_q <= 0;
-					min_intv_q <= 0;	//
 					status_q <= BUBBLE;
-					new_size_q <= 0;
-					new_last_size_q <= 0;
-					primary_q <= 0;
-					current_rd_addr_q <= 0;
-					current_wr_addr_q <= 0;
-					mem_wr_addr_q <= 0;
-					backward_i_q <= 0; 
-					backward_j_q <= 0;
-					iteration_boundary_q <= 0;
-					p_x0_q <= 0; // same as ik in forward datapath <= 0; store the p_x0 value into queue
-					p_x1_q <= 0;
-					p_x2_q <= 0;
-					p_info_q <= 0;
-					last_token_x2_q <= 0; //pushed to queue
-					last_mem_info_q <= 0;
-					k_q <= 0;
-					l_q <= 0;
+
 				end
 			end
 			
@@ -680,126 +549,32 @@ module Queue(
                 status_out <= F_init;
                 ptr_curr_out <= 0;
                 read_num_out <= new_read_num; //from RAM
-                ik_x0_out <= new_ik_x0; //from RAM
-                ik_x1_out <= new_ik_x1; //from RAM
-                ik_x2_out <= new_ik_x2; //from RAM
-                ik_info_out <= new_ik_info; //from RAM
+                ik_x0_out[32:0] <= new_ik_x0[32:0]; //from RAM
+                ik_x1_out[32:0] <= new_ik_x1[32:0]; //from RAM
+                ik_x2_out[32:0] <= new_ik_x2[32:0]; //from RAM
+                ik_info_out[38:32] <= new_ik_info[38:32]; //from RAM
+				ik_info_out[6:0] <= new_ik_info[6:0]; //from RAM
                 forward_i_out <= new_forward_i + 1; // from RAM
 				backward_x_out <= new_forward_i;
                 min_intv_out <= new_min_intv; 
                 query_out <= 0; // !!!!the first round doesn't need query
-                
+				
+				ik_x0_out[63:33] <= 0;
+				ik_x1_out[63:33] <= 0;
+				ik_x2_out[63:33] <= 0;
+				ik_info_out[63:39] <= 0;
+				ik_info_out[31:7] <= 0;
                 //-------------------
-				
-				// cnt_a0_out <= 32'h1111_1111;
-				// cnt_a1_out <= 32'h1111_1111;
-				// cnt_a2_out <= 32'h1111_1111;
-				// cnt_a3_out <= 32'h1111_1111;
-				// cnt_b0_out <= 64'h1111_1111_1111_1111;
-				// cnt_b1_out <= 64'h1111_1111_1111_1111;
-				// cnt_b2_out <= 64'h1111_1111_1111_1111;
-				// cnt_b3_out <= 64'h1111_1111_1111_1111;
-				// cntl_a0_out <= 32'h1111_1111;
-				// cntl_a1_out <= 32'h1111_1111;
-				// cntl_a2_out <= 32'h1111_1111;
-				// cntl_a3_out <= 32'h1111_1111;
-				// cntl_b0_out <= 64'h1111_1111_1111_1111;
-				// cntl_b1_out <= 64'h1111_1111_1111_1111;
-				// cntl_b2_out <= 64'h1111_1111_1111_1111;
-				// cntl_b3_out <= 64'h1111_1111_1111_1111;
-				
-				read_ptr_f <= read_ptr_f;
-				
-				ik_x0_new_q <= 0;
-				ik_x1_new_q <= 0;
-				ik_x2_new_q <= 0;
-				backward_x_q <= 0; // x
-				backward_c_q <= 0; // next bp
-				forward_all_done <= 0;
-				forward_size_n_q <= 0; //foward curr array size	
-				read_num_q <= 0;
-				min_intv_q <= 0;	//
+
 				status_q <= BUBBLE;
-				new_size_q <= 0;
-				new_last_size_q <= 0;
-				primary_q <= 0;
-				current_rd_addr_q <= 0;
-				current_wr_addr_q <= 0;
-				mem_wr_addr_q <= 0;
-				backward_i_q <= 0; 
-				backward_j_q <= 0;
-				iteration_boundary_q <= 0;
-				p_x0_q <= 0; // same as ik in forward datapath <= 0; store the p_x0 value into queue
-				p_x1_q <= 0;
-				p_x2_q <= 0;
-				p_info_q <= 0;
-				last_token_x2_q <= 0; //pushed to queue
-				last_mem_info_q <= 0;
-				k_q <= 0;
-				l_q <= 0;
+
 			end
 			else begin // no memory responses and no more reads
 				// new_read <= 0;
 				//-------------------
                 status_out <= BUBBLE;
-				ptr_curr_out <= 7'b111_1111;
-				read_num_out <= 10'b11_1111_1111; 
-				ik_x0_out <= 64'h1111_1111_1111_1111; 
-				ik_x1_out <= 64'h1111_1111_1111_1111;  
-				ik_x2_out <= 64'h1111_1111_1111_1111;  
-				ik_info_out <= 64'h1111_1111_1111_1111; 
-				forward_i_out <= 7'b111_1111;
-				min_intv_out <= 7'b111_1111; 
-				query_out <= 8'b1111_1111; 
-                backward_x_out <= 7'b111_1111;
-                //-------------------
-				
-				// cnt_a0_out <= 32'h1111_1111;
-				// cnt_a1_out <= 32'h1111_1111;
-				// cnt_a2_out <= 32'h1111_1111;
-				// cnt_a3_out <= 32'h1111_1111;
-				// cnt_b0_out <= 64'h1111_1111_1111_1111;
-				// cnt_b1_out <= 64'h1111_1111_1111_1111;
-				// cnt_b2_out <= 64'h1111_1111_1111_1111;
-				// cnt_b3_out <= 64'h1111_1111_1111_1111;
-				// cntl_a0_out <= 32'h1111_1111;
-				// cntl_a1_out <= 32'h1111_1111;
-				// cntl_a2_out <= 32'h1111_1111;
-				// cntl_a3_out <= 32'h1111_1111;
-				// cntl_b0_out <= 64'h1111_1111_1111_1111;
-				// cntl_b1_out <= 64'h1111_1111_1111_1111;
-				// cntl_b2_out <= 64'h1111_1111_1111_1111;
-				// cntl_b3_out <= 64'h1111_1111_1111_1111;
-				
-				read_ptr_f <= read_ptr_f;
-			
-				ik_x0_new_q <= 0;
-				ik_x1_new_q <= 0;
-				ik_x2_new_q <= 0;
-				backward_x_q <= 0; // x
-				backward_c_q <= 0; // next bp
-				forward_all_done <= 0;
-				forward_size_n_q <= 0; //foward curr array size	
-				read_num_q <= 0;
-				min_intv_q <= 0;	//
 				status_q <= BUBBLE;
-				new_size_q <= 0;
-				new_last_size_q <= 0;
-				primary_q <= 0;
-				current_rd_addr_q <= 0;
-				current_wr_addr_q <= 0;
-				mem_wr_addr_q <= 0;
-				backward_i_q <= 0; 
-				backward_j_q <= 0;
-				iteration_boundary_q <= 0;
-				p_x0_q <= 0; // same as ik in forward datapath <= 0; store the p_x0 value into queue
-				p_x1_q <= 0;
-				p_x2_q <= 0;
-				p_info_q <= 0;
-				last_token_x2_q <= 0; //pushed to queue
-				last_mem_info_q <= 0;
-				k_q <= 0;
-				l_q <= 0;
+
 			end
 		end
 	end	
