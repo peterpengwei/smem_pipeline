@@ -318,7 +318,7 @@ module afu_core(
 					
 					//never reset polling_tag!
 					load_ptr <= 0;
-					output_addr<= 0;
+					output_addr<= output_base;
 					load_valid <= 0;
 					load_data <= 0;
 					DRAM_get <= 0;
@@ -433,7 +433,7 @@ module afu_core(
 					// if(!stall) begin
 						if(!output_finish_200M) begin
 							FIFO_output_WriteEn_in <= output_valid_200M;
-							FIFO_output_Data_in[512+57:512] <= output_addr + output_base;
+							FIFO_output_Data_in[512+57:512] <= output_addr;
 							FIFO_output_Data_in[511:0]      <= output_data_200M;
 						
 							if(output_valid_200M) output_addr <= output_addr + 1;
