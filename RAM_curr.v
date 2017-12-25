@@ -204,8 +204,8 @@ module RAM_curr_mem(
 		end
 	end
 	
-	always@(*) begin
-		//if(!stall) begin
+	always@(posedge clk) begin
+		if(!stall) begin
 			if(group_start_qq) begin
 				output_data[9:0]     <= output_result_ptr; //read num
 				output_data[63:10]   <= 0;
@@ -232,18 +232,25 @@ module RAM_curr_mem(
 				output_data <= 0;
 			
 			end
-		//end
+		end
 	end
 	
-	reg output_valid_d, output_finish_d;
+	reg output_valid_d, output_valid_dd, output_finish_d, output_finish_dd;
 	//add one pipeline stage for output_valid and output_finish;
 	always@(posedge clk) begin
 		if(!stall) begin
-			output_valid <= output_valid_d;
-			output_finish <= output_finish_d;
+			output_valid <= output_valid_dd;	
+			output_finish <= output_finish_dd;
 		end
 		else begin
 			output_valid <= 0;
+		end
+	end
+	
+	always@(posedge clk) begin
+		if(!stall) begin
+			output_valid_dd <= output_valid_d;	
+			output_finish_dd <= output_finish_d;
 		end
 	end
 	
