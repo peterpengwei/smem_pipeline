@@ -608,13 +608,7 @@ void bwt_smem1_batched(smem_i **itr, int *ori_start, int *max_i, int start_width
 			*mem_ptr = ik[batch_idx].info;
 			mem_ptr++;
   			  memcpy(mem_ptr, itr[batch_idx]->bwt->L2, 4 * sizeof(bwtint_t));
-			mem_ptr += 4;
-			 for(int i = 0; i < 4 ;i++){
-                                for (int j = 7; j >= 0; j--) {
-//                                       printf("%016lx",mem_ptr_licheng[i*8+j]);
-                                }
-//                               printf("\n");
-			}                         
+			mem_ptr += 4;               
 			
 			licheng_counter++;
 		}
@@ -770,7 +764,7 @@ void bwt_smem1_batched(smem_i **itr, int *ori_start, int *max_i, int start_width
 	  	
 			  	mem_out.info = *mem_ptr;
 			  	mem_ptr++;
-
+				printf("%lu\t%lu\t%lu\t%lu\n", mem_out.x[0], mem_out.x[1], mem_out.x[2], mem_out.info);
 			    kv_push_bwtintv_t(mem[curr_idx], mem_out); //insert all mem_out into the mem tree
 			  }
 			  if (FPGA_outsize % 2) mem_ptr += 4;
