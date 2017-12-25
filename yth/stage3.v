@@ -78,6 +78,9 @@ output reg [5:0] status
 	reg [63:0]	reserved_token_x2_q;
 	reg [31:0]	reserved_mem_info_q;
 	
+	reg [63:0] backward_k_temp,backward_l_temp;
+	reg [63:0] backward_k_temp_minus_1,backward_l_temp_minus_1;
+	
 	always@(posedge clk) begin
 		if(!rst) begin
 			status_q <= BUBBLE;
@@ -108,6 +111,11 @@ output reg [5:0] status
 			status_query_B			<= status_licheng;
 			read_num_query_B		<= read_num_licheng;
 			next_query_position_B   <= backward_i_licheng;
+			
+			backward_k_temp <= p_x0_licheng - 1;
+			backward_l_temp <= p_x0_licheng - 1 + p_x2_licheng;
+			backward_k_temp_minus_1 <= p_x0_licheng - 2;
+			backward_l_temp_minus_1 <= p_x0_licheng - 2 + p_x2_licheng;
 		end
 	end
 
@@ -118,12 +126,10 @@ output reg [5:0] status
 	//signals handled to READ parse unit
 	wire [5:0] status_d;
 	wire [63:0] backward_k_d,backward_l_d; //could be 40 bits
-	wire [63:0] backward_k_temp,backward_l_temp;
+	
 	wire [6:0] mem_size_d;
-	assign	backward_k_temp = p_x0_q - 1;
-	assign	backward_l_temp = backward_k_temp + p_x2_q;
-	assign 	backward_k_d	= (backward_k_temp >= primary_q) ? backward_k_temp - 1 : backward_k_temp;
-	assign	backward_l_d	= (backward_l_temp >= primary_q) ? backward_l_temp - 1 : backward_l_temp;
+	assign 	backward_k_d	= (backward_k_temp >= primary_q) ? backward_k_temp_minus_1 : backward_k_temp;
+	assign	backward_l_d	= (backward_l_temp >= primary_q) ? backward_l_temp_minus_1 : backward_l_temp;
 	assign status_d = finish_sign_q? BCK_END : status_q;
 	assign mem_size_d = mem_wr_addr_q; 
 	always @(posedge clk) begin
