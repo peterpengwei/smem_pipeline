@@ -59,10 +59,10 @@ module afu_core(
 	
 	reg batch_reset_n;
 	// 400M domain
-	reg spl_tx_rd_almostfull_q, spl_tx_wr_almostfull_q;
+
+	reg stall;
 	always@(CLK_400M) begin
-		spl_tx_rd_almostfull_q <= spl_tx_rd_almostfull;
-		spl_tx_wr_almostfull_q <= spl_tx_wr_almostfull;
+		stall <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
 	end
 	
 	//send out addr_k & addr_l
@@ -240,12 +240,19 @@ module afu_core(
 	// 200M domain
 	
 	
-	wire stall = spl_tx_rd_almostfull | spl_tx_wr_almostfull | spl_tx_rd_almostfull_q | spl_tx_wr_almostfull_q;
+
 	
-	wire [57:0] hand_ptr = io_src_ptr + 50331648 + 16384 - 1;
-	wire [57:0] input_base = io_src_ptr + 50331648 + 16384;
-	wire [57:0] output_base = io_dst_ptr;
-	wire [57:0] BWT_base = io_src_ptr;
+	reg [57:0] hand_ptr;
+	reg [57:0] input_base;
+	reg [57:0] output_base;
+	reg [57:0] BWT_base;
+	
+	always@(posedge CLK_200M) begin
+		hand_ptr <= io_src_ptr + 50331648 + 16384 - 1;
+		input_base <= io_src_ptr + 50331648 + 16384;
+		output_base <= io_dst_ptr;
+		BWT_base <= io_src_ptr;
+	end
 	
 	reg polling_tag;
 	wire BWT_read_tag_0 = FIFO_response_l_Data_out[480];

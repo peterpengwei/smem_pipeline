@@ -363,7 +363,8 @@ module afu_io#(
 	//reg  [41:0]  dsm_stat_address;
 	
 	//-------------------------------------------------------
-	
+	reg [63:0]  io_src_ptr_d;
+	reg [63:0]  io_dst_ptr_d;
 	// SW writes CSR
 	always @(posedge clk) begin
 		if (spl_reset) begin
@@ -388,11 +389,11 @@ module afu_io#(
 					end
 	
 					CSR_SRC_ADDR : begin
-						io_src_ptr <= mmio_req_data;	// source pointer
+						io_src_ptr_d <= mmio_req_data;	// source pointer
 					end
 					
 					CSR_DST_ADDR : begin
-						io_dst_ptr <= mmio_req_data;	// destination pointer
+						io_dst_ptr_d <= mmio_req_data;	// destination pointer
 						
 						//--------------
 						csr_ctx_base_valid <= 1'b1;
@@ -400,8 +401,11 @@ module afu_io#(
 						//--------------
 					end
 					
-					CSR_CTL      : csr_ctl    <= mmio_req_data[31:0];
-					
+					CSR_CTL      : begin
+						csr_ctl    <= mmio_req_data[31:0];
+						io_src_ptr <= io_src_ptr_d;
+						io_dst_ptr <= io_dst_ptr_d;
+					end
 					default:;
 				endcase
 			end
