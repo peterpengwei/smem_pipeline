@@ -1221,8 +1221,7 @@ reg[6:0] backward_x_L12;
 		ok2_x2_L1 <= cnt_tl_out2 - cnt_tk_out2;
 		ok3_x2_L1 <= cnt_tl_out3 - cnt_tk_out3;   
 		
-		if(forward_all_done_L0)
-		begin
+
 			ok0_x0_L1 <= L2_0 + cnt_tk_out0 + 1;
 			ok1_x0_L1 <= L2_1 + cnt_tk_out1 + 1;
 			ok2_x0_L1 <= L2_2 + cnt_tk_out2 + 1;
@@ -1230,17 +1229,7 @@ reg[6:0] backward_x_L12;
 			
 			is_x1_add_A <= (ik_x0_L0 <= primary);
 			is_x1_add_B <= (ik_x0_L0_ik_x2_L0_A - 1 >= primary); // for use in next stage		
-		end
-		
-		else begin
-			ok0_x1_L1 <= L2_0 + cnt_tk_out0 + 1;
-			ok1_x1_L1 <= L2_1 + cnt_tk_out1 + 1;
-			ok2_x1_L1 <= L2_2 + cnt_tk_out2 + 1;
-			ok3_x1_L1 <= L2_3 + cnt_tk_out3 + 1;
-			
-			is_x0_add_C <= (ik_x1_L0 <= primary);
-			is_x0_add_D <= (ik_x1_L0_ik_x2_L0_B - 1 >= primary);
-		end
+
 		
 		ik_x1_L1 <= ik_x1_L0;
 		ik_x0_L1 <= ik_x0_L0;
@@ -1270,25 +1259,16 @@ reg[6:0] backward_x_L12;
 		ok3_x2_L2 <= ok3_x2_L2;   
 	end
 	else begin
-	if(forward_all_done_L1)
-		begin
+
 			ok3_x1_L2 <= ik_x1_L1 + (is_x1_add_A & is_x1_add_B);
 			
 			ok0_x0_L2 <= ok0_x0_L1;
 			ok1_x0_L2 <= ok1_x0_L1;
 			ok2_x0_L2 <= ok2_x0_L1;
 			ok3_x0_L2 <= ok3_x0_L1;
-		end
+
 		
-		else begin
-			ok3_x0_L2 <= ik_x0_L1 + (is_x0_add_C & is_x0_add_D);
-			
-			ok0_x1_L2 <= ok0_x1_L1;
-			ok1_x1_L2 <= ok1_x1_L1;
-			ok2_x1_L2 <= ok2_x1_L1;
-			ok3_x1_L2 <= ok3_x1_L1;
-		
-		end
+
 		
 		forward_all_done_L2 <= forward_all_done_L1;
 		ok0_x2_L2 <= ok0_x2_L1;
@@ -1319,8 +1299,7 @@ reg[6:0] backward_x_L12;
 		ok3_x2_L3 <= ok3_x2_L3;  
 	end
 	else begin
-		if(forward_all_done_L2)
-		begin
+
 			ok2_x1_L3 <= ok3_x1_L2 + ok3_x2_L2;
 			
 			ok3_x1_L3 <= ok3_x1_L2;
@@ -1329,18 +1308,7 @@ reg[6:0] backward_x_L12;
 			ok1_x0_L3 <= ok1_x0_L2;
 			ok2_x0_L3 <= ok2_x0_L2;
 			ok3_x0_L3 <= ok3_x0_L2;
-		end
-		
-		else begin
-			ok2_x0_L3 <= ok3_x0_L2 + ok3_x2_L2;
-			
-			ok3_x0_L3 <= ok3_x0_L2;
- 			
-			ok0_x1_L3 <= ok0_x1_L2;
-			ok1_x1_L3 <= ok1_x1_L2;
-			ok2_x1_L3 <= ok2_x1_L2;
-			ok3_x1_L3 <= ok3_x1_L2;
-		end
+
 		
 		forward_all_done_L3 <= forward_all_done_L2;
 		ok0_x2_L3 <= ok0_x2_L2;
@@ -1371,8 +1339,7 @@ reg[6:0] backward_x_L12;
 			ok3_x2_L4 <= ok3_x2_L4;   
 		end
 		else begin
-			if(forward_all_done_L3)
-			begin
+
 				ok1_x1_L4 <= ok2_x1_L3 + ok2_x2_L3;
 			
 				ok2_x1_L4 <= ok2_x1_L3;
@@ -1382,18 +1349,7 @@ reg[6:0] backward_x_L12;
 				ok1_x0_L4 <= ok1_x0_L3;
 				ok2_x0_L4 <= ok2_x0_L3;
 				ok3_x0_L4 <= ok3_x0_L3;
-			end
-			else begin
-				ok1_x0_L4 <= ok2_x0_L3 + ok2_x2_L3;
-			
-				ok2_x0_L4 <= ok2_x0_L3;
-				ok3_x0_L4 <= ok3_x0_L3;
-			
-				ok0_x1_L4 <= ok0_x1_L3;
-				ok1_x1_L4 <= ok1_x1_L3;
-				ok2_x1_L4 <= ok2_x1_L3;
-				ok3_x1_L4 <= ok3_x1_L3;
-			end
+
 		
 			forward_all_done_L4 <= forward_all_done_L3;
 			ok0_x2_L4 <= ok0_x2_L3;
@@ -1423,8 +1379,7 @@ reg[6:0] backward_x_L12;
 		ok3_x2 <= ok3_x2;   
 	end
 	else begin
-		if(forward_all_done_L4)
-		begin
+
 			ok0_x1 <= ok1_x1_L4 + ok1_x2_L4;
 			ok1_x1 <= ok1_x1_L4;
 			ok2_x1 <= ok2_x1_L4;
@@ -1434,19 +1389,7 @@ reg[6:0] backward_x_L12;
 			ok1_x0 <= ok1_x0_L4;
 			ok2_x0 <= ok2_x0_L4;
 			ok3_x0 <= ok3_x0_L4;
-		end
-		
-		else begin
-			ok0_x0 <= ok1_x0_L4 + ok1_x2_L4;
-			ok1_x0 <= ok1_x0_L4;
-			ok2_x0 <= ok2_x0_L4;
-			ok3_x0 <= ok3_x0_L4;
-			
-			ok0_x1 <= ok0_x1_L4;
-			ok1_x1 <= ok1_x1_L4;
-			ok2_x1 <= ok2_x1_L4;
-			ok3_x1 <= ok3_x1_L4;
-		end
+
 		
 		ok0_x2 <= ok0_x2_L4;
 		ok1_x2 <= ok1_x2_L4;
