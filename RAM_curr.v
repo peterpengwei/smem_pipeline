@@ -204,9 +204,9 @@ module RAM_curr_mem(
 		end
 	end
 	
-	always@(posedge clk) begin
-		if(!stall) begin
-			if(group_start_q) begin
+	always@(*) begin
+		//if(!stall) begin
+			if(group_start_qq) begin
 				output_data[9:0]     <= output_result_ptr; //read num
 				output_data[63:10]   <= 0;
 				output_data[70:64]   <= mem_size_queue[output_result_ptr];
@@ -214,14 +214,14 @@ module RAM_curr_mem(
 				output_data[159:128] <= {25'b0, ret_queue[output_result_ptr]};
 				output_data[511:160] <= 0;
 			end
-			else if(already_output_num_q < curr_size - 1) begin
+			else if(already_output_num_qq < curr_size - 1) begin
 				{output_data[230:224],output_data[198:192],output_data[160:128],output_data[96:64],output_data[32:0]} <= mem_q_out_A;
 				{output_data[255:231],output_data[223:199],output_data[191:161],output_data[127:97],output_data[63:33]} <= 0;
 				
 				{output_data[486:480],output_data[454:448],output_data[416:384],output_data[352:320],output_data[288:256]} <= mem_q_out_B;
 				{output_data[511:487],output_data[479:455],output_data[447:417],output_data[383:353],output_data[319:289]} <= 0;
 			end
-			else if(already_output_num_q == curr_size - 1) begin
+			else if(already_output_num_qq == curr_size - 1) begin
 				{output_data[230:224],output_data[198:192],output_data[160:128],output_data[96:64],output_data[32:0]} <= mem_q_out_A;
 				{output_data[255:231],output_data[223:199],output_data[191:161],output_data[127:97],output_data[63:33]} <= 0;
 				
@@ -232,7 +232,7 @@ module RAM_curr_mem(
 				output_data <= 0;
 			
 			end
-		end
+		//end
 	end
 	
 	reg output_valid_d, output_finish_d;
