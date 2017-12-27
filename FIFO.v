@@ -48,8 +48,8 @@ module aFIFO
 		
 		end
 		else begin
+			Data_out <= Mem[pNextWordToRead];
 			if (ReadEn_in & !Empty_out) begin
-				Data_out <= Mem[pNextWordToRead];
 				Data_valid <= 1;
 			end
 			else begin
@@ -59,12 +59,12 @@ module aFIFO
 	end
 			//'Data_in' logic:
     always @ (posedge WClk)
-        if (WriteEn_in & !Full_out)
+        if (WriteEn_in)
             Mem[pNextWordToWrite] <= Data_in;
 
     //Fifo addresses support logic: 
     //'Next Addresses' enable logic:
-    assign NextWriteAddressEn = WriteEn_in & ~Full_out;
+    assign NextWriteAddressEn = WriteEn_in;
     assign NextReadAddressEn  = ReadEn_in  & ~Empty_out;
            
     //Addreses (Gray counters) logic:
@@ -100,8 +100,8 @@ module aFIFO
     end       
 	
     //'Empty_out' logic for the reading port:
-    assign PresetEmpty = EqualAddresses;  //'Empty' Fifo.
-	assign Empty_out = PresetEmpty;
+
+	assign Empty_out = EqualAddresses;
 	
 
 
@@ -151,8 +151,8 @@ module aFIFO_2w_1r
 		
 		end
 		else begin
+			Data_out <= Mem[pNextWordToRead];
 			if (ReadEn_in & !Empty_out) begin
-				Data_out <= Mem[pNextWordToRead];
 				Data_valid <= 1;
 			end
 			else begin
@@ -162,7 +162,7 @@ module aFIFO_2w_1r
 	end
 			//'Data_in' logic:
     always @ (posedge WClk) begin
-		if (WriteEn_in_2 & !Full_out) begin
+		if (WriteEn_in_2) begin
 			Mem[pNextWordToWrite_1] <= Data_in_1;
 			Mem[pNextWordToWrite_2] <= Data_in_2;	
 		end
@@ -170,7 +170,7 @@ module aFIFO_2w_1r
 	
     //Fifo addresses support logic: 
     //'Next Addresses' enable logic:
-	assign NextWriteAddressEn_2 = WriteEn_in_2 & ~Full_out;
+	assign NextWriteAddressEn_2 = WriteEn_in_2;
     assign NextReadAddressEn  = ReadEn_in  & ~Empty_out;
            
     //Addreses (Gray counters) logic:
@@ -197,11 +197,9 @@ module aFIFO_2w_1r
 
             
     //'Full_out' logic for the writing port:
-    assign PresetFull = EqualAddresses;  //'Full' Fifo.
 	assign Full_out = 1'b0;  
 	
     //'Empty_out' logic for the reading port:
-    assign PresetEmpty = EqualAddresses;  //'Empty' Fifo.
 	assign Empty_out = EqualAddresses;
 	
             
