@@ -29,10 +29,10 @@ module Queue(
 	input [31:0] cntl_a0,cntl_a1,cntl_a2,cntl_a3,
 	input [63:0] cntl_b0,cntl_b1,cntl_b2,cntl_b3,
 	
-	output reg [31:0] cnt_a0_out,cnt_a1_out,cnt_a2_out,cnt_a3_out,
-	output reg [63:0] cnt_b0_out,cnt_b1_out,cnt_b2_out,cnt_b3_out,
-	output reg [31:0] cntl_a0_out,cntl_a1_out,cntl_a2_out,cntl_a3_out,
-	output reg [63:0] cntl_b0_out,cntl_b1_out,cntl_b2_out,cntl_b3_out,
+	output reg [31:0] cnt_a0_out_q,cnt_a1_out_q,cnt_a2_out_q,cnt_a3_out_q,
+	output reg [63:0] cnt_b0_out_q,cnt_b1_out_q,cnt_b2_out_q,cnt_b3_out_q,
+	output reg [31:0] cntl_a0_out_q,cntl_a1_out_q,cntl_a2_out_q,cntl_a3_out_q,
+	output reg [63:0] cntl_b0_out_q,cntl_b1_out_q,cntl_b2_out_q,cntl_b3_out_q,
 	
 	//======================================================================
 	
@@ -51,14 +51,14 @@ module Queue(
 	input [5:0] status_query,
 	
 	//Queue -> Forward Pipeline
-	output reg [5:0] status_out,
-	output reg [6:0] ptr_curr_out, // record the status of curr and mem queue
-	output reg [`READ_NUM_WIDTH - 1 :0] read_num_out,
-	output reg [63:0] ik_x0_out, ik_x1_out, ik_x2_out, ik_info_out,
-	output reg [6:0] forward_i_out,
-	output reg [6:0] min_intv_out,
-	output reg [6:0] backward_x_out,
-	output reg [7:0] query_out,
+	output reg [5:0] status_out_q,
+	output reg [6:0] ptr_curr_out_q, // record the status of curr and mem queue
+	output reg [`READ_NUM_WIDTH - 1 :0] read_num_out_q,
+	output reg [63:0] ik_x0_out_q, ik_x1_out_q, ik_x2_out_q, ik_info_out_q,
+	output reg [6:0] forward_i_out_q,
+	output reg [6:0] min_intv_out_q,
+	output reg [6:0] backward_x_out_q,
+	output reg [7:0] query_out_q,
 	
 	//======================================================================
 	
@@ -91,35 +91,35 @@ module Queue(
 	
 	// Queue -> Backward Pipeline
 	// queue special provide 
-	output reg [63:0] ik_x0_new_q,
-	output reg [63:0] ik_x1_new_q,
-	output reg [63:0] ik_x2_new_q,
-	output reg [6:0] backward_x_q, // x
-	output reg [7:0] backward_c_q, // next bp
-	output reg forward_all_done,
-	output reg [6:0] forward_size_n_q, //foward curr array size	
+	output reg [63:0] ik_x0_new_q_q,
+	output reg [63:0] ik_x1_new_q_q,
+	output reg [63:0] ik_x2_new_q_q,
+	output reg [6:0] backward_x_q_q, // x
+	output reg [7:0] backward_c_q_q, // next bp
+	output reg forward_all_done_q,
+	output reg [6:0] forward_size_n_q_q, //foward curr array size	
 	
 	// circular provide
-	output reg [`READ_NUM_WIDTH - 1 :0] read_num_q,
-	output reg [6:0] min_intv_q,	//
-	output reg [5:0] status_q,
-	output reg [6:0] new_size_q,
-	output reg [6:0] new_last_size_q,
-	output reg [63:0] primary_q,
-	output reg [6:0] current_rd_addr_q,
-	output reg [6:0] current_wr_addr_q,
-	output reg [6:0] mem_wr_addr_q,
-	output reg [6:0] backward_i_q, 
-	output reg [6:0] backward_j_q,
-	output reg iteration_boundary_q,
-	output reg [63:0] p_x0_q, // same as ik in forward datapath, store the p_x0 value into queue
-	output reg [63:0] p_x1_q,
-	output reg [63:0] p_x2_q,
-	output reg [63:0] p_info_q,
-	output reg [63:0] last_token_x2_q, //pushed to queue
-	output reg [31:0] last_mem_info_q,
-	output reg [63:0] k_q,
-	output reg [63:0] l_q,
+	output reg [`READ_NUM_WIDTH - 1 :0] read_num_q_q,
+	output reg [6:0] min_intv_q_q,	//
+	output reg [5:0] status_q_q,
+	output reg [6:0] new_size_q_q,
+	output reg [6:0] new_last_size_q_q,
+	output reg [63:0] primary_q_q,
+	output reg [6:0] current_rd_addr_q_q,
+	output reg [6:0] current_wr_addr_q_q,
+	output reg [6:0] mem_wr_addr_q_q,
+	output reg [6:0] backward_i_q_q, 
+	output reg [6:0] backward_j_q_q,
+	output reg iteration_boundary_q_q,
+	output reg [63:0] p_x0_q_q, // same as ik in forward datapath_q, store the p_x0 value into queue
+	output reg [63:0] p_x1_q_q,
+	output reg [63:0] p_x2_q_q,
+	output reg [63:0] p_info_q_q,
+	output reg [63:0] last_token_x2_q_q, //pushed to queue
+	output reg [31:0] last_mem_info_q_q,
+	output reg [63:0] k_q_q,
+	output reg [63:0] l_q_q,
 	
 
 	
@@ -140,7 +140,151 @@ module Queue(
 	output [5:0] query_status_2RAM,
 	input [7:0] new_read_query_2Queue
 );
+	parameter F_init = 0; // F_init will disable the forward pipeline
+    parameter F_run = 1;
+    parameter F_break = 2;
+    parameter BCK_INI = 6'h4;    //100
+    parameter BCK_RUN = 6'h5;    //101
+    parameter BCK_END = 6'h6;    //110
+    parameter BUBBLE = 6'b110000;
+    parameter DONE = 6'b100000;
 
+	
+	reg [31:0] cnt_a0_out,cnt_a1_out,cnt_a2_out,cnt_a3_out;
+	reg [63:0] cnt_b0_out,cnt_b1_out,cnt_b2_out,cnt_b3_out;
+	reg [31:0] cntl_a0_out,cntl_a1_out,cntl_a2_out,cntl_a3_out;
+	reg [63:0] cntl_b0_out,cntl_b1_out,cntl_b2_out,cntl_b3_out;
+	
+	//======================================================================
+	
+	//Queue -> Forward Pipeline
+	reg [5:0] status_out;
+	reg [6:0] ptr_curr_out; // record the status of curr and mem queue
+	reg [`READ_NUM_WIDTH - 1 :0] read_num_out;
+	reg [63:0] ik_x0_out, ik_x1_out, ik_x2_out, ik_info_out;
+	reg [6:0] forward_i_out;
+	reg [6:0] min_intv_out;
+	reg [6:0] backward_x_out;
+	reg [7:0] query_out;
+	
+	//======================================================================
+	
+	// Queue -> Backward Pipeline
+	// queue special provide 
+	reg [63:0] ik_x0_new_q;
+	reg [63:0] ik_x1_new_q;
+	reg [63:0] ik_x2_new_q;
+	reg [6:0] backward_x_q; // x
+	reg [7:0] backward_c_q; // next bp
+	reg forward_all_done;
+	reg [6:0] forward_size_n_q; //foward curr array size	
+	
+	// circular provide
+	reg [`READ_NUM_WIDTH - 1 :0] read_num_q;
+	reg [6:0] min_intv_q;	//
+	reg [5:0] status_q;
+	reg [6:0] new_size_q;
+	reg [6:0] new_last_size_q;
+	reg [63:0] primary_q;
+	reg [6:0] current_rd_addr_q;
+	reg [6:0] current_wr_addr_q;
+	reg [6:0] mem_wr_addr_q;
+	reg [6:0] backward_i_q; 
+	reg [6:0] backward_j_q;
+	reg iteration_boundary_q;
+	reg [63:0] p_x0_q; // same as ik in forward datapath; store the p_x0 value into queue
+	reg [63:0] p_x1_q;
+	reg [63:0] p_x2_q;
+	reg [63:0] p_info_q;
+	reg [63:0] last_token_x2_q; //pushed to queue
+	reg [31:0] last_mem_info_q;
+	reg [63:0] k_q;
+	reg [63:0] l_q;
+	
+	always@(posedge Clk_32UI) begin
+		if(!reset_n) begin
+			status_out_q <= BUBBLE;
+			status_q_q <= BUBBLE;
+		
+		end
+		else if(!stall) begin
+	
+			cnt_a0_out_q <= cnt_a0_out;
+			cnt_a1_out_q <= cnt_a1_out;
+			cnt_a2_out_q <= cnt_a2_out;
+			cnt_a3_out_q <= cnt_a3_out;
+
+			cnt_b0_out_q <= cnt_b0_out;
+			cnt_b1_out_q <= cnt_b1_out;
+			cnt_b2_out_q <= cnt_b2_out;
+			cnt_b3_out_q <= cnt_b3_out;
+
+			cntl_a0_out_q <= cntl_a0_out;
+			cntl_a1_out_q <= cntl_a1_out;
+			cntl_a2_out_q <= cntl_a2_out;
+			cntl_a3_out_q <= cntl_a3_out;
+
+			cntl_b0_out_q <= cntl_b0_out;
+			cntl_b1_out_q <= cntl_b1_out;
+			cntl_b2_out_q <= cntl_b2_out;
+			cntl_b3_out_q <= cntl_b3_out;
+
+				
+			//======================================================================
+				
+			//Queue -> Forward Pipeline
+			status_out_q <= status_out;
+			ptr_curr_out_q <= ptr_curr_out; // record the status of curr and mem queue
+			read_num_out_q <= read_num_out;
+			ik_x0_out_q <= ik_x0_out;
+			ik_x1_out_q <= ik_x1_out;
+			ik_x2_out_q <= ik_x2_out;
+			ik_info_out_q <= ik_info_out;
+			forward_i_out_q <= forward_i_out;
+			min_intv_out_q <= min_intv_out;
+			backward_x_out_q <= backward_x_out;
+			query_out_q <= query_out;
+				
+			//======================================================================
+				
+			// Queue -> Backward Pipeline
+			// queue special provide 
+			ik_x0_new_q_q <= ik_x0_new_q;
+			ik_x1_new_q_q <= ik_x1_new_q;
+			ik_x2_new_q_q <= ik_x2_new_q;
+			backward_x_q_q <= backward_x_q; // x
+			backward_c_q_q <= backward_c_q; // next bp
+			forward_all_done_q <= forward_all_done;
+			forward_size_n_q_q <= forward_size_n_q; //foward curr array size	
+				
+			// circular provide
+			read_num_q_q <= read_num_q;
+			min_intv_q_q <= min_intv_q;	//
+			status_q_q <= status_q;
+			new_size_q_q <= new_size_q;
+			new_last_size_q_q <= new_last_size_q;
+			primary_q_q <= primary_q;
+			current_rd_addr_q_q <= current_rd_addr_q;
+			current_wr_addr_q_q <= current_wr_addr_q;
+			mem_wr_addr_q_q <= mem_wr_addr_q;
+			backward_i_q_q <= backward_i_q; 
+			backward_j_q_q <= backward_j_q;
+			iteration_boundary_q_q <= iteration_boundary_q;
+			p_x0_q_q <= p_x0_q; // same as ik in forward datapath_q <= datapath; store the p_x0 value into queue
+			p_x1_q_q <= p_x1_q;
+			p_x2_q_q <= p_x2_q;
+			p_info_q_q <= p_info_q;
+			last_token_x2_q_q <= last_token_x2_q; //pushed to queue
+			last_mem_info_q_q <= last_mem_info_q;
+			k_q_q <= k_q;
+			l_q_q <= l_q;
+		
+		
+		end
+	end
+
+	
+	//===========================================================================================
 	
 	//[licheng] I don't understand why there must be 2*MAX_READ slots in the queue.
 	reg [`WIDTH_read - 1 :0] RAM_forward[`MAX_READ*2 - 1:0];
@@ -157,27 +301,6 @@ module Queue(
 	reg [`READ_NUM_WIDTH - 1:0] read_ptr_m; //[important] for FIFO, the extension of ptr should be equal to that of RAM
 	reg [`READ_NUM_WIDTH - 1:0] write_ptr_m;
 	reg [`READ_NUM_WIDTH - 1:0] read_ptr_m_q;
-	
-	reg memory_buffer_error;
-	reg queue_buffer_error;
-	always@(posedge Clk_32UI) begin
-		read_ptr_m_q <= read_ptr_m;
-		read_ptr_f_q <= read_ptr_f;
-		if(memory_buffer_error == 0)
-			memory_buffer_error <= ((read_ptr_m_q == write_ptr_m) & (read_ptr_m > write_ptr_m)) | ((read_ptr_m_q == write_ptr_m) & read_ptr_m_q > 0 & read_ptr_m == 0);
-		if(queue_buffer_error == 0)
-			queue_buffer_error <= ((read_ptr_f_q == write_ptr_f) & (read_ptr_f > write_ptr_f)) | ((read_ptr_f_q == write_ptr_f) & read_ptr_f_q > 0 & read_ptr_f == 0);
-	end
-	
-	parameter F_init = 0; // F_init will disable the forward pipeline
-	parameter F_run = 1;
-	parameter F_break = 2;
-	parameter BCK_INI = 6'h4;	//100
-	parameter BCK_RUN = 6'h5;	//101
-	parameter BCK_END = 6'h6;	//110
-	parameter BUBBLE = 6'b110000;
-	parameter DONE = 6'b100000;
-	
 	
 	
 	reg [5:0] status_L0;

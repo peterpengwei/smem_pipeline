@@ -449,14 +449,14 @@ module Top(
 		.cntl_b0          (cntl_b0),	.cntl_b1          (cntl_b1),
 		.cntl_b2          (cntl_b2),	.cntl_b3          (cntl_b3),
 		
-		.cnt_a0_out           (cnt_a0_out),		.cnt_a1_out           (cnt_a1_out),
-		.cnt_a2_out           (cnt_a2_out),		.cnt_a3_out           (cnt_a3_out),
-		.cnt_b0_out           (cnt_b0_out),		.cnt_b1_out           (cnt_b1_out),
-		.cnt_b2_out           (cnt_b2_out),		.cnt_b3_out           (cnt_b3_out),
-		.cntl_a0_out          (cntl_a0_out),	.cntl_a1_out          (cntl_a1_out),
-		.cntl_a2_out          (cntl_a2_out),	.cntl_a3_out          (cntl_a3_out),
-		.cntl_b0_out          (cntl_b0_out),	.cntl_b1_out          (cntl_b1_out),
-		.cntl_b2_out          (cntl_b2_out),	.cntl_b3_out          (cntl_b3_out),
+		.cnt_a0_out_q           (cnt_a0_out),		.cnt_a1_out_q           (cnt_a1_out),
+		.cnt_a2_out_q           (cnt_a2_out),		.cnt_a3_out_q           (cnt_a3_out),
+		.cnt_b0_out_q           (cnt_b0_out),		.cnt_b1_out_q           (cnt_b1_out),
+		.cnt_b2_out_q           (cnt_b2_out),		.cnt_b3_out_q           (cnt_b3_out),
+		.cntl_a0_out_q          (cntl_a0_out),	.cntl_a1_out_q          (cntl_a1_out),
+		.cntl_a2_out_q          (cntl_a2_out),	.cntl_a3_out_q          (cntl_a3_out),
+		.cntl_b0_out_q          (cntl_b0_out),	.cntl_b1_out_q          (cntl_b1_out),
+		.cntl_b2_out_q          (cntl_b2_out),	.cntl_b3_out_q          (cntl_b3_out),
 		
 		//-------------------------------------------------
 		
@@ -472,14 +472,14 @@ module Top(
 
 		
 		//queue to forward
-		.status_out(status),
-		.ptr_curr_out(ptr_curr), // record the status of curr and mem queue
-		.read_num_out(read_num),
-		.ik_x0_out(ik_x0), .ik_x1_out(ik_x1), .ik_x2_out(ik_x2), .ik_info_out(ik_info),
-		.forward_i_out(forward_i),
-		.min_intv_out(min_intv),
-		.backward_x_out(backward_x),
-		.query_out(query),
+		.status_out_q(status),
+		.ptr_curr_out_q(ptr_curr), // record the status of curr and mem queue
+		.read_num_out_q(read_num),
+		.ik_x0_out_q(ik_x0), .ik_x1_out_q(ik_x1), .ik_x2_out_q(ik_x2), .ik_info_out_q(ik_info),
+		.forward_i_out_q(forward_i),
+		.min_intv_out_q(min_intv),
+		.backward_x_out_q(backward_x),
+		.query_out_q(query),
 		
 		//-------------------------------------------------
 		
@@ -509,33 +509,33 @@ module Top(
 		
 		//queue -> backward
 		//backward data required
-		.ik_x0_new_q			(ik_x0_new_q),
-		.ik_x1_new_q			(ik_x1_new_q),
-		.ik_x2_new_q			(ik_x2_new_q),
-		.backward_x_q			(backward_x_q), // x
-		.backward_c_q			(backward_c_q), // next bp
-		.forward_all_done		(forward_all_done),
-		.forward_size_n_q		(forward_size_n_q), //foward curr array size	
-		.read_num_q				(read_num_q),
-		.min_intv_q				(min_intv_q),	//
-		.status_q				(status_q),
-		.new_size_q				(new_size_q),
-		.new_last_size_q		(new_last_size_q),
-		.primary_q				(),//useless
-		.current_rd_addr_q		(current_rd_addr_q),
-		.current_wr_addr_q		(current_wr_addr_q),
-		.mem_wr_addr_q			(mem_wr_addr_q),
-		.backward_i_q			(backward_i_q), 
-		.backward_j_q			(backward_j_q),
-		.iteration_boundary_q	(iteration_boundary_q),
-		.p_x0_q					(p_x0_q), // same as ik in forward datapath, store the p_x0 value into queue
-		.p_x1_q					(p_x1_q),
-		.p_x2_q					(p_x2_q),
-		.p_info_q				(p_info_q),
-		.last_token_x2_q		(last_token_x2_q), //pushed to queue
-		.last_mem_info_q		(last_mem_info_q),
-		.k_q					(k_q),
-		.l_q					(l_q),
+		.ik_x0_new_q_q			(ik_x0_new_q),
+		.ik_x1_new_q_q			(ik_x1_new_q),
+		.ik_x2_new_q_q			(ik_x2_new_q),
+		.backward_x_q_q			(backward_x_q), // x
+		.backward_c_q_q			(backward_c_q), // next bp
+		.forward_all_done_q		(forward_all_done),
+		.forward_size_n_q_q		(forward_size_n_q), //foward curr array size	
+		.read_num_q_q				(read_num_q),
+		.min_intv_q_q				(min_intv_q),	//
+		.status_q_q				(status_q),
+		.new_size_q_q				(new_size_q),
+		.new_last_size_q_q		(new_last_size_q),
+		.primary_q_q				(),//useless
+		.current_rd_addr_q_q		(current_rd_addr_q),
+		.current_wr_addr_q_q		(current_wr_addr_q),
+		.mem_wr_addr_q_q			(mem_wr_addr_q),
+		.backward_i_q_q			(backward_i_q), 
+		.backward_j_q_q			(backward_j_q),
+		.iteration_boundary_q_q	(iteration_boundary_q),
+		.p_x0_q_q					(p_x0_q), // same as ik in forward datapath, store the p_x0 value into queue
+		.p_x1_q_q					(p_x1_q),
+		.p_x2_q_q					(p_x2_q),
+		.p_info_q_q				(p_info_q),
+		.last_token_x2_q_q		(last_token_x2_q), //pushed to queue
+		.last_mem_info_q_q		(last_mem_info_q),
+		.k_q_q					(k_q),
+		.l_q_q					(l_q),
 		
 		//-------------------------------------------------
 		
