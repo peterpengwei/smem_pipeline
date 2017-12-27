@@ -60,7 +60,11 @@ module afu_core(
 	reg batch_reset_n;
 	// 400M domain
 
-	reg stall_A, stall_B, stall_C, stall_D;
+	(* preserve *) reg stall_A /* synthesis preserve */;
+	(* preserve *) reg stall_B /* synthesis preserve */;
+	(* preserve *) reg stall_C /* synthesis preserve */;
+	(* preserve *) reg stall_D /* synthesis preserve */;
+	
 	always@(posedge CLK_400M) begin
 		stall_A <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
 		stall_B <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
