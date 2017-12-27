@@ -61,7 +61,7 @@ module afu_core(
 	// 400M domain
 
 	reg stall_A, stall_B, stall_C, stall_D;
-	always@(CLK_200M) begin
+	always@(posedge CLK_200M) begin
 		stall_A <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
 		stall_B <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
 		stall_C <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
