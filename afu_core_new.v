@@ -64,12 +64,17 @@ module afu_core(
 	(* preserve *) reg stall_B /* synthesis preserve */;
 	(* preserve *) reg stall_C /* synthesis preserve */;
 	(* preserve *) reg stall_D /* synthesis preserve */;
+	(* preserve *) reg stall_E /* synthesis preserve */;
+	(* preserve *) reg stall_F /* synthesis preserve */;
+	
 	
 	always@(posedge CLK_400M) begin
 		stall_A <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
 		stall_B <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
 		stall_C <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
 		stall_D <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
+		stall_E <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
+		stall_F <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
 	end
 	
 	//send out addr_k & addr_l
@@ -501,6 +506,8 @@ module afu_core(
 		.stall_B(stall_B), 
 		.stall_C(stall_C), 
 		.stall_D(stall_D), 
+		.stall_E(stall_E), 
+		.stall_F(stall_F), 
 		
 		//RAM for reads
 		.load_valid(load_valid),

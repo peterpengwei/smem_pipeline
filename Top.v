@@ -24,7 +24,7 @@
 module Top(
 	input Clk_32UI,
 	input reset_n,
-	input stall_B, stall_C, stall_D,
+	input stall_B, stall_C, stall_D, stall_E, stall_F,
 	
 	//RAM for reads
 	input load_valid,
@@ -437,7 +437,7 @@ module Top(
 		
 		.Clk_32UI(Clk_32UI),
 		.reset_n(reset_n),
-		.stall(stall_B),
+		.stall(stall_E),
 		
 		.DRAM_get(DRAM_get),
 		.cnt_a0           (cnt_a0),		.cnt_a1           (cnt_a1),
@@ -567,7 +567,7 @@ module Top(
 	RAM_curr_mem ram_curr_mem(
 		.reset_n(reset_n),
 		.clk(Clk_32UI),
-		.stall(stall_C),
+		.stall(stall_F),
 		.batch_size(batch_size),
 		
 		// curr queue, port A
