@@ -403,14 +403,15 @@ module Queue(
 			write_ptr_f <= 0;
 		end
 		else if(!stall) begin	
-			if((status_L3 == F_init) ||(status_L3 == F_run) || (status_L3 == F_break) || (status_L3 == BCK_INI)) begin 
-				RAM_forward[write_ptr_f] <= f_data;
+
+			if ( status_L3 == BCK_RUN ) begin
+				RAM_forward[write_ptr_f] <= b_data;
 				RAM_forward_status[write_ptr_f] <= status_L3;
 				write_ptr_f <= write_ptr_f + 1;
 			end
 			
-			else if ( status_L3 == BCK_RUN ) begin
-				RAM_forward[write_ptr_f] <= b_data;
+			else if((status_L3 == F_init) ||(status_L3 == F_run) || (status_L3 == F_break) || (status_L3 == BCK_INI)) begin 
+				RAM_forward[write_ptr_f] <= f_data;
 				RAM_forward_status[write_ptr_f] <= status_L3;
 				write_ptr_f <= write_ptr_f + 1;
 			end
@@ -430,11 +431,13 @@ module Queue(
 				RAM_memory[write_ptr_m] <= {cnt_a0,cnt_a1,cnt_a2,cnt_a3,cnt_b0,cnt_b1,cnt_b2,cnt_b3, cntl_a0,cntl_a1,cntl_a2,cntl_a3,cntl_b0,cntl_b1,cntl_b2,cntl_b3};
 				write_ptr_m <= write_ptr_m + 1;
 			end
+			
+			{cnt_a0_out,cnt_a1_out,cnt_a2_out,cnt_a3_out,cnt_b0_out,cnt_b1_out,cnt_b2_out,cnt_b3_out, cntl_a0_out,cntl_a1_out,cntl_a2_out,cntl_a3_out,cntl_b0_out,cntl_b1_out,cntl_b2_out,cntl_b3_out} <= RAM_memory[read_ptr_m];
 		end
 	end
 	
 	//[important] whether to fetch new read
-	assign new_read = (load_done) & new_read_valid & (!memory_valid) & (!stall);
+	assign new_read = new_read_valid & (!memory_valid) & (!stall);
 	wire [5:0] next_status = (read_ptr_f != write_ptr_f) ? RAM_forward_status[read_ptr_f][5:0] : BUBBLE;
 	
 	always@(posedge Clk_32UI) begin
@@ -465,6 +468,7 @@ module Queue(
 			l_q[63:33] <= 0;
 		end
 		else if (!stall) begin
+			
 			if(next_status == F_break) begin
 				//[important] pop out without memory response
 				
@@ -541,7 +545,7 @@ module Queue(
 						//==========================================
 					end
 					
-					{cnt_a0_out,cnt_a1_out,cnt_a2_out,cnt_a3_out,cnt_b0_out,cnt_b1_out,cnt_b2_out,cnt_b3_out, cntl_a0_out,cntl_a1_out,cntl_a2_out,cntl_a3_out,cntl_b0_out,cntl_b1_out,cntl_b2_out,cntl_b3_out} <= RAM_memory[read_ptr_m];
+					
 					read_ptr_f <= read_ptr_f + 1;
 					read_ptr_m <= read_ptr_m + 1;
 			end
