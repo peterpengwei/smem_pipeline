@@ -24,7 +24,7 @@
 module Top(
 	input Clk_32UI,
 	input reset_n,
-	input stall,
+	input stall_B, stall_C, stall_D,
 	
 	//RAM for reads
 	input load_valid,
@@ -223,7 +223,7 @@ module Top(
 	RAM_read ram_read(
 		.reset_n(reset_n),
 		.clk(Clk_32UI),
-		.stall(stall),
+		.stall(stall_B),
 		
 		// part 1: load all reads
 		.load_valid(load_valid),
@@ -260,7 +260,7 @@ module Top(
 		// input of BWT_extend
 		.Clk_32UI(Clk_32UI),
 		.reset_BWT_extend(reset_n),
-		.stall(stall),
+		.stall(stall_C),
 
 		//from memory
 		.primary(primary), // fix value
@@ -318,7 +318,7 @@ module Top(
 	
 		.clk(Clk_32UI),  
 		.rst(reset_n),
-		.stall(stall),
+		.stall(stall_D),
 		
 		     
 		
@@ -437,7 +437,7 @@ module Top(
 		
 		.Clk_32UI(Clk_32UI),
 		.reset_n(reset_n),
-		.stall(stall),
+		.stall(stall_B),
 		
 		.DRAM_get(DRAM_get),
 		.cnt_a0           (cnt_a0),		.cnt_a1           (cnt_a1),
@@ -567,7 +567,7 @@ module Top(
 	RAM_curr_mem ram_curr_mem(
 		.reset_n(reset_n),
 		.clk(Clk_32UI),
-		.stall(stall),
+		.stall(stall_C),
 		.batch_size(batch_size),
 		
 		// curr queue, port A

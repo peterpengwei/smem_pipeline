@@ -76,9 +76,11 @@ module RAM_curr_mem(
 	reg [112:0] curr_data_A_q;
 	
 	always@(posedge clk) begin
-		curr_we_1_q <= curr_we_1;
-		curr_addr_A_q <= curr_addr_A;
-		curr_data_A_q <= curr_data_A;
+		if(!stall) begin
+			curr_we_1_q <= curr_we_1;
+			curr_addr_A_q <= curr_addr_A;
+			curr_data_A_q <= curr_data_A;
+		end
 	end
 	
 	RAM_Curr_Queue curr_queue(
@@ -106,9 +108,11 @@ module RAM_curr_mem(
 	reg [112:0] mem_data_A_q;
 	
 	always@(posedge clk) begin
-		mem_we_1_q <= mem_we_1;
-		mem_addr_A_q <= mem_addr_A;
-		mem_data_A_q <= mem_data_A;
+		if(!stall) begin
+			mem_we_1_q <= mem_we_1;
+			mem_addr_A_q <= mem_addr_A;
+			mem_data_A_q <= mem_data_A;
+		end
 	end
 	
 	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_out = (output_result_ptr * `READ_MAX_MEM + already_output_num);
@@ -116,14 +120,21 @@ module RAM_curr_mem(
 	
 	reg [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_out_q, mem_addr_B_out_q;
 	always@(posedge clk) begin
-		mem_addr_A_out_q <= mem_addr_A_out;
-		mem_addr_B_out_q <= mem_addr_B_out;
+		if(!stall) begin
+			mem_addr_A_out_q <= mem_addr_A_out;
+			mem_addr_B_out_q <= mem_addr_B_out;
+		end
 	end
 	
 	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_q_MUX = mem_we_1_q ? mem_addr_A_q : mem_addr_A_out_q;
 	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_MUX = mem_we_1? mem_addr_A: mem_addr_A_out;
 	reg  [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_MUX_q;
-	always@(posedge clk) mem_addr_A_MUX_q <= mem_addr_A_MUX;
+	
+	always@(posedge clk) begin
+		if(!stall) begin
+			mem_addr_A_MUX_q <= mem_addr_A_MUX;
+		end
+	end
 	
 	wire [112:0] mem_q_out_A, mem_q_out_B;
 	
@@ -154,22 +165,23 @@ module RAM_curr_mem(
 			all_read_done <= 0;
 		end
 		else begin
-			if(mem_size_valid) begin
-				mem_size_queue[mem_size_read_num] <= mem_size;
-				done_counter <= done_counter + 1;
+			if(!stall) begin
+				if(mem_size_valid) begin
+					mem_size_queue[mem_size_read_num] <= mem_size;
+					done_counter <= done_counter + 1;
+				end
+				
+				if(done_counter == batch_size && done_counter > 0) begin
+					all_read_done <= 1;
+				end
+				else begin
+					all_read_done <= 0;
+				end
+				
+				if(ret_valid) begin
+					ret_queue[ret_read_num] <= ret;
+				end
 			end
-			
-			if(done_counter == batch_size && done_counter > 0) begin
-				all_read_done <= 1;
-			end
-			else begin
-				all_read_done <= 0;
-			end
-			
-			if(ret_valid) begin
-				ret_queue[ret_read_num] <= ret;
-			end
-			
 		end
 	end
 	
@@ -179,11 +191,13 @@ module RAM_curr_mem(
 		if(!reset_n) begin
 			output_request <= 0;
 		end
-		else if(all_read_done)begin
-			output_request <= 1;
-		end
-		else begin
-			output_request <= 0;
+		else if(!stall) begin
+			if(all_read_done)begin
+				output_request <= 1;
+			end
+			else begin
+				output_request <= 0;
+			end
 		end
 	end
 	

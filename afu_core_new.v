@@ -60,9 +60,12 @@ module afu_core(
 	reg batch_reset_n;
 	// 400M domain
 
-	reg stall;
-	always@(CLK_400M) begin
-		stall <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
+	reg stall_A, stall_B, stall_C, stall_D;
+	always@(CLK_200M) begin
+		stall_A <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
+		stall_B <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
+		stall_C <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
+		stall_D <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
 	end
 	
 	//send out addr_k & addr_l
@@ -334,7 +337,7 @@ module afu_core(
 				
 				POLLING_1: begin
 					batch_reset_n <= 1;
-					if(!stall) begin
+					if(!stall_A) begin
 						FIFO_request_Data_in_1 <= hand_ptr;
 						FIFO_request_Data_in_2 <= hand_ptr;
 						FIFO_request_WriteEn_in_2 <= 1;
@@ -372,7 +375,7 @@ module afu_core(
 				LOAD_READ : begin
 					//memory request
 					if(load_ptr < CL_num) begin
-						if(!stall) begin
+						if(!stall_A) begin
 							//send out two identical request for compatibility with other modules
 							FIFO_request_Data_in_1 <= input_base + load_ptr;
 							FIFO_request_Data_in_2 <= input_base + load_ptr;
@@ -407,7 +410,7 @@ module afu_core(
 				RUN: begin
 					if(!output_request_200M) begin
 						//send out request
-						// if(!stall) begin
+						// if(!stall_A) begin
 							FIFO_request_Data_in_1 <= BWT_base + addr_k[31:4];
 							FIFO_request_Data_in_2 <= BWT_base + addr_l[31:4];
 							FIFO_request_WriteEn_in_2 <= DRAM_valid;
@@ -430,7 +433,7 @@ module afu_core(
 				end
 				
 				OUTPUT: begin
-					// if(!stall) begin
+					// if(!stall_A) begin
 						if(!output_finish_200M) begin
 							FIFO_output_WriteEn_in <= output_valid_200M;
 							FIFO_output_Data_in[512+57:512] <= output_addr;
@@ -451,7 +454,7 @@ module afu_core(
 				end
 				
 				FINAL : begin
-					if(!stall) begin
+					if(!stall_A) begin
 						FIFO_output_WriteEn_in <= 1;
 						FIFO_output_Data_in[512+57:512] <= hand_ptr;
 						FIFO_output_Data_in[511:480]    <= 16;
@@ -465,7 +468,7 @@ module afu_core(
 				end
 				
 				FINAL_2: begin
-					if(!stall) begin
+					if(!stall_A) begin
 
 						FIFO_output_WriteEn_in 			<= 1;
 						FIFO_output_Data_in[512+57:512] <= 0;
@@ -491,7 +494,9 @@ module afu_core(
 	Top top(
 		.Clk_32UI(CLK_200M),
 		.reset_n(batch_reset_n),
-		.stall(stall), 
+		.stall_B(stall_B), 
+		.stall_C(stall_C), 
+		.stall_D(stall_D), 
 		
 		//RAM for reads
 		.load_valid(load_valid),
