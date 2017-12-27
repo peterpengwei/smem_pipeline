@@ -144,6 +144,7 @@ module Queue(
 	
 	//[licheng] I don't understand why there must be 2*MAX_READ slots in the queue.
 	reg [`WIDTH_read - 1 :0] RAM_forward[`MAX_READ*2 - 1:0];
+	reg [5 :0] RAM_forward_status[`MAX_READ*2 - 1:0];
 	reg [`WIDTH_read - 1 :0] output_data, f_data, b_data;
 	reg [`READ_NUM_WIDTH+1 - 1:0] read_ptr_f;
 	reg [`READ_NUM_WIDTH+1 - 1:0] read_ptr_f_q;
@@ -404,11 +405,13 @@ module Queue(
 		else if(!stall) begin	
 			if((status_L3 == F_init) ||(status_L3 == F_run) || (status_L3 == F_break) || (status_L3 == BCK_INI)) begin 
 				RAM_forward[write_ptr_f] <= f_data;
+				RAM_forward_status[write_ptr_f] <= status_L3;
 				write_ptr_f <= write_ptr_f + 1;
 			end
 			
 			else if ( status_L3 == BCK_RUN ) begin
 				RAM_forward[write_ptr_f] <= b_data;
+				RAM_forward_status[write_ptr_f] <= status_L3;
 				write_ptr_f <= write_ptr_f + 1;
 			end
 		end
@@ -432,27 +435,44 @@ module Queue(
 	
 	//[important] whether to fetch new read
 	assign new_read = (load_done) & new_read_valid & (!memory_valid) & (!stall);
-	wire [5:0] next_status = (read_ptr_f != write_ptr_f) ? RAM_forward[read_ptr_f][5:0] : BUBBLE;
+	wire [5:0] next_status = (read_ptr_f != write_ptr_f) ? RAM_forward_status[read_ptr_f][5:0] : BUBBLE;
 	
 	always@(posedge Clk_32UI) begin
 		if (!reset_n) begin
 			read_ptr_f <= 0;
 			read_ptr_m <= 0;
 			status_out <= BUBBLE;
+			
+			ik_x0_out[63:33] <= 0;
+			ik_x1_out[63:33] <= 0;
+			ik_x2_out[63:33] <= 0;
+			ik_info_out[63:39] <= 0;
+			ik_info_out[31:7] <= 0;
+			
+			ik_x0_new_q[63:33] <= 0;
+			ik_x1_new_q[63:33] <= 0;
+			ik_x2_new_q[63:33] <= 0;
+			
+			p_x0_q[63:33] <= 0;
+			p_x1_q[63:33] <= 0;
+			p_x2_q[63:33] <= 0;
+			p_info_q[63:39] <= 0;
+			p_info_q[31:7] <= 0;
+
+			last_token_x2_q[63:33] <= 0;
+			last_mem_info_q[31:7] <= 0;
+			k_q[63:33] <= 0;
+			l_q[63:33] <= 0;
 		end
 		else if (!stall) begin
-			if(next_status == F_break && read_ptr_f != write_ptr_f) begin
+			if(next_status == F_break) begin
 				//[important] pop out without memory response
 				
 				//======== forward ports =============
 				{ptr_curr_out, read_num_out, ik_x0_out[32:0], ik_x1_out[32:0], ik_x2_out[32:0], ik_info_out[38:32], ik_info_out[6:0], 
 				forward_i_out,min_intv_out, query_out, backward_x_out,
 				status_out} <= RAM_forward[read_ptr_f];
-				ik_x0_out[63:33] <= 0;
-				ik_x1_out[63:33] <= 0;
-				ik_x2_out[63:33] <= 0;
-				ik_info_out[63:39] <= 0;
-				ik_info_out[31:7] <= 0;
+
 				
 				//=====================================
 				
@@ -463,7 +483,7 @@ module Queue(
 				//=====================================
 			end
 			
-			else if (next_status == BCK_INI && read_ptr_f != write_ptr_f) begin
+			else if (next_status == BCK_INI) begin
 				//[important] pop out without memory response
 				
 				//======== forward ports =============
@@ -479,9 +499,7 @@ module Queue(
 					backward_x_q, status_q
 				} <= RAM_forward[read_ptr_f];
 				
-				ik_x0_new_q[63:33] <= 0;
-				ik_x1_new_q[63:33] <= 0;
-				ik_x2_new_q[63:33] <= 0;
+
 				
 				read_ptr_f <= read_ptr_f + 1;
 				
@@ -494,16 +512,10 @@ module Queue(
 			///////////////////////////////////////////
 			
 			else if (memory_valid) begin // get memory responses, output old read
-				if(read_ptr_f != write_ptr_f) begin
 					if(next_status == F_run) begin
 						{ptr_curr_out, read_num_out, ik_x0_out[32:0], ik_x1_out[32:0], ik_x2_out[32:0], ik_info_out[38:32], ik_info_out[6:0], 
 						forward_i_out,min_intv_out, query_out, backward_x_out,
 						status_out} <= RAM_forward[read_ptr_f];
-						ik_x0_out[63:33] <= 0;
-						ik_x1_out[63:33] <= 0;
-						ik_x2_out[63:33] <= 0;
-						ik_info_out[63:39] <= 0;
-						ik_info_out[31:7] <= 0;
 						
 						//======== backward ports =============
 						status_q <= BUBBLE;
@@ -523,16 +535,7 @@ module Queue(
 							status_q
 						} <= RAM_forward[read_ptr_f];
 						
-						p_x0_q[63:33] <= 0;
-						p_x1_q[63:33] <= 0;
-						p_x2_q[63:33] <= 0;
-						p_info_q[63:39] <= 0;
-						p_info_q[31:7] <= 0;
-						
-						last_token_x2_q[63:33] <= 0;
-						last_mem_info_q[31:7] <= 0;
-						k_q[63:33] <= 0;
-						l_q[63:33] <= 0;
+
 						
 						forward_all_done <= 1;
 						//==========================================
@@ -541,14 +544,6 @@ module Queue(
 					{cnt_a0_out,cnt_a1_out,cnt_a2_out,cnt_a3_out,cnt_b0_out,cnt_b1_out,cnt_b2_out,cnt_b3_out, cntl_a0_out,cntl_a1_out,cntl_a2_out,cntl_a3_out,cntl_b0_out,cntl_b1_out,cntl_b2_out,cntl_b3_out} <= RAM_memory[read_ptr_m];
 					read_ptr_f <= read_ptr_f + 1;
 					read_ptr_m <= read_ptr_m + 1;
-				end
-				else begin //impossible to happen
-					
-					//-------------------
-                    status_out <= BUBBLE;
-					status_q <= BUBBLE;
-
-				end
 			end
 			
 			
@@ -568,11 +563,6 @@ module Queue(
                 min_intv_out <= new_min_intv; 
                 query_out <= 0; // !!!!the first round doesn't need query
 				
-				ik_x0_out[63:33] <= 0;
-				ik_x1_out[63:33] <= 0;
-				ik_x2_out[63:33] <= 0;
-				ik_info_out[63:39] <= 0;
-				ik_info_out[31:7] <= 0;
                 //-------------------
 
 				status_q <= BUBBLE;
