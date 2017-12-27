@@ -87,23 +87,9 @@ module aFIFO
 
     //'EqualAddresses' logic:
     assign EqualAddresses = (pNextWordToWrite == pNextWordToRead);
-
-    //'Quadrant selectors' logic:
-    assign Set_Status = (pNextWordToWrite[ADDRESS_WIDTH-2] ~^ pNextWordToRead[ADDRESS_WIDTH-1]) &
-                         (pNextWordToWrite[ADDRESS_WIDTH-1] ^  pNextWordToRead[ADDRESS_WIDTH-2]);
-                            
-    assign Rst_Status = (pNextWordToWrite[ADDRESS_WIDTH-2] ^  pNextWordToRead[ADDRESS_WIDTH-1]) &
-                         (pNextWordToWrite[ADDRESS_WIDTH-1] ~^ pNextWordToRead[ADDRESS_WIDTH-2]);
-                         
-    //'Status' latch logic:
-    always @ (Set_Status, Rst_Status, Clear_in) //D Latch w/ Asynchronous Clear & Preset.
-        if (Rst_Status | Clear_in)
-            Status = 0;  //Going 'Empty'.
-        else if (Set_Status)
-            Status = 1;  //Going 'Full'.
             
     //'Full_out' logic for the writing port:
-    assign PresetFull = Status & EqualAddresses;  //'Full' Fifo.
+    assign PresetFull = EqualAddresses;  //'Full' Fifo.
 	    
 	// always @ (posedge WClk  or posedge PresetFull) begin  
 	// [licheng] never use full out
@@ -111,31 +97,13 @@ module aFIFO
 		if(Clear_in) begin
 			Full_out <= 0;
 		end
-		// else begin
-			// if (PresetFull)
-				// Full_out <= 1;
-			// else
-				// Full_out <= 0;
-		// end
     end       
 	
     //'Empty_out' logic for the reading port:
-    assign PresetEmpty = ~Status & EqualAddresses;  //'Empty' Fifo.
+    assign PresetEmpty = EqualAddresses;  //'Empty' Fifo.
 	assign Empty_out = PresetEmpty;
 	
-/* 	reg Empty_out_licheng;
-	always @ (posedge RClk or posedge PresetEmpty) begin
-	// always @(negedge RClk) begin
-		if(Clear_in)begin
-			Empty_out_licheng <= 1;
-		end
-		else begin
-			if (PresetEmpty)
-				Empty_out_licheng <= 1;
-			else
-				Empty_out_licheng <= 0;
-		end
-	end */
+
 
             
 endmodule
@@ -227,54 +195,14 @@ module aFIFO_2w_1r
     //'EqualAddresses' logic:
     assign EqualAddresses = (pNextWordToWrite_1 == pNextWordToRead);
 
-    //'Quadrant selectors' logic:
-    assign Set_Status = (pNextWordToWrite_1[ADDRESS_WIDTH-2] ~^ pNextWordToRead[ADDRESS_WIDTH-1]) &
-                         (pNextWordToWrite_1[ADDRESS_WIDTH-1] ^  pNextWordToRead[ADDRESS_WIDTH-2]);
-                            
-    assign Rst_Status = (pNextWordToWrite_1[ADDRESS_WIDTH-2] ^  pNextWordToRead[ADDRESS_WIDTH-1]) &
-                         (pNextWordToWrite_1[ADDRESS_WIDTH-1] ~^ pNextWordToRead[ADDRESS_WIDTH-2]);
-                         
-    //'Status' latch logic:
-    always @ (Set_Status, Rst_Status, Clear_in) //D Latch w/ Asynchronous Clear & Preset.
-        if (Rst_Status | Clear_in)
-            Status = 0;  //Going 'Empty'.
-        else if (Set_Status)
-            Status = 1;  //Going 'Full'.
             
     //'Full_out' logic for the writing port:
-    assign PresetFull = Status & EqualAddresses;  //'Full' Fifo.
-	assign Full_out = 1'b0;
-	// always @ (posedge WClk  or posedge PresetFull) begin  
-	// always @(negedge WClk) begin
-		// if(Clear_in) begin
-			// Full_out <= 0;
-		// end
-		// else begin
-			// if (PresetFull)
-				// Full_out <= 1;
-			// else
-				// Full_out <= 0;
-		// end
-    // end       
+    assign PresetFull = EqualAddresses;  //'Full' Fifo.
+	assign Full_out = 1'b0;  
 	
     //'Empty_out' logic for the reading port:
-    assign PresetEmpty = ~Status & EqualAddresses;  //'Empty' Fifo.
-	assign Empty_out = PresetEmpty;
-	
-	
-/* 	reg Empty_out_licheng;
-	always @ (posedge RClk or posedge PresetEmpty) begin
-	// always @(negedge RClk) begin
-		if(Clear_in)begin
-			Empty_out_licheng <= 1;
-		end
-		else begin
-			if (PresetEmpty)
-				Empty_out_licheng <= 1;
-			else
-				Empty_out_licheng <= 0;
-		end
-	end */
+    assign PresetEmpty = EqualAddresses;  //'Empty' Fifo.
+	assign Empty_out = EqualAddresses;
 	
             
 endmodule
