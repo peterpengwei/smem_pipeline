@@ -28,7 +28,7 @@ module aFIFO
      input wire                          Clear_in);
 
     /////Internal connections & variables//////
-    (* preserve *) reg   [DATA_WIDTH-1:0]              Mem [FIFO_DEPTH-1:0] /* synthesis preserve */;
+    (* ramstyle = "logic" *) reg   [DATA_WIDTH-1:0]              Mem [FIFO_DEPTH-1:0];
     wire  [ADDRESS_WIDTH-1:0]           pNextWordToWrite, pNextWordToRead;
     wire                                EqualAddresses;
     wire                                NextWriteAddressEn, NextReadAddressEn;
@@ -131,7 +131,7 @@ module aFIFO_2w_1r
      input wire                          Clear_in);
 
     /////Internal connections & variables//////
-    (* preserve *) reg   [DATA_WIDTH-1:0]              Mem [FIFO_DEPTH-1:0] /* synthesis preserve */;
+    (* ramstyle = "logic" *) reg   [DATA_WIDTH-1:0]              Mem [FIFO_DEPTH-1:0];
     wire  [ADDRESS_WIDTH-1:0]           pNextWordToWrite_1, pNextWordToWrite_2, pNextWordToRead;
     wire                                EqualAddresses;
     wire                                NextWriteAddressEn_2, NextReadAddressEn;
