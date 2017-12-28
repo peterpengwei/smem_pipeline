@@ -28,7 +28,7 @@ module aFIFO
      input wire                          Clear_in);
 
     /////Internal connections & variables//////
-    reg   [DATA_WIDTH-1:0]              Mem [FIFO_DEPTH-1:0];
+    (* preserve *) reg   [DATA_WIDTH-1:0]              Mem [FIFO_DEPTH-1:0] /* synthesis preserve */;
     wire  [ADDRESS_WIDTH-1:0]           pNextWordToWrite, pNextWordToRead;
     wire                                EqualAddresses;
     wire                                NextWriteAddressEn, NextReadAddressEn;
@@ -131,7 +131,7 @@ module aFIFO_2w_1r
      input wire                          Clear_in);
 
     /////Internal connections & variables//////
-    reg   [DATA_WIDTH-1:0]              Mem [FIFO_DEPTH-1:0];
+    (* preserve *) reg   [DATA_WIDTH-1:0]              Mem [FIFO_DEPTH-1:0] /* synthesis preserve */;
     wire  [ADDRESS_WIDTH-1:0]           pNextWordToWrite_1, pNextWordToWrite_2, pNextWordToRead;
     wire                                EqualAddresses;
     wire                                NextWriteAddressEn_2, NextReadAddressEn;
@@ -217,25 +217,22 @@ module GrayCounter_2port
 );
 
     /////////Internal connections & variables///////
-    reg    [COUNTER_WIDTH-1:0]         BinaryCount;
-	wire   [COUNTER_WIDTH-1:0]         BinaryCount_initial = {COUNTER_WIDTH{1'b 0}} + 1;
-	wire   [COUNTER_WIDTH-1:0]         BinaryCount_add_1 = BinaryCount + 1;
+    reg    [COUNTER_WIDTH-1:0]         BinaryCount, BinaryCount_add1;
     /////////Code///////////////////////
     
     always @ (posedge Clk) begin
         if (Clear_in) begin
-            BinaryCount   <= {COUNTER_WIDTH{1'b 0}} + 2;  //Gray count begins @ '1' with
-			
-            GrayCount_out_1 <= {COUNTER_WIDTH{1'b 0}};      // first 'Enable_in'.
-			GrayCount_out_2 <= {BinaryCount_initial[COUNTER_WIDTH-1], 
-								BinaryCount_initial[COUNTER_WIDTH-2:0] ^ BinaryCount_initial[COUNTER_WIDTH-1:1]};
+            BinaryCount   <= 2;  //Gray count begins @ '1' with
+			BinaryCount_add1 <= 3;
+            GrayCount_out_1 <= 0;      // first 'Enable_in'.
+			GrayCount_out_2 <= 1;
         end
         else if (Enable_in_2) begin
             BinaryCount   <= BinaryCount + 2;
-            GrayCount_out_1 <= {BinaryCount[COUNTER_WIDTH-1],
-								BinaryCount[COUNTER_WIDTH-2:0] ^ BinaryCount[COUNTER_WIDTH-1:1]};
-			GrayCount_out_2 <= {BinaryCount_add_1[COUNTER_WIDTH-1],
-								BinaryCount_add_1[COUNTER_WIDTH-2:0] ^ BinaryCount_add_1[COUNTER_WIDTH-1:1]};				
+			BinaryCount_add1   <= BinaryCount_add1 + 2;
+			
+            GrayCount_out_1 <= BinaryCount;
+			GrayCount_out_2 <= BinaryCount_add1;				
         end
     end
 endmodule
@@ -264,13 +261,12 @@ module GrayCounter
     
     always @ (posedge Clk)
         if (Clear_in) begin
-            BinaryCount   <= {COUNTER_WIDTH{1'b 0}} + 1;  //Gray count begins @ '1' with
-            GrayCount_out <= {COUNTER_WIDTH{1'b 0}};      // first 'Enable_in'.
+            BinaryCount   <= 1;  //Gray count begins @ '1' with
+            GrayCount_out <= 0;      // first 'Enable_in'.
         end
         else if (Enable_in) begin
             BinaryCount   <= BinaryCount + 1;
-            GrayCount_out <= {BinaryCount[COUNTER_WIDTH-1],
-                              BinaryCount[COUNTER_WIDTH-2:0] ^ BinaryCount[COUNTER_WIDTH-1:1]};
+            GrayCount_out <= BinaryCount;
         end
     
 endmodule

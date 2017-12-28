@@ -64,8 +64,8 @@ module afu_core(
 	(* preserve *) reg stall_B /* synthesis preserve */;
 	(* preserve *) reg stall_C /* synthesis preserve */;
 	(* preserve *) reg stall_D /* synthesis preserve */;
-	(* preserve *) reg stall_E /* synthesis preserve */;
-	(* preserve *) reg stall_F /* synthesis preserve */;
+	reg stall_E;
+	reg stall_F;
 	
 	
 	always@(posedge CLK_400M) begin
@@ -154,7 +154,7 @@ module afu_core(
 	reg [512+57:0] FIFO_output_Data_in;
 	reg FIFO_output_WriteEn_in;
 	
-	aFIFO #(.DATA_WIDTH(512+58), .ADDRESS_WIDTH(4)) FIFO_output(
+	aFIFO #(.DATA_WIDTH(512+58), .ADDRESS_WIDTH(2)) FIFO_output(
 		.Clear_in(!core_start),
 		.CLK_400M(CLK_400M),
 		
@@ -183,18 +183,18 @@ module afu_core(
 	wire [511:0] FIFO_response_k_Data_out, FIFO_response_l_Data_out;
 	
 	
-	
-	aFIFO #(.DATA_WIDTH(512), .ADDRESS_WIDTH(4)) FIFO_response_k(
+	//response FIFO k [511:256]
+	aFIFO #(.DATA_WIDTH(256), .ADDRESS_WIDTH(2)) FIFO_response_k_511_256(
 		.Clear_in(!core_start),
 		
 		//400M
-		.Data_in(FIFO_response_k_Data_in),
+		.Data_in(FIFO_response_k_Data_in[511:256]),
 		.WriteEn_in(FIFO_response_k_WriteEn_in),
 		.Full_out(),
 		.WClk(CLK_400M),
 		
 		//200M
-		.Data_out(FIFO_response_k_Data_out),
+		.Data_out(FIFO_response_k_Data_out[511:256]),
 		.Data_valid(FIFO_response_k_Data_valid),
 		
 		//read out the results a pair at a time
@@ -203,8 +203,28 @@ module afu_core(
 		.RClk(CLK_200M)
 	);
 	
+	//response FIFO k [255:0]
+	aFIFO #(.DATA_WIDTH(256), .ADDRESS_WIDTH(2)) FIFO_response_k_255_0(
+		.Clear_in(!core_start),
+		
+		//400M
+		.Data_in(FIFO_response_k_Data_in[255:0]),
+		.WriteEn_in(FIFO_response_k_WriteEn_in),
+		.Full_out(),
+		.WClk(CLK_400M),
+		
+		//200M
+		.Data_out(FIFO_response_k_Data_out[255:0]),
+		.Data_valid(), //one valid is enough
+		
+		//read out the results a pair at a time
+		.ReadEn_in(both_not_empty), 
+		.Empty_out(),
+		.RClk(CLK_200M)
+	);
+	
 	//response FIFO l
-	aFIFO #(.DATA_WIDTH(512), .ADDRESS_WIDTH(4)) FIFO_response_l(
+	aFIFO #(.DATA_WIDTH(512), .ADDRESS_WIDTH(2)) FIFO_response_l(
 		.Clear_in(!core_start),
 		
 		//400M
@@ -260,8 +280,8 @@ module afu_core(
 	reg [57:0] BWT_base;
 	
 	always@(posedge CLK_200M) begin
-		hand_ptr <= io_src_ptr + 50331648 + 16384 - 1;
-		input_base <= io_src_ptr + 50331648 + 16384;
+		hand_ptr <= io_src_ptr + 50348031; //50331648 + 16384 - 1
+		input_base <= io_src_ptr + 50348032; //50331648 + 16384
 		output_base <= io_dst_ptr;
 		BWT_base <= io_src_ptr;
 	end
