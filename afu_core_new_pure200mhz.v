@@ -60,12 +60,13 @@ module afu_core(
 	reg batch_reset_n;
 	// 400M domain
 
+
 	(* preserve *) reg stall_A /* synthesis preserve */;
 	(* preserve *) reg stall_B /* synthesis preserve */;
 	(* preserve *) reg stall_C /* synthesis preserve */;
 	(* preserve *) reg stall_D /* synthesis preserve */;
-	(* preserve *) reg stall_E /* synthesis preserve */;
-	(* preserve *) reg stall_F /* synthesis preserve */;
+	reg stall_E;
+	reg stall_F;
 	
 	
 	always@(posedge CLK_400M) begin
@@ -154,21 +155,98 @@ module afu_core(
 	reg [512+57:0] FIFO_output_Data_in;
 	reg FIFO_output_WriteEn_in;
 	
-	aFIFO #(.DATA_WIDTH(512+58), .ADDRESS_WIDTH(4)) FIFO_output(
+	// address
+	aFIFO #(.DATA_WIDTH(58), .ADDRESS_WIDTH(2)) FIFO_output_addr(
 		.Clear_in(!core_start),
 		.CLK_400M(CLK_400M),
 		
 		//200M
-		.Data_in(FIFO_output_Data_in),
+		.Data_in(FIFO_output_Data_in[512+57:512]),
 		.WriteEn_in(FIFO_output_WriteEn_in),
 		.Full_out(),
 		.WClk(CLK_200M),
 		
 		//400M
-		.Data_out(FIFO_output_Data_out),
+		.Data_out(FIFO_output_Data_out[512+57:512]),
 		.Data_valid(FIFO_output_Data_valid),
 		.ReadEn_in(1),
 		.Empty_out(FIFO_output_Empty_out),
+		.RClk(CLK_400M)
+	);
+	
+	// 511:384
+	aFIFO #(.DATA_WIDTH(128), .ADDRESS_WIDTH(2)) FIFO_output_511_384(
+		.Clear_in(!core_start),
+		.CLK_400M(CLK_400M),
+		
+		//200M
+		.Data_in(FIFO_output_Data_in[511:384]),
+		.WriteEn_in(FIFO_output_WriteEn_in),
+		.Full_out(),
+		.WClk(CLK_200M),
+		
+		//400M
+		.Data_out(FIFO_output_Data_out[511:384]),
+		.Data_valid(),
+		.ReadEn_in(1),
+		.Empty_out(),
+		.RClk(CLK_400M)
+	);
+	
+	// 383:256
+	aFIFO #(.DATA_WIDTH(128), .ADDRESS_WIDTH(2)) FIFO_output_383_256(
+		.Clear_in(!core_start),
+		.CLK_400M(CLK_400M),
+		
+		//200M
+		.Data_in(FIFO_output_Data_in[383:256]),
+		.WriteEn_in(FIFO_output_WriteEn_in),
+		.Full_out(),
+		.WClk(CLK_200M),
+		
+		//400M
+		.Data_out(FIFO_output_Data_out[383:256]),
+		.Data_valid(),
+		.ReadEn_in(1),
+		.Empty_out(),
+		.RClk(CLK_400M)
+	);
+	
+	// 255:128
+	aFIFO #(.DATA_WIDTH(128), .ADDRESS_WIDTH(2)) FIFO_output_255_128(
+		.Clear_in(!core_start),
+		.CLK_400M(CLK_400M),
+		
+		//200M
+		.Data_in(FIFO_output_Data_in[255:128]),
+		.WriteEn_in(FIFO_output_WriteEn_in),
+		.Full_out(),
+		.WClk(CLK_200M),
+		
+		//400M
+		.Data_out(FIFO_output_Data_out[255:128]),
+		.Data_valid(),
+		.ReadEn_in(1),
+		.Empty_out(),
+		.RClk(CLK_400M)
+	);
+	
+	// 127:0
+	aFIFO #(.DATA_WIDTH(128), .ADDRESS_WIDTH(2)) FIFO_output_127_0(
+		.Clear_in(!core_start),
+		.CLK_400M(CLK_400M),
+		
+		//200M
+		.Data_in(FIFO_output_Data_in[127:0]),
+		.WriteEn_in(FIFO_output_WriteEn_in),
+		.Full_out(),
+		.WClk(CLK_200M),
+		
+		//400M
+		.Data_out(FIFO_output_Data_out[127:0]),
+		.Data_valid(),
+		.ReadEn_in(1),
+		.Empty_out(),
 		.RClk(CLK_400M)
 	);
 	
@@ -183,18 +261,18 @@ module afu_core(
 	wire [511:0] FIFO_response_k_Data_out, FIFO_response_l_Data_out;
 	
 	
-	
-	aFIFO #(.DATA_WIDTH(512), .ADDRESS_WIDTH(4)) FIFO_response_k(
+	//response FIFO k [511:384]
+	aFIFO #(.DATA_WIDTH(128), .ADDRESS_WIDTH(2)) FIFO_response_k_511_384(
 		.Clear_in(!core_start),
 		
 		//400M
-		.Data_in(FIFO_response_k_Data_in),
+		.Data_in(FIFO_response_k_Data_in[511:384]),
 		.WriteEn_in(FIFO_response_k_WriteEn_in),
 		.Full_out(),
 		.WClk(CLK_400M),
 		
 		//200M
-		.Data_out(FIFO_response_k_Data_out),
+		.Data_out(FIFO_response_k_Data_out[511:384]),
 		.Data_valid(FIFO_response_k_Data_valid),
 		
 		//read out the results a pair at a time
@@ -203,49 +281,161 @@ module afu_core(
 		.RClk(CLK_200M)
 	);
 	
-	//response FIFO l
-	aFIFO #(.DATA_WIDTH(512), .ADDRESS_WIDTH(4)) FIFO_response_l(
+	//response FIFO k [383:256]
+	aFIFO #(.DATA_WIDTH(128), .ADDRESS_WIDTH(2)) FIFO_response_k_383_256(
 		.Clear_in(!core_start),
 		
 		//400M
-		.Data_in(FIFO_response_l_Data_in),
+		.Data_in(FIFO_response_k_Data_in[383:256]),
+		.WriteEn_in(FIFO_response_k_WriteEn_in),
+		.Full_out(),
+		.WClk(CLK_400M),
+		
+		//200M
+		.Data_out(FIFO_response_k_Data_out[383:256]),
+		.Data_valid(),
+		
+		//read out the results a pair at a time
+		.ReadEn_in(both_not_empty), 
+		.Empty_out(),
+		.RClk(CLK_200M)
+	);
+	
+	//response FIFO k [255:128]
+	aFIFO #(.DATA_WIDTH(128), .ADDRESS_WIDTH(2)) FIFO_response_k_255_128(
+		.Clear_in(!core_start),
+		
+		//400M
+		.Data_in(FIFO_response_k_Data_in[255:128]),
+		.WriteEn_in(FIFO_response_k_WriteEn_in),
+		.Full_out(),
+		.WClk(CLK_400M),
+		
+		//200M
+		.Data_out(FIFO_response_k_Data_out[255:128]),
+		.Data_valid(), //one valid is enough
+		
+		//read out the results a pair at a time
+		.ReadEn_in(both_not_empty), 
+		.Empty_out(),
+		.RClk(CLK_200M)
+	);
+	
+	//response FIFO k [127:0]
+	aFIFO #(.DATA_WIDTH(128), .ADDRESS_WIDTH(2)) FIFO_response_k_127_0(
+		.Clear_in(!core_start),
+		
+		//400M
+		.Data_in(FIFO_response_k_Data_in[127:0]),
+		.WriteEn_in(FIFO_response_k_WriteEn_in),
+		.Full_out(),
+		.WClk(CLK_400M),
+		
+		//200M
+		.Data_out(FIFO_response_k_Data_out[127:0]),
+		.Data_valid(), //one valid is enough
+		
+		//read out the results a pair at a time
+		.ReadEn_in(both_not_empty), 
+		.Empty_out(),
+		.RClk(CLK_200M)
+	);
+	
+	//response FIFO l 511:384
+	aFIFO #(.DATA_WIDTH(128), .ADDRESS_WIDTH(2)) FIFO_response_l_511_384(
+		.Clear_in(!core_start),
+		
+		//400M
+		.Data_in(FIFO_response_l_Data_in[511:384]),
 		.WriteEn_in(FIFO_response_l_WriteEn_in),
 		.Full_out(),
 		.WClk(CLK_400M),
 		
 		//200M
-		.Data_out(FIFO_response_l_Data_out),
+		.Data_out(FIFO_response_l_Data_out[511:384]),
 		.Data_valid(FIFO_response_l_Data_valid),
 		.ReadEn_in(both_not_empty), 
 		.Empty_out(FIFO_response_l_Empty_out),
 		.RClk(CLK_200M)
 	);
 	
+	//response FIFO l 383:256
+	aFIFO #(.DATA_WIDTH(128), .ADDRESS_WIDTH(2)) FIFO_response_l_383_256(
+		.Clear_in(!core_start),
+		
+		//400M
+		.Data_in(FIFO_response_l_Data_in[383:256]),
+		.WriteEn_in(FIFO_response_l_WriteEn_in),
+		.Full_out(),
+		.WClk(CLK_400M),
+		
+		//200M
+		.Data_out(FIFO_response_l_Data_out[383:256]),
+		.Data_valid(),
+		.ReadEn_in(both_not_empty), 
+		.Empty_out(),
+		.RClk(CLK_200M)
+	);
+	
+	//response FIFO l 255:128
+	aFIFO #(.DATA_WIDTH(128), .ADDRESS_WIDTH(2)) FIFO_response_l_255_128(
+		.Clear_in(!core_start),
+		
+		//400M
+		.Data_in(FIFO_response_l_Data_in[255:128]),
+		.WriteEn_in(FIFO_response_l_WriteEn_in),
+		.Full_out(),
+		.WClk(CLK_400M),
+		
+		//200M
+		.Data_out(FIFO_response_l_Data_out[255:128]),
+		.Data_valid(),
+		.ReadEn_in(both_not_empty), 
+		.Empty_out(),
+		.RClk(CLK_200M)
+	);
+	
+	//response FIFO l 127:0
+	aFIFO #(.DATA_WIDTH(128), .ADDRESS_WIDTH(2)) FIFO_response_l_127_0(
+		.Clear_in(!core_start),
+		
+		//400M
+		.Data_in(FIFO_response_l_Data_in[127:0]),
+		.WriteEn_in(FIFO_response_l_WriteEn_in),
+		.Full_out(),
+		.WClk(CLK_400M),
+		
+		//200M
+		.Data_out(FIFO_response_l_Data_out[127:0]),
+		.Data_valid(),
+		.ReadEn_in(both_not_empty), 
+		.Empty_out(),
+		.RClk(CLK_200M)
+	);
+	
 	reg [57:0] FIFO_request_Data_in_1, FIFO_request_Data_in_2;
 	reg FIFO_request_WriteEn_in_2;
-	wire [`READ_NUM_WIDTH-1:0] DRAM_read_num;
-	wire [`READ_NUM_WIDTH-1:0] DRAM_read_num_out;
-	wire [`READ_NUM_WIDTH-1:0] DRAM_read_num_out;
 	
 	// request FIFO addr k
-	aFIFO_2w_1r #(.DATA_WIDTH(58+`READ_NUM_WIDTH), .ADDRESS_WIDTH(4)) FIFO_request(
+	aFIFO_2w_1r #(.DATA_WIDTH(58), .ADDRESS_WIDTH(2)) FIFO_request(
 		.Clear_in(!core_start),
 		
 		//200M
-		.Data_in_1({DRAM_read_num, FIFO_request_Data_in_1}),
-		.Data_in_2({DRAM_read_num, FIFO_request_Data_in_2}),
+		.Data_in_1(FIFO_request_Data_in_1),
+		.Data_in_2(FIFO_request_Data_in_2),
 		.WriteEn_in_2(FIFO_request_WriteEn_in_2),
 		.Full_out(),
 		.WClk(CLK_200M),
 		
 		//400M
-		.Data_out({DRAM_read_num_out, FIFO_request_Data_out}),
+		.Data_out(FIFO_request_Data_out),
 		.Data_valid(FIFO_request_Data_valid),
 		.ReadEn_in(1),
 		.Empty_out(),
 		.RClk(CLK_400M)
 	);
 	
+		
 	
 	//==========================================================================
 	
