@@ -64,17 +64,13 @@ module afu_core(
 	(* preserve *) reg stall_B /* synthesis preserve */;
 	(* preserve *) reg stall_C /* synthesis preserve */;
 	(* preserve *) reg stall_D /* synthesis preserve */;
-	reg stall_E;
-	reg stall_F;
 	
 	
-	always@(posedge CLK_400M) begin
+	always@(posedge CLK_200M) begin
 		stall_A <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
 		stall_B <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
 		stall_C <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
 		stall_D <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
-		stall_E <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
-		stall_F <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
 	end
 	
 	//send out addr_k & addr_l
@@ -251,11 +247,23 @@ module afu_core(
 	
 	//response FIFO k
 	
-	wire FIFO_response_k_Empty_out, FIFO_response_l_Empty_out;
-	wire both_not_empty = (!FIFO_response_k_Empty_out) & (!FIFO_response_l_Empty_out);
+	wire FIFO_response_k_Empty_out_511_384, FIFO_response_l_Empty_out_511_384;
+	wire FIFO_response_k_Empty_out_383_256, FIFO_response_l_Empty_out_383_256;
+	wire FIFO_response_k_Empty_out_255_128, FIFO_response_l_Empty_out_255_128;
+	wire FIFO_response_k_Empty_out_127_0, 	FIFO_response_l_Empty_out_127_0;
 	
-	wire FIFO_response_k_Data_valid, FIFO_response_l_Data_valid;
-	wire both_valid = FIFO_response_k_Data_valid & FIFO_response_l_Data_valid;
+	wire both_not_empty_511_384 = (!FIFO_response_k_Empty_out_511_384) 	& (!FIFO_response_l_Empty_out_511_384);
+	wire both_not_empty_383_256 = (!FIFO_response_k_Empty_out_383_256) 	& (!FIFO_response_l_Empty_out_383_256);
+	wire both_not_empty_255_128 = (!FIFO_response_k_Empty_out_255_128) 	& (!FIFO_response_l_Empty_out_255_128);
+	wire both_not_empty_127_0 	= (!FIFO_response_k_Empty_out_127_0) 	& (!FIFO_response_l_Empty_out_127_0);
+	
+	wire FIFO_response_k_Data_valid_511_384, 	FIFO_response_l_Data_valid_511_384;
+	// wire FIFO_response_k_Data_valid_383_256, 	FIFO_response_l_Data_valid_383_256;	
+	// wire FIFO_response_k_Data_valid_255_128, 	FIFO_response_l_Data_valid_255_128;	
+	// wire FIFO_response_k_Data_valid_127_0, 		FIFO_response_l_Data_valid_127_0;
+	
+	wire both_valid = FIFO_response_k_Data_valid_511_384 	& FIFO_response_l_Data_valid_511_384;
+
 	
 	wire [511:0] FIFO_response_k_Data_out, FIFO_response_l_Data_out;
 	
@@ -272,11 +280,11 @@ module afu_core(
 		
 		//200M
 		.Data_out(FIFO_response_k_Data_out[511:384]),
-		.Data_valid(FIFO_response_k_Data_valid),
+		.Data_valid(FIFO_response_k_Data_valid_511_384),
 		
 		//read out the results a pair at a time
-		.ReadEn_in(both_not_empty), 
-		.Empty_out(FIFO_response_k_Empty_out),
+		.ReadEn_in(both_not_empty_511_384), 
+		.Empty_out(FIFO_response_k_Empty_out_511_384),
 		.RClk(CLK_200M)
 	);
 	
@@ -295,8 +303,8 @@ module afu_core(
 		.Data_valid(),
 		
 		//read out the results a pair at a time
-		.ReadEn_in(both_not_empty), 
-		.Empty_out(),
+		.ReadEn_in(both_not_empty_383_256), 
+		.Empty_out(FIFO_response_k_Empty_out_383_256),
 		.RClk(CLK_200M)
 	);
 	
@@ -315,8 +323,8 @@ module afu_core(
 		.Data_valid(), //one valid is enough
 		
 		//read out the results a pair at a time
-		.ReadEn_in(both_not_empty), 
-		.Empty_out(),
+		.ReadEn_in(both_not_empty_255_128), 
+		.Empty_out(FIFO_response_k_Empty_out_255_128),
 		.RClk(CLK_200M)
 	);
 	
@@ -335,8 +343,8 @@ module afu_core(
 		.Data_valid(), //one valid is enough
 		
 		//read out the results a pair at a time
-		.ReadEn_in(both_not_empty), 
-		.Empty_out(),
+		.ReadEn_in(both_not_empty_127_0), 
+		.Empty_out(FIFO_response_k_Empty_out_127_0),
 		.RClk(CLK_200M)
 	);
 	
@@ -352,9 +360,9 @@ module afu_core(
 		
 		//200M
 		.Data_out(FIFO_response_l_Data_out[511:384]),
-		.Data_valid(FIFO_response_l_Data_valid),
-		.ReadEn_in(both_not_empty), 
-		.Empty_out(FIFO_response_l_Empty_out),
+		.Data_valid(FIFO_response_l_Data_valid_511_384),
+		.ReadEn_in(both_not_empty_511_384), 
+		.Empty_out(FIFO_response_l_Empty_out_511_384),
 		.RClk(CLK_200M)
 	);
 	
@@ -371,8 +379,8 @@ module afu_core(
 		//200M
 		.Data_out(FIFO_response_l_Data_out[383:256]),
 		.Data_valid(),
-		.ReadEn_in(both_not_empty), 
-		.Empty_out(),
+		.ReadEn_in(both_not_empty_383_256), 
+		.Empty_out(FIFO_response_l_Empty_out_383_256),
 		.RClk(CLK_200M)
 	);
 	
@@ -389,8 +397,8 @@ module afu_core(
 		//200M
 		.Data_out(FIFO_response_l_Data_out[255:128]),
 		.Data_valid(),
-		.ReadEn_in(both_not_empty), 
-		.Empty_out(),
+		.ReadEn_in(both_not_empty_255_128), 
+		.Empty_out(FIFO_response_l_Empty_out_255_128),
 		.RClk(CLK_200M)
 	);
 	
@@ -407,8 +415,8 @@ module afu_core(
 		//200M
 		.Data_out(FIFO_response_l_Data_out[127:0]),
 		.Data_valid(),
-		.ReadEn_in(both_not_empty), 
-		.Empty_out(),
+		.ReadEn_in(both_not_empty_127_0), 
+		.Empty_out(FIFO_response_l_Empty_out_127_0),
 		.RClk(CLK_200M)
 	);
 	
@@ -694,8 +702,8 @@ module afu_core(
 		.stall_B(stall_B), 
 		.stall_C(stall_C), 
 		.stall_D(stall_D), 
-		.stall_E(stall_E), 
-		.stall_F(stall_F), 
+		.stall_E(stall_B), 
+		.stall_F(stall_C), 
 		
 		//RAM for reads
 		.load_valid(load_valid),
