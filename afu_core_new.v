@@ -65,7 +65,6 @@ module afu_core(
 	(* preserve *) reg stall_C /* synthesis preserve */;
 	(* preserve *) reg stall_D /* synthesis preserve */;
 	
-	
 	always@(posedge CLK_200M) begin
 		stall_A <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
 		stall_B <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
@@ -77,6 +76,8 @@ module afu_core(
 	
 	wire FIFO_request_Data_valid;
 	wire [57:0] FIFO_request_Data_out;
+	
+
 	
 	always@(posedge CLK_400M) begin
 		if(!reset_n) begin
@@ -146,6 +147,8 @@ module afu_core(
 	
 	//====================================================================
 	
+	wire FIFO_request_ReadEn_in = 1'b1;
+	wire FIFO_output_ReadEn_in = 1'b1;
 	//output FIFO
 	reg [512+57:0] FIFO_output_Data_in;
 	reg FIFO_output_WriteEn_in;
@@ -164,8 +167,8 @@ module afu_core(
 		//400M
 		.Data_out(FIFO_output_Data_out[512+57:512]),
 		.Data_valid(FIFO_output_Data_valid),
-		.ReadEn_in(1),
-		.Empty_out(FIFO_output_Empty_out),
+		.ReadEn_in(FIFO_output_ReadEn_in),
+		.Empty_out(),
 		.RClk(CLK_400M)
 	);
 	
@@ -183,7 +186,7 @@ module afu_core(
 		//400M
 		.Data_out(FIFO_output_Data_out[511:384]),
 		.Data_valid(),
-		.ReadEn_in(1),
+		.ReadEn_in(FIFO_output_ReadEn_in),
 		.Empty_out(),
 		.RClk(CLK_400M)
 	);
@@ -202,7 +205,7 @@ module afu_core(
 		//400M
 		.Data_out(FIFO_output_Data_out[383:256]),
 		.Data_valid(),
-		.ReadEn_in(1),
+		.ReadEn_in(FIFO_output_ReadEn_in),
 		.Empty_out(),
 		.RClk(CLK_400M)
 	);
@@ -221,7 +224,7 @@ module afu_core(
 		//400M
 		.Data_out(FIFO_output_Data_out[255:128]),
 		.Data_valid(),
-		.ReadEn_in(1),
+		.ReadEn_in(FIFO_output_ReadEn_in),
 		.Empty_out(),
 		.RClk(CLK_400M)
 	);
@@ -240,7 +243,7 @@ module afu_core(
 		//400M
 		.Data_out(FIFO_output_Data_out[127:0]),
 		.Data_valid(),
-		.ReadEn_in(1),
+		.ReadEn_in(FIFO_output_ReadEn_in),
 		.Empty_out(),
 		.RClk(CLK_400M)
 	);
@@ -437,7 +440,7 @@ module afu_core(
 		//400M
 		.Data_out(FIFO_request_Data_out),
 		.Data_valid(FIFO_request_Data_valid),
-		.ReadEn_in(1),
+		.ReadEn_in(FIFO_request_ReadEn_in),
 		.Empty_out(),
 		.RClk(CLK_400M)
 	);
