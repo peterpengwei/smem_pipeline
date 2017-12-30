@@ -173,7 +173,8 @@ output reg [5:0] status
 
 			//the real valid signal connected to interface should be 
 			//(request_valid & stall == 0)
-			request_valid <= 0; 
+			// request_valid <= 0; 
+			request_valid <= request_valid;
 			addr_k		<= addr_k;
 			addr_l		<= addr_l;
 

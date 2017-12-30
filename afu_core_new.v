@@ -65,11 +65,18 @@ module afu_core(
 	(* preserve *) reg stall_C /* synthesis preserve */;
 	(* preserve *) reg stall_D /* synthesis preserve */;
 	
+	reg stall_q1;
+	always@(posedge CLK_400M) begin
+		stall_q1 <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
+		stall_q1 <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
+		stall_q1 <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
+		stall_q1 <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
+	end
 	always@(posedge CLK_200M) begin
-		stall_A <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
-		stall_B <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
-		stall_C <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
-		stall_D <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
+		stall_A <= stall_q1;
+		stall_B <= stall_q1;
+		stall_C <= stall_q1;
+		stall_D <= stall_q1;
 	end
 	
 	//send out addr_k & addr_l
@@ -154,9 +161,9 @@ module afu_core(
 	reg FIFO_output_WriteEn_in;
 	
 	// address
-	aFIFO #(.DATA_WIDTH(58), .ADDRESS_WIDTH(2)) FIFO_output_addr(
+	aFIFO_output #(.DATA_WIDTH(58), .ADDRESS_WIDTH(2)) FIFO_output_addr(
 		.Clear_in(!core_start),
-		.CLK_400M(CLK_400M),
+		.stall(stall_A),
 		
 		//200M
 		.Data_in(FIFO_output_Data_in[512+57:512]),
@@ -173,9 +180,9 @@ module afu_core(
 	);
 	
 	// 511:384
-	aFIFO #(.DATA_WIDTH(128), .ADDRESS_WIDTH(2)) FIFO_output_511_384(
+	aFIFO_output #(.DATA_WIDTH(128), .ADDRESS_WIDTH(2)) FIFO_output_511_384(
 		.Clear_in(!core_start),
-		.CLK_400M(CLK_400M),
+		.stall(stall_A),
 		
 		//200M
 		.Data_in(FIFO_output_Data_in[511:384]),
@@ -192,9 +199,9 @@ module afu_core(
 	);
 	
 	// 383:256
-	aFIFO #(.DATA_WIDTH(128), .ADDRESS_WIDTH(2)) FIFO_output_383_256(
+	aFIFO_output #(.DATA_WIDTH(128), .ADDRESS_WIDTH(2)) FIFO_output_383_256(
 		.Clear_in(!core_start),
-		.CLK_400M(CLK_400M),
+		.stall(stall_A),
 		
 		//200M
 		.Data_in(FIFO_output_Data_in[383:256]),
@@ -211,9 +218,9 @@ module afu_core(
 	);
 	
 	// 255:128
-	aFIFO #(.DATA_WIDTH(128), .ADDRESS_WIDTH(2)) FIFO_output_255_128(
+	aFIFO_output #(.DATA_WIDTH(128), .ADDRESS_WIDTH(2)) FIFO_output_255_128(
 		.Clear_in(!core_start),
-		.CLK_400M(CLK_400M),
+		.stall(stall_A),
 		
 		//200M
 		.Data_in(FIFO_output_Data_in[255:128]),
@@ -230,9 +237,9 @@ module afu_core(
 	);
 	
 	// 127:0
-	aFIFO #(.DATA_WIDTH(128), .ADDRESS_WIDTH(2)) FIFO_output_127_0(
+	aFIFO_output #(.DATA_WIDTH(128), .ADDRESS_WIDTH(2)) FIFO_output_127_0(
 		.Clear_in(!core_start),
-		.CLK_400M(CLK_400M),
+		.stall(stall_A),
 		
 		//200M
 		.Data_in(FIFO_output_Data_in[127:0]),
@@ -425,20 +432,23 @@ module afu_core(
 	
 	reg [57:0] FIFO_request_Data_in_1, FIFO_request_Data_in_2;
 	reg FIFO_request_WriteEn_in_2;
-	
+	wire [`READ_NUM_WIDTH-1:0] DRAM_read_num, DRAM_read_num_out;
+	reg [`READ_NUM_WIDTH-1:0] DRAM_read_num_q; 
+	always@(posedge CLK_200M) if(!stall_A)DRAM_read_num_q <= DRAM_read_num;
 	// request FIFO addr k
-	aFIFO_2w_1r #(.DATA_WIDTH(58), .ADDRESS_WIDTH(2)) FIFO_request(
+	aFIFO_2w_1r #(.DATA_WIDTH(58+`READ_NUM_WIDTH), .ADDRESS_WIDTH(2)) FIFO_request(
 		.Clear_in(!core_start),
+		.stall(stall_A),
 		
 		//200M
-		.Data_in_1(FIFO_request_Data_in_1),
-		.Data_in_2(FIFO_request_Data_in_2),
+		.Data_in_1({DRAM_read_num_q, FIFO_request_Data_in_1}),
+		.Data_in_2({DRAM_read_num_q, FIFO_request_Data_in_2}),
 		.WriteEn_in_2(FIFO_request_WriteEn_in_2),
 		.Full_out(),
 		.WClk(CLK_200M),
 		
 		//400M
-		.Data_out(FIFO_request_Data_out),
+		.Data_out({DRAM_read_num_out, FIFO_request_Data_out}),
 		.Data_valid(FIFO_request_Data_valid),
 		.ReadEn_in(FIFO_request_ReadEn_in),
 		.Empty_out(),
@@ -552,10 +562,6 @@ module afu_core(
 					
 						state <= POLLING_2;
 					end
-					else begin
-						FIFO_request_WriteEn_in_2 <= 0;
-						state <= POLLING_1;
-					end
 				end
 				
 				POLLING_2: begin
@@ -582,22 +588,26 @@ module afu_core(
 				
 				LOAD_READ : begin
 					//memory request
-					if(load_ptr < CL_num) begin
-						if(!stall_A) begin
+					if(!stall_A) begin
+						if(load_ptr < CL_num) begin
+						
 							//send out two identical request for compatibility with other modules
 							FIFO_request_Data_in_1 <= input_base + load_ptr;
 							FIFO_request_Data_in_2 <= input_base + load_ptr;
 							FIFO_request_WriteEn_in_2 <= 1;
 						
 							load_ptr <= load_ptr + 1;
-						end 
+						end
 						else begin
 							FIFO_request_WriteEn_in_2 <= 0;
 						end
-					end
-					else begin
-						FIFO_request_WriteEn_in_2 <= 0;
-					end
+						
+						//control
+						if(read_load_done) begin
+							state <= RUN;
+						end
+					
+					end 
 					
 					//memory responses
 					if(both_valid) begin
@@ -606,42 +616,35 @@ module afu_core(
 					end
 					else begin
 						load_valid <= 0;
-					end
-					
-					//control
-					if(read_load_done) begin
-						state <= RUN;
-					end
-				
+					end				
 				end
 				
 				RUN: begin
-					if(!output_request_200M) begin
-						//send out request
-						// if(!stall_A) begin
+					if(!stall_A) begin
+						if(!output_request_200M) begin
+							//send out request
+							
 							FIFO_request_Data_in_1 <= BWT_base + addr_k[31:4];
 							FIFO_request_Data_in_2 <= BWT_base + addr_l[31:4];
 							FIFO_request_WriteEn_in_2 <= DRAM_valid;
-						// end
-						// else begin
-							// FIFO_request_WriteEn_in_2 <= 0;
-						// end
+							
+						end
 						
-						//get response
-						DRAM_get <= both_valid;
-						CL_1_200M <= FIFO_response_k_Data_out;
-						CL_2_200M <= FIFO_response_l_Data_out;
+						else begin
+							FIFO_request_WriteEn_in_2 <= 0;
+							output_permit <= 1;
+							state <= OUTPUT;
+						end
 					end
-					
-					else begin
-						FIFO_request_WriteEn_in_2 <= 0;
-						output_permit <= 1;
-						state <= OUTPUT;
-					end
+										
+					//get response
+					DRAM_get <= both_valid;
+					CL_1_200M <= FIFO_response_k_Data_out;
+					CL_2_200M <= FIFO_response_l_Data_out;
 				end
 				
 				OUTPUT: begin
-					// if(!stall_A) begin
+					if(!stall_A) begin
 						if(!output_finish_200M) begin
 							FIFO_output_WriteEn_in <= output_valid_200M;
 							FIFO_output_Data_in[512+57:512] <= output_addr;
@@ -655,10 +658,7 @@ module afu_core(
 							FIFO_output_Data_in[511:0]      <= {1'b1,511'b0}; //fence
 							state <= FINAL;					
 						end
-					// end
-					// else begin
-						// FIFO_output_WriteEn_in <= 0;
-					// end					
+					end				
 				end
 				
 				FINAL : begin
@@ -670,9 +670,6 @@ module afu_core(
 						state <= FINAL_2;
 					
 					end
-					else begin
-						FIFO_output_WriteEn_in <= 0;
-					end	
 				end
 				
 				FINAL_2: begin
@@ -685,12 +682,6 @@ module afu_core(
 						state <= IDLE;
 					
 					end
-					else begin
-						FIFO_output_WriteEn_in <= 0;
-					end	
-				
-				
-				
 				end
 		
 				

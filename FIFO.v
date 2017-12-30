@@ -23,7 +23,6 @@ module aFIFO
      output reg                          Full_out,
      input wire                          WriteEn_in,
      input wire                          WClk,
-	 input wire 						 CLK_400M,
 	 
      input wire                          Clear_in);
 
@@ -68,7 +67,7 @@ module aFIFO
     assign NextReadAddressEn  = ReadEn_in  & ~Empty_out;
            
     //Addreses (Gray counters) logic:
-    GrayCounter GrayCounter_pWr
+    GrayCounter #(.COUNTER_WIDTH(ADDRESS_WIDTH)) GrayCounter_pWr
        (.GrayCount_out(pNextWordToWrite),
        
         .Enable_in(NextWriteAddressEn),
@@ -77,7 +76,107 @@ module aFIFO
         .Clk(WClk)
        );
        
-    GrayCounter GrayCounter_pRd
+    GrayCounter #(.COUNTER_WIDTH(ADDRESS_WIDTH))GrayCounter_pRd
+       (.GrayCount_out(pNextWordToRead),
+        .Enable_in(NextReadAddressEn),
+        .Clear_in(Clear_in),
+        .Clk(RClk)
+       );
+     
+
+    //'EqualAddresses' logic:
+    assign EqualAddresses = (pNextWordToWrite == pNextWordToRead);
+            
+    //'Full_out' logic for the writing port:
+    assign PresetFull = EqualAddresses;  //'Full' Fifo.
+	    
+	// always @ (posedge WClk  or posedge PresetFull) begin  
+	// [licheng] never use full out
+	always @(posedge WClk) begin
+		if(Clear_in) begin
+			Full_out <= 0;
+		end
+    end       
+	
+    //'Empty_out' logic for the reading port:
+
+	assign Empty_out = EqualAddresses;
+	
+
+
+            
+endmodule
+
+module aFIFO_output
+  #(parameter    DATA_WIDTH    = 65,
+                 ADDRESS_WIDTH = 2,
+                 FIFO_DEPTH    = (1 << ADDRESS_WIDTH))
+     //Reading port
+    (input stall,
+	 output reg  [DATA_WIDTH-1:0]        Data_out, 
+	 output reg  						 Data_valid,
+     output                          Empty_out,
+     input wire                          ReadEn_in,
+     input wire                          RClk,        
+     //Writing port.	 
+     input wire  [DATA_WIDTH-1:0]        Data_in,  
+     output reg                          Full_out,
+     input wire                          WriteEn_in,
+     input wire                          WClk,
+	 
+     input wire                          Clear_in);
+
+    /////Internal connections & variables//////
+    (* ramstyle = "logic" *) reg   [DATA_WIDTH-1:0]              Mem [FIFO_DEPTH-1:0];
+    wire  [ADDRESS_WIDTH-1:0]           pNextWordToWrite, pNextWordToRead;
+    wire                                EqualAddresses;
+    wire                                NextWriteAddressEn, NextReadAddressEn;
+    wire                                Set_Status, Rst_Status;
+    reg                                 Status;
+    wire                                PresetFull, PresetEmpty;
+    // reg                                PresetFull_q, PresetEmpty_q;
+	
+	// always@(posedge )
+    //////////////Code///////////////
+    //Data ports logic:
+    //(Uses a dual-port RAM).
+    //'Data_out' logic:
+    always @ (posedge RClk) begin
+		if(Clear_in) begin
+			Data_valid <= 0;
+		
+		end
+		else begin
+			Data_out <= Mem[pNextWordToRead];
+			if ((!stall) & (!Empty_out)) begin
+				Data_valid <= 1;
+			end
+			else begin
+				Data_valid <= 0;
+			end
+		end
+	end
+			//'Data_in' logic:
+    always @ (posedge WClk)
+        if (WriteEn_in)
+            Mem[pNextWordToWrite] <= Data_in;
+
+    //Fifo addresses support logic: 
+    //'Next Addresses' enable logic:
+    assign NextWriteAddressEn = (!stall)  & WriteEn_in;
+    assign NextReadAddressEn  = (!stall)  & (~Empty_out);
+           
+    //Addreses (Gray counters) logic:
+    GrayCounter #(.COUNTER_WIDTH(ADDRESS_WIDTH)) GrayCounter_pWr
+       (.GrayCount_out(pNextWordToWrite),
+       
+        .Enable_in(NextWriteAddressEn),
+        .Clear_in(Clear_in),
+        
+        .Clk(WClk)
+       );
+       
+    GrayCounter #(.COUNTER_WIDTH(ADDRESS_WIDTH)) GrayCounter_pRd
        (.GrayCount_out(pNextWordToRead),
         .Enable_in(NextReadAddressEn),
         .Clear_in(Clear_in),
@@ -115,7 +214,8 @@ module aFIFO_2w_1r
                  ADDRESS_WIDTH = 2,
                  FIFO_DEPTH    = (1 << ADDRESS_WIDTH))
      //Reading port
-    (output reg  [DATA_WIDTH-1:0]        Data_out, 
+    (input stall,
+	 output reg  [DATA_WIDTH-1:0]        Data_out, 
 	 output reg  						 Data_valid,
      output                           	 Empty_out,
      input wire                          ReadEn_in,
@@ -152,7 +252,7 @@ module aFIFO_2w_1r
 		end
 		else begin
 			Data_out <= Mem[pNextWordToRead];
-			if (ReadEn_in & !Empty_out) begin
+			if ((!stall) & (!Empty_out)) begin
 				Data_valid <= 1;
 			end
 			else begin
@@ -170,11 +270,11 @@ module aFIFO_2w_1r
 	
     //Fifo addresses support logic: 
     //'Next Addresses' enable logic:
-	assign NextWriteAddressEn_2 = WriteEn_in_2;
-    assign NextReadAddressEn  = ReadEn_in  & ~Empty_out;
+	assign NextWriteAddressEn_2 = (!stall)  & WriteEn_in_2;
+    assign NextReadAddressEn  = (!stall)  & (~Empty_out);
            
     //Addreses (Gray counters) logic:
-    GrayCounter_2port GrayCounter_pWr_2port
+    GrayCounter_2port #(.COUNTER_WIDTH(ADDRESS_WIDTH)) GrayCounter_pWr_2port
        (.GrayCount_out_1(pNextWordToWrite_1),
 		.GrayCount_out_2(pNextWordToWrite_2), //always provides the next two wr addresses
 		
@@ -184,7 +284,7 @@ module aFIFO_2w_1r
         .Clk(WClk)
        );
        
-    GrayCounter GrayCounter_pRd
+    GrayCounter #(.COUNTER_WIDTH(ADDRESS_WIDTH)) GrayCounter_pRd
        (.GrayCount_out(pNextWordToRead),
         .Enable_in(NextReadAddressEn),
         .Clear_in(Clear_in),

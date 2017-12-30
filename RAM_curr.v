@@ -256,9 +256,9 @@ module RAM_curr_mem(
 			output_valid <= output_valid_dd;	
 			output_finish <= output_finish_dd;
 		end
-		else begin
-			output_valid <= 0;
-		end
+		// else begin
+			// output_valid <= 0;
+		// end
 	end
 	
 	always@(posedge clk) begin
@@ -312,9 +312,6 @@ module RAM_curr_mem(
 				
 				end
 			end
-			// else begin
-				// output_valid_d <= 0;
-			// end
 		end
 	end
 	
