@@ -65,18 +65,11 @@ module afu_core(
 	(* preserve *) reg stall_C /* synthesis preserve */;
 	(* preserve *) reg stall_D /* synthesis preserve */;
 	
-	reg stall_q1;
-	always@(posedge CLK_400M) begin
-		stall_q1 <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
-		stall_q1 <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
-		stall_q1 <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
-		stall_q1 <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
-	end
 	always@(posedge CLK_200M) begin
-		stall_A <= stall_q1;
-		stall_B <= stall_q1;
-		stall_C <= stall_q1;
-		stall_D <= stall_q1;
+		stall_A <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
+		stall_B <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
+		stall_C <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
+		stall_D <= spl_tx_rd_almostfull | spl_tx_wr_almostfull;
 	end
 	
 	//send out addr_k & addr_l
