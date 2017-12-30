@@ -555,7 +555,9 @@ module Queue(
 				write_ptr_m <= write_ptr_m + 1;
 			end
 			
-			{cnt_a0_out,cnt_a1_out,cnt_a2_out,cnt_a3_out,cnt_b0_out,cnt_b1_out,cnt_b2_out,cnt_b3_out, cntl_a0_out,cntl_a1_out,cntl_a2_out,cntl_a3_out,cntl_b0_out,cntl_b1_out,cntl_b2_out,cntl_b3_out} <= RAM_memory[read_ptr_m];
+			if(!stall) begin
+				{cnt_a0_out,cnt_a1_out,cnt_a2_out,cnt_a3_out,cnt_b0_out,cnt_b1_out,cnt_b2_out,cnt_b3_out, cntl_a0_out,cntl_a1_out,cntl_a2_out,cntl_a3_out,cntl_b0_out,cntl_b1_out,cntl_b2_out,cntl_b3_out} <= RAM_memory[read_ptr_m];
+			end
 		end
 	end
 	
