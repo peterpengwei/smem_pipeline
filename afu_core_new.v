@@ -1,6 +1,4 @@
-`define CL 512
-`define MAX_READ 64
-`define READ_NUM_WIDTH 6
+`include "pipeline_head.vh"
 
 module afu_core(
 	input  wire                             CLK_400M,
@@ -47,7 +45,9 @@ module afu_core(
 	input  [63:0]	dsm_base_addr,	
 	input  [63:0] 						io_src_ptr,
 	input  [63:0] 						io_dst_ptr,
-	
+	input  [63:0] 						io_hand_ptr,
+	input  [63:0] 						io_input_base,
+
 	//for test
 	output [6:0] backward_i_q_test,
 	output [6:0] backward_j_q_test
@@ -456,16 +456,18 @@ module afu_core(
 	
 
 	
-	reg [57:0] hand_ptr;
-	reg [57:0] input_base;
+
 	reg [57:0] output_base;
 	reg [57:0] BWT_base;
+	reg [57:0] hand_ptr;
+	reg [57:0] input_base;
 	
 	always@(posedge CLK_200M) begin
-		hand_ptr <= io_src_ptr + 50348031; //50331648 + 16384 - 1
-		input_base <= io_src_ptr + 50348032; //50331648 + 16384
 		output_base <= io_dst_ptr;
 		BWT_base <= io_src_ptr;
+		hand_ptr <= io_hand_ptr;
+		input_base <= io_input_base;
+
 	end
 	
 	reg polling_tag;
@@ -510,8 +512,11 @@ module afu_core(
 	wire output_valid_200M;
 	wire [511:0] output_data_200M;
 	
+	reg reset_n_200M;
+	always@(posedge CLK_200M) begin reset_n_200M <= reset_n;end
+	
 	always@(posedge CLK_200M) begin
-		if(!reset_n) begin
+		if(!reset_n_200M) begin
 			state <= IDLE;
 			
 			batch_reset_n <= 0;
@@ -521,8 +526,8 @@ module afu_core(
 			load_valid <= 0;
 			load_data <= 0;
 			DRAM_get <= 0;
-			CL_1_200M <= 0;
-			CL_2_200M <= 0;
+			//CL_1_200M <= 0;
+			//CL_2_200M <= 0;
 			output_permit <= 0;
 		end
 		else begin
@@ -536,8 +541,8 @@ module afu_core(
 					load_valid <= 0;
 					load_data <= 0;
 					DRAM_get <= 0;
-					CL_1_200M <= 0;
-					CL_2_200M <= 0;
+					//CL_1_200M <= 0;
+					//CL_2_200M <= 0;
 					output_permit <= 0;
 					
 					FIFO_output_WriteEn_in <= 0;

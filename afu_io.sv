@@ -86,8 +86,10 @@ module afu_io#(
     input  wire [511:0]                     cor_tx_data,     
 
 	// afu_io --> afu_core
-	output reg [63:0]  io_src_ptr,
-	output reg [63:0] io_dst_ptr,
+	output reg [63:0]  						io_src_ptr,
+	output reg [63:0] 						io_dst_ptr,
+	output reg [63:0]  						io_hand_ptr,
+	output reg [63:0] 						io_input_base,
  	output reg  [63:0]  dsm_base_addr,
 	
 	// afu_csr-->afu_core, afu_id
@@ -351,6 +353,8 @@ module afu_io#(
 	
 	localparam CSR_SRC_ADDR = 16'h120; //64b RW - Source buffer address
 	localparam CSR_DST_ADDR = 16'h128; //64b RW - Destination buffer address
+	localparam CSR_HAND_PTR = 16'h130; //64b RW - Source buffer address
+	localparam CSR_INPUT_BASE = 16'h138; //64b RW - Destination buffer address
 
 	localparam  CSR_CTL           = 16'h148;     // 32b RW   Control CSR to start n stop the test
 	reg  [31:0]  csr_ctl;
@@ -365,6 +369,8 @@ module afu_io#(
 	//-------------------------------------------------------
 	reg [63:0]  io_src_ptr_d;
 	reg [63:0]  io_dst_ptr_d;
+	reg [63:0]  hand_ptr_d;
+	reg [63:0]  input_base_d;
 	// SW writes CSR
 	always @(posedge clk) begin
 		if (spl_reset) begin
@@ -394,6 +400,14 @@ module afu_io#(
 					
 					CSR_DST_ADDR : begin
 						io_dst_ptr_d <= mmio_req_data;	// destination pointer
+					end
+					
+					CSR_HAND_PTR: begin
+						hand_ptr_d <= mmio_req_data;					
+					end
+					
+					CSR_INPUT_BASE : begin
+						input_base_d <= mmio_req_data;
 						
 						//--------------
 						csr_ctx_base_valid <= 1'b1;
@@ -405,6 +419,8 @@ module afu_io#(
 						csr_ctl    <= mmio_req_data[31:0];
 						io_src_ptr <= io_src_ptr_d;
 						io_dst_ptr <= io_dst_ptr_d;
+						io_hand_ptr <= hand_ptr_d;
+						io_input_base <= input_base_d;
 					end
 					default:;
 				endcase

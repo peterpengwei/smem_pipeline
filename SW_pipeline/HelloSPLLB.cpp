@@ -50,6 +50,8 @@ using namespace AAL;
 
 #define CSR_SRC_ADDR            0x0120
 #define CSR_DST_ADDR            0x0128
+#define CSR_HAND_PTR            0x0130
+#define CSR_INPUT_BASE          0x0138
 #define CSR_CTL                 0x0148
 
 #define CSR_AFU_DSM_BASEL        0x0110
@@ -447,6 +449,12 @@ btInt MMULApp::run(int argc, char *argv[])
 
       // Set output workspace address
       m_pALIMMIOService->mmioWrite64(CSR_DST_ADDR, (btUnsigned64bitInt)(m_OutputVirt) / CL(1));
+
+	  // Set input workspace address
+	  m_pALIMMIOService->mmioWrite64(CSR_HAND_PTR, (btUnsigned64bitInt)(m_InputVirt) / CL(1) + 50348031);
+
+	  // Set output workspace address
+	  m_pALIMMIOService->mmioWrite64(CSR_INPUT_BASE, (btUnsigned64bitInt)(m_InputVirt) / CL(1) + 50348032);
 
       // Start the test
       m_pALIMMIOService->mmioWrite32(CSR_CTL, 3);

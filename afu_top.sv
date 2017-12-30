@@ -61,6 +61,9 @@ module afu_top #(
 	
 	wire [63:0] 					 io_src_ptr;
 	wire [63:0] 					 io_dst_ptr;
+	wire [63:0] 					 io_hand_ptr;
+	wire [63:0] 					 io_input_base;
+	
 	wire [63:0] dsm_base_addr;	
 	afu_core afu_core(
 		.CLK_400M(clk),
@@ -102,7 +105,9 @@ module afu_top #(
 		
 		.dsm_base_addr(dsm_base_addr),
 		.io_src_ptr(io_src_ptr),
-		.io_dst_ptr(io_dst_ptr)
+		.io_dst_ptr(io_dst_ptr),
+		.io_hand_ptr(io_hand_ptr),
+		.io_input_base(io_input_base)
 	);
 	
 	 afu_io #(
@@ -162,6 +167,8 @@ module afu_top #(
 		.dsm_base_addr(dsm_base_addr),
 		.io_src_ptr(io_src_ptr),
 		.io_dst_ptr(io_dst_ptr),
+		.io_hand_ptr(io_hand_ptr),
+		.io_input_base(io_input_base),
 		
 		// afu_csr-->afu_core, afu_id
 		.csr_id_valid(csr_id_valid),
