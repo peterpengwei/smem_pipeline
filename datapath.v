@@ -1,5 +1,5 @@
+`include "pipeline_head.vh"
 
-`define READ_NUM_WIDTH 8 
 module Datapath(
 	// input of BWT_extend
 	input Clk_32UI,
@@ -168,7 +168,7 @@ module Datapath(
 	wire [5:0] status_L00;
 	wire [7:0] query_L00;//only send the current query into the pipeline
 	wire [6:0] ptr_curr_L00;// record the status of curr and mem queue
-
+	wire [6:0] ptr_curr_L00_add_1;
 	
 	wire [`READ_NUM_WIDTH - 1:0] read_num_L00;
 	wire [63:0] ik_x0_L00, ik_x1_L00, ik_x2_L00, ik_info_L00;
@@ -205,7 +205,9 @@ module Datapath(
 		 //.status_L00(status_L00)
 	);
    
-   //need a pipe for other inputs
+	//need a pipe for other inputs
+	wire status_L00_eq_F_run, status_L00_eq_F_break;
+	wire forward_i_L00_eq_Len;
 	Pipe_BWT_extend pipe_BWT_extend(
 	    .Clk_32UI(Clk_32UI),
 		.reset_BWT_extend(reset_BWT_extend),
@@ -228,18 +230,26 @@ module Datapath(
 		//----------------------
 		
 		.forward_i_pipe (forward_i_L00),
+		
 		.min_intv_pipe (min_intv_L00),
 		.backward_x_pipe(backward_x_L00),
 
 		.status_pipe (status_L00),
+		.status_L00_eq_F_run(status_L00_eq_F_run),
+		.status_L00_eq_F_break(status_L00_eq_F_break),
+		
 		.query_pipe (query_L00),//only send the current query into the pipeline
 		.ptr_curr_pipe (ptr_curr_L00),// record the status of curr and mem queue
-
+		.ptr_curr_pipe_add_1(ptr_curr_L00_add_1),
 		.read_num_pipe (read_num_L00),
 		.ik_x0_pipe (ik_x0_L00),
 		.ik_x1_pipe (ik_x1_L00),
 		.ik_x2_pipe (ik_x2_L00),
-		.ik_info_pipe (ik_info_L00)
+		.ik_info_pipe (ik_info_L00),
+		
+		.status_L00_eq_F_run(status_L00_eq_F_run),
+		.status_L00_eq_F_break(status_L00_eq_F_break),
+		.forward_i_L00_eq_Len(forward_i_L00_eq_Len)
 	
 	);
 	
@@ -279,15 +289,15 @@ module Datapath(
 			curr_data_1 <= {ik_info_L00, ik_x2_L00, ik_x1_L00, ik_x0_L00};
 			curr_addr_1 <= ptr_curr_L00;
 			
-			if(status_L00 == F_run) begin
+			if(status_L00_eq_F_run) begin
 
-				case(query_L00) 
+				case(query_L00[1:0]) 
 					0: begin
 						if (ok3_x2_L0 != ik_x2_L00) begin
 							
 							curr_we_1 <= 1;
 							
-							ptr_curr_L1 <= ptr_curr_L00 + 1;
+							ptr_curr_L1 <= ptr_curr_L00_add_1;
 							
 							if (ok3_x2_L0 < min_intv_L00) begin
 								status_L1 <= F_break; // if (ok[c].x[2] < min_intv) break;
@@ -313,7 +323,7 @@ module Datapath(
 					1: begin
 						if (ok2_x2_L0 != ik_x2_L00) begin
 							curr_we_1 <= 1;
-							ptr_curr_L1 <= ptr_curr_L00 + 1;
+							ptr_curr_L1 <= ptr_curr_L00_add_1;
 							
 							if (ok2_x2_L0 < min_intv_L00) begin
 								status_L1 <= F_break; // if (ok[c].x[2] < min_intv) break;
@@ -339,7 +349,7 @@ module Datapath(
 					2: begin
 						if (ok1_x2_L0 != ik_x2_L00) begin
 							curr_we_1 <= 1;
-							ptr_curr_L1 <= ptr_curr_L00 + 1;
+							ptr_curr_L1 <= ptr_curr_L00_add_1;
 							
 							if (ok1_x2_L0 < min_intv_L00) begin
 								status_L1 <= F_break; // if (ok[c].x[2] < min_intv) break;
@@ -365,7 +375,7 @@ module Datapath(
 					3: begin
 						if (ok0_x2_L0 != ik_x2_L00) begin
 							curr_we_1 <= 1;
-							ptr_curr_L1 <= ptr_curr_L00 + 1;
+							ptr_curr_L1 <= ptr_curr_L00_add_1;
 							
 							if (ok0_x2_L0 < min_intv_L00) begin
 								status_L1 <= F_break; // if (ok[c].x[2] < min_intv) break;
@@ -388,21 +398,21 @@ module Datapath(
 						end
 					end // end 3
 					
-					default: begin // equal to else		
-						curr_we_1 <= 1;
+					// default: begin // equal to else		
+						// curr_we_1 <= 1;
 
-						ptr_curr_L1 <= ptr_curr_L00 + 1;
+						// ptr_curr_L1 <= ptr_curr_L00 + 1;
 
-						status_L1 <= F_break; // if (ok[c].x[2] < min_intv) break;
-						is_update_ik <= 0; // after break, "ik = ok[c]; ik.info = i + 1;" won't be executed.
-						is_add_i <= 0;	
-					end
+						// status_L1 <= F_break; // if (ok[c].x[2] < min_intv) break;
+						// is_update_ik <= 0; // after break, "ik = ok[c]; ik.info = i + 1;" won't be executed.
+						// is_add_i <= 0;	
+					// end
 				endcase
 			end
-			else if(status_L00 == F_break) begin
-				if(forward_i_L00 == Len) begin
+			else if(status_L00_eq_F_break) begin
+				if(forward_i_L00_eq_Len) begin
 					curr_we_1 <= 1;
-					ptr_curr_L1 <= ptr_curr_L00 + 1;
+					ptr_curr_L1 <= ptr_curr_L00_add_1;
 				end
 				else begin
 					curr_we_1 <= 0;
@@ -477,7 +487,7 @@ module Datapath(
 		else if(!stall) begin
 			if(status_L1 == F_run) begin
 				if (is_update_ik) begin
-					case(query_L1)
+					case(query_L1[1:0])
 						0: begin
 							ik_x0_L2 <= ok3_x0_L1;
 							ik_x1_L2 <= ok3_x1_L1;
@@ -521,9 +531,6 @@ module Datapath(
 							forward_k_temp_L2_minus <= ok0_x1_L1 - 1 - 1;
 							forward_l_temp_L2_minus <= ok0_x1_L1 - 1 + ok0_x2_L1 - 1;
 						end	
-						default: begin
-							//theoretically we should never came here.
-						end
 					endcase
 					ik_info_L2 <= forward_i_L1 + 1;
 				end
@@ -713,19 +720,32 @@ module Pipe_BWT_extend(
 		//----------------------
 		
 		output reg [6:0] forward_i_pipe,
+		output reg forward_i_L00_eq_Len,
+		
 		output reg [6:0] min_intv_pipe,
 		output reg [6:0] backward_x_pipe,
 
 		output reg [5:0] status_pipe,
+		output reg status_L00_eq_F_run, status_L00_eq_F_break,
+		
 		output reg [7:0] query_pipe,//only send the current query into the pipeline
 		output reg [6:0] ptr_curr_pipe,// record the status of curr and mem queue
-
+		output reg [6:0] ptr_curr_pipe_add_1,
 
 		output reg [`READ_NUM_WIDTH - 1:0] read_num_pipe,
 		output reg [63:0] ik_x0_pipe, ik_x1_pipe, ik_x2_pipe, ik_info_pipe
 
 	);
-	parameter BUBBLE = 6'b11_1111;
+	
+	parameter Len = 101;
+	
+	parameter F_init = 0; // F_init will disable the forward pipeline
+	parameter F_run = 1;
+	parameter F_break = 2;
+	parameter BCK_INI = 6'h4;	//100
+	parameter BCK_RUN = 6'h5;	//101
+	parameter BCK_END = 6'h6;	//110
+	parameter BUBBLE = 6'b110000;
 	
 	reg [6:0] forward_i_L1;
 	reg [6:0] min_intv_L1;
@@ -1136,13 +1156,17 @@ module Pipe_BWT_extend(
 			status_pipe <= status_L11;
 			query_pipe <= query_L11;//only send the current query into the pipeline
 			ptr_curr_pipe <= ptr_curr_L11;// record the status of curr and mem queue
-
+			ptr_curr_pipe_add_1 <= ptr_curr_L11+1;
 
 			read_num_pipe <= read_num_L11;
 			ik_x0_pipe <= ik_x0_L11;
 			ik_x1_pipe <= ik_x1_L11;
 			ik_x2_pipe <= ik_x2_L11;
 			ik_info_pipe <= ik_info_L11;	
+			
+			status_L00_eq_F_run <= (status_L11==F_run);
+			status_L00_eq_F_break <= (status_L11 == F_break);
+			forward_i_L00_eq_Len <= (forward_i_L11 == Len);
 		end			
 	end
 	
