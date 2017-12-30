@@ -18,9 +18,8 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-`define READ_NUM_WIDTH 6 
-`define MAX_READ 64
-`define CL 512
+`include "pipeline_head.vh"
+
 module Top(
 	input Clk_32UI,
 	input reset_n,

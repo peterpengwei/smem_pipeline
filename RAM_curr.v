@@ -1,11 +1,9 @@
 
-`define READ_NUM_WIDTH 6
-//for test purpose 
-`define MAX_READ 64 
-`define READ_LEN 101
-`define CURR_QUEUE_ADDR_WIDTH 15
-`define MEM_QUEUE_ADDR_WIDTH 12
-`define READ_MAX_MEM 40
+`define CURR_QUEUE_ADDR_WIDTH 12
+`define MEM_QUEUE_ADDR_WIDTH 11
+`define READ_MAX_MEM 20
+`define READ_MAX_CURR 52
+
 module RAM_curr_mem(
 	input reset_n,
 	input clk,
@@ -59,15 +57,11 @@ module RAM_curr_mem(
 	//33+33+33+14 = 113 bits
 	
 	//512 reads * 2 queue/read * 101 slots / queue * 113 bits/slots = 1.7M
-	// reg [112:0] curr_queue [`MAX_READ - 1:0][100:0];
-	// reg [112:0] mem_queue  [`MAX_READ - 1:0][100:0];
-	// reg [112:0] curr_queue [`MAX_READ*`READ_LEN - 1:0];
-	// reg [112:0] mem_queue  [`MAX_READ*`READ_LEN - 1:0];
 	reg [6:0] mem_size_queue[`MAX_READ - 1:0]; //mem_size = 7bits;
 	reg [6:0] ret_queue[`MAX_READ - 1:0] ; //ret = 7 bits;
 	
-	wire [`CURR_QUEUE_ADDR_WIDTH-1 : 0] curr_addr_A =  curr_read_num_1 * `READ_LEN + curr_addr_1;
-	wire [`CURR_QUEUE_ADDR_WIDTH-1 : 0] curr_addr_B =  curr_read_num_2 * `READ_LEN + curr_addr_2;
+	wire [`CURR_QUEUE_ADDR_WIDTH-1 : 0] curr_addr_A =  curr_read_num_1 * `READ_MAX_CURR + curr_addr_1;
+	wire [`CURR_QUEUE_ADDR_WIDTH-1 : 0] curr_addr_B =  curr_read_num_2 * `READ_MAX_CURR + curr_addr_2;
 	wire [112:0] curr_data_A = {curr_data_1[230:224],curr_data_1[198:192],curr_data_1[160:128],curr_data_1[96:64],curr_data_1[32:0]};
 	
 	//add one pipeline stage for RAM write
@@ -329,7 +323,7 @@ module RAM_Curr_Queue(
 	output reg [112:0] q
 
 );
-	reg [112:0] curr_queue [`MAX_READ*`READ_LEN - 1:0];
+	reg [112:0] curr_queue [`MAX_READ*`READ_MAX_CURR - 1:0];
 	
 	always@(posedge clk) begin
 		
