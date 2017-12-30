@@ -1,4 +1,4 @@
-
+`include "cci_mpf_if.vh"
 `define CURR_QUEUE_ADDR_WIDTH 12
 `define MEM_QUEUE_ADDR_WIDTH 11
 `define READ_MAX_MEM 20
@@ -328,7 +328,7 @@ module RAM_Curr_Queue(
 	always@(posedge clk) begin
 		
 		//port A
-		if(curr_we_1) begin
+		if(curr_we_1 & read_en) begin
 			curr_queue[addr_1] <= data;
 		end
 		
@@ -355,14 +355,14 @@ module RAM_Mem_Queue(
 	reg [112:0] mem_queue  [`MAX_READ*`READ_MAX_MEM - 1:0];
 	
 	always@(posedge clk) begin
-		if(mem_we_1) begin
+		if(mem_we_1 & read_en) begin
 			mem_queue[addr_1] <= data_1;
 		end
 		if(read_en) begin
 			q_1 <= mem_queue[addr_1];
 		end
 		
-		if(mem_we_2) begin
+		if(mem_we_2 & read_en) begin
 			mem_queue[addr_2] <= data_2;
 		end
 		if(read_en) begin

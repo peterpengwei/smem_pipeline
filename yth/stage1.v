@@ -167,8 +167,8 @@ always@(posedge clk) begin
 		reserved_token_x2	<= reserved_token_x2;
 		reserved_mem_info	<= reserved_mem_info;
 		iteration_boundary	<= iteration_boundary;
-		store_valid_mem		<= (~stall_pulse) && store_valid_mem;
-		store_valid_curr	<= (~stall_pulse) && store_valid_curr;
+		store_valid_mem		<= store_valid_mem;
+		store_valid_curr	<= store_valid_curr;
 		stall_sig <= 1;
 		status	<= status;	
 	end

@@ -182,7 +182,7 @@ output reg [5:0] status
 			p_x1				<= p_x1;
 			p_x2				<= p_x2;
 			p_info				<= p_info;
-			finish_sign			<= 0;
+			finish_sign			<= finish_sign;
 			iteration_boundary	<= iteration_boundary;
 			backward_i			<= backward_i;
 			backward_j			<= backward_j;
