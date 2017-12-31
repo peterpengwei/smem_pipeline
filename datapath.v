@@ -1,4 +1,4 @@
-`include "pipeline_head.vh"
+
 
 module Datapath(
 	// input of BWT_extend
@@ -57,15 +57,7 @@ module Datapath(
 	
 	
 );
-	parameter Len = 101;
-	
-	parameter F_init = 0; // F_init will disable the forward pipeline
-	parameter F_run = 1;
-	parameter F_break = 2;
-	parameter BCK_INI = 6'h4;	//100
-	parameter BCK_RUN = 6'h5;	//101
-	parameter BCK_END = 6'h6;	//110
-	parameter BUBBLE = 6'b110000;
+	`include "pipeline_head.vh"
 	
 	//-----------------------------------------------------------
 	//** initial case unsolved ** what to do with F_init? => left with the final stage
@@ -235,8 +227,6 @@ module Datapath(
 		.backward_x_pipe(backward_x_L00),
 
 		.status_pipe (status_L00),
-		.status_L00_eq_F_run(status_L00_eq_F_run),
-		.status_L00_eq_F_break(status_L00_eq_F_break),
 		
 		.query_pipe (query_L00),//only send the current query into the pipeline
 		.ptr_curr_pipe (ptr_curr_L00),// record the status of curr and mem queue
@@ -737,15 +727,7 @@ module Pipe_BWT_extend(
 
 	);
 	
-	parameter Len = 101;
-	
-	parameter F_init = 0; // F_init will disable the forward pipeline
-	parameter F_run = 1;
-	parameter F_break = 2;
-	parameter BCK_INI = 6'h4;	//100
-	parameter BCK_RUN = 6'h5;	//101
-	parameter BCK_END = 6'h6;	//110
-	parameter BUBBLE = 6'b110000;
+	`include "pipeline_head.vh"
 	
 	reg [6:0] forward_i_L1;
 	reg [6:0] min_intv_L1;

@@ -1,4 +1,4 @@
-`include "pipeline_head.vh"
+
 
 module afu_core(
 	input  wire                             CLK_400M,
@@ -52,6 +52,8 @@ module afu_core(
 	output [6:0] backward_i_q_test,
 	output [6:0] backward_j_q_test
 );
+	`include "pipeline_head.vh"
+	
 	assign cor_tx_done_valid = 1'b0;
 	
 	reg core_start;

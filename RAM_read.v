@@ -1,4 +1,4 @@
-`include "pipeline_head.vh"
+
 
 module RAM_read(
 	input reset_n,
@@ -32,15 +32,7 @@ module RAM_read(
 	output [63:0] primary,
 	output [63:0] L2_0, L2_1, L2_2, L2_3
 );
-	
-	parameter F_init = 0; // F_init will disable the forward pipeline
-	parameter F_run = 1;
-	parameter F_break = 2;
-	parameter BCK_INI = 6'h4;	//100
-	parameter BCK_RUN = 6'h5;	//101
-	parameter BCK_END = 6'h6;	//110
-	parameter BUBBLE = 6'b110000;
-	parameter DONE = 6'b100000;
+	`include "pipeline_head.vh"
 	
 	reg [`CL - 1:0] RAM_read_1[`MAX_READ - 1:0];
 	reg [`CL - 1:0] RAM_read_2[`MAX_READ - 1:0];

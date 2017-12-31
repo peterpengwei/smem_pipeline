@@ -1,5 +1,5 @@
-`timescale 1ns / 1ps
-`define PERIOD 2.5
+
+
 module Backward_data_path(
 	input clk,  
 	input rst,
@@ -30,7 +30,7 @@ module Backward_data_path(
 	input [63:0] ik_x2_new_q,
 
 	//backward data required
-	input [8:0] read_num_q,
+	input [`READ_NUM_WIDTH - 1:0] read_num_q,
 	input [6:0] forward_size_n_q, //foward curr array size
 	input [6:0] min_intv_q,	//
 	input [6:0] backward_x_q, // x
@@ -63,7 +63,7 @@ module Backward_data_path(
 ///read and write all from control stage 1
 
 	//write to curr/mem array
-	output [8:0] read_num_store_1,
+	output [`READ_NUM_WIDTH - 1:0] read_num_store_1,
 	output store_valid_mem,
 	output [63:0] mem_x_0,
 	output [63:0] mem_x_1,
@@ -80,7 +80,7 @@ module Backward_data_path(
 
 ///////////////////////////////////////////////////////////////
 	//stage 1 output					//read from curr array
-	output [8:0] read_num_2,
+	output [`READ_NUM_WIDTH - 1:0] read_num_2,
 	output [6:0] current_rd_addr_2,
 ////////////////////////////////////////////////////////////////
 
@@ -89,7 +89,7 @@ module Backward_data_path(
 	output [6:0] next_query_position_B,
 	
 	//output to queue
-	output [8:0] read_num,
+	output [`READ_NUM_WIDTH - 1:0] read_num,
 	output [6:0] forward_size_n,
 	output [6:0] new_size,
 	output [63:0] primary,
@@ -117,6 +117,7 @@ module Backward_data_path(
 	output [6:0] mem_size,
 	output [5:0] status
 );
+	`include "pipeline_head.vh"
 
 	reg [5:0] status_BB;wire [5:0] status_B1;
 	reg [63:0] ik_x0_new,ik_x1_new,ik_x2_new;
@@ -126,7 +127,7 @@ module Backward_data_path(
 	reg [31:0] cntl_a0,cntl_a1,cntl_a2,cntl_a3;
 	reg [63:0] cntl_b0,cntl_b1,cntl_b2,cntl_b3;
 
-	wire [8:0] read_num_B1;
+	wire [`READ_NUM_WIDTH - 1:0] read_num_B1;
 	wire [63:0] ok0_x0_B1, ok0_x1_B1, ok0_x2_B1;
 	wire [63:0] ok1_x0_B1, ok1_x1_B1, ok1_x2_B1;
 	wire [63:0] ok2_x0_B1, ok2_x1_B1, ok2_x2_B1;

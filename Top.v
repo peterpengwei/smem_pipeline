@@ -18,7 +18,7 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-`include "pipeline_head.vh"
+
 
 module Top(
 	input Clk_32UI,
@@ -56,7 +56,7 @@ module Top(
 	
 );
 	
-	
+	`include "pipeline_head.vh"
 
 	
 	//from queue to forward

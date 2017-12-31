@@ -1,9 +1,11 @@
+
+
 module CONTROL_STAGE1(
 input wire clk,
 input wire rst,
 input wire stall,
 
-input wire [8:0] read_num_q,
+input wire [`READ_NUM_WIDTH - 1:0] read_num_q,
 input wire [5:0] status_q,
 //data portion
 input wire [6:0] backward_x,
@@ -28,7 +30,7 @@ input wire [7:0] output_c_q,
 
 
 //signals handled to READ parse unit
-output reg [8:0] read_num,
+output reg [`READ_NUM_WIDTH - 1:0] read_num,
 output reg [6:0] current_rd_addr,
 //signals handled to next stage
 output reg [6:0]	new_size,
@@ -60,16 +62,7 @@ output reg [6:0]    curr_x_addr,
 output reg iteration_boundary,
 output reg [5:0] status
 );
-	localparam [5:0]
-	F_init	= 6'h0,	//000
-	F_run	= 6'h1,	//001
-	F_break = 6'h2,	//010
-	BCK_INI = 6'h4,	//100
-	BCK_RUN = 6'h5,	//101
-	BCK_END = 6'h6,	//110
-	BUBBLE  = 6'h30,
-	DONE	= 6'b100000;
-
+	`include "pipeline_head.vh"
 
 wire [6:0] new_i;
 wire ambiguous;

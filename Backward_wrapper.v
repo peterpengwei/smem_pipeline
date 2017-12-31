@@ -1,3 +1,5 @@
+
+
 module Backward_wrapper(
 	input clk,  
 	input rst,
@@ -27,7 +29,7 @@ module Backward_wrapper(
 	input [63:0] ik_x0_new_q,
 	input [63:0] ik_x1_new_q,
 	input [63:0] ik_x2_new_q,
-	input [8:0] read_num_q,
+	input [`READ_NUM_WIDTH - 1:0] read_num_q,
 	input [6:0] forward_size_n_q, //foward curr array size
 	input [6:0] min_intv_q,	//
 	input [6:0] backward_x_q, // x
@@ -53,7 +55,7 @@ module Backward_wrapper(
 	
 	//output to queue
 	output [5:0] status,
-	output [8:0] read_num,
+	output [`READ_NUM_WIDTH - 1:0] read_num,
 	output [6:0] forward_size_n,
 	output [6:0] new_size,
 	output [63:0] primary,
@@ -74,19 +76,19 @@ module Backward_wrapper(
 	output [6:0] next_query_position_B,
 	
 	//================================================
-	output [8:0] curr_read_num_2,
+	output [`READ_NUM_WIDTH - 1:0] curr_read_num_2,
 	output [6:0] curr_addr_2,
 	input [255:0] curr_q_2,
 	
 	//read and write all from control stage 1
 	//write to curr/mem array
 	
-	output [8:0] mem_read_num_1,
+	output [`READ_NUM_WIDTH - 1:0] mem_read_num_1,
 	output mem_we_1,
 	output [255:0] mem_data_1,
 	output [6:0] mem_addr_1,
 	
-	output [8:0] curr_read_num_1,
+	output [`READ_NUM_WIDTH - 1:0] curr_read_num_1,
 	output curr_we_1,
 	output [255:0] curr_data_1,
 	output [6:0] curr_addr_1,
@@ -99,18 +101,11 @@ module Backward_wrapper(
 	//outputing finish_sign+read_num+mem_size to another module
 	output finish_sign, //read_num on line 88
 	output [6:0] mem_size,
-	output [8:0] mem_size_read_num //[licheng add]
+	output [`READ_NUM_WIDTH - 1:0] mem_size_read_num //[licheng add]
 	
 	
-);
-	parameter F_init = 0; // F_init will disable the forward pipeline
-	parameter F_run = 1;
-	parameter F_break = 2;
-	parameter BCK_INI = 6'h4;	//100
-	parameter BCK_RUN = 6'h5;	//101
-	parameter BCK_END = 6'h6;	//110
-	parameter BUBBLE = 6'b110000;
-	
+);	
+	`include "pipeline_head.vh"
 
 	reg forward_all_done_L0;
      
@@ -138,7 +133,7 @@ module Backward_wrapper(
 	reg [63:0] ik_x2_new_q_L0;
 
 	//backward data required
-	reg [8:0] read_num_q_L0;
+	reg [`READ_NUM_WIDTH - 1:0] read_num_q_L0;
 	reg [6:0] forward_size_n_q_L0; //foward curr array size
 	reg [6:0] min_intv_q_L0;	//
 	reg [6:0] backward_x_q_L0; // x
@@ -269,7 +264,7 @@ module Backward_wrapper(
 	end 
 
 	//output
-	wire [8:0] read_num_store_1;
+	wire [`READ_NUM_WIDTH - 1:0] read_num_store_1;
 	wire store_valid_mem;
 	wire [63:0] mem_x_0;
 	wire [63:0] mem_x_1;
@@ -298,7 +293,7 @@ module Backward_wrapper(
 	assign curr_addr_1 = curr_x_addr;
 	
 	//output
-	wire [8:0] read_num_2;
+	wire [`READ_NUM_WIDTH - 1:0] read_num_2;
 	wire [6:0] current_rd_addr_2;
 	//input
 	wire [63:0] p_x0_q_S3_q; //curr array output data

@@ -1,3 +1,5 @@
+
+
 module BWT_extend_lc(
 	input Clk_32UI,
 	input reset_BWT_extend,
@@ -14,7 +16,7 @@ module BWT_extend_lc(
 	input [63:0] ik_x0, ik_x1, ik_x2,
 
 	//added input registered signals
-	input [8:0] read_num_q,
+	input [`READ_NUM_WIDTH - 1:0] read_num_q,
 	input [5:0] status_q,
 	input [6:0] forward_size_n_q,
 	input [6:0] new_size_q,
@@ -37,7 +39,7 @@ module BWT_extend_lc(
 	input [6:0] backward_x_q,
 //////////////////////////////////////////////////////////////////////////////
 	//added output registered signals
-	output  [8:0] read_num,
+	output  [`READ_NUM_WIDTH - 1:0] read_num,
 
 	output  [6:0] forward_size_n,
 	output  [6:0] new_size,
@@ -61,6 +63,7 @@ module BWT_extend_lc(
 	output  reg [63:0] ok3_x0, ok3_x1, ok3_x2,
 	output  [63:0] p_x0,p_x1,p_x2,p_info	
 );
+	`include "pipeline_head.vh"
       
 	wire finish_k, finish_l, BWT_2occ4_finish;
 	wire [31:0] cnt_tk_out0,cnt_tk_out1,cnt_tk_out2,cnt_tk_out3;
@@ -68,7 +71,7 @@ module BWT_extend_lc(
 	reg [63:0] L2_0, L2_1, L2_2, L2_3; //fix value
 
 //declaration
-reg[8:0] read_num_L1;
+reg[`READ_NUM_WIDTH - 1:0] read_num_L1;
 reg[5:0] status_L1;
 reg[6:0] forward_size_n_L1; 
 reg[6:0] new_size_L1; 
@@ -89,7 +92,7 @@ reg[63:0] p_info_L1;
 reg[31:0] last_mem_info_L1; 
 reg[63:0] last_token_x2_L1; 
 reg[6:0] backward_x_L1; 
-reg[8:0] read_num_L2;
+reg[`READ_NUM_WIDTH - 1:0] read_num_L2;
 reg[5:0] status_L2;
 reg[6:0] forward_size_n_L2; 
 reg[6:0] new_size_L2; 
@@ -110,7 +113,7 @@ reg[63:0] p_info_L2;
 reg[31:0] last_mem_info_L2; 
 reg[63:0] last_token_x2_L2; 
 reg[6:0] backward_x_L2; 
-reg[8:0] read_num_L3;
+reg[`READ_NUM_WIDTH - 1:0] read_num_L3;
 reg[5:0] status_L3;
 reg[6:0] forward_size_n_L3; 
 reg[6:0] new_size_L3; 
@@ -131,7 +134,7 @@ reg[63:0] p_info_L3;
 reg[31:0] last_mem_info_L3; 
 reg[63:0] last_token_x2_L3; 
 reg[6:0] backward_x_L3; 
-reg[8:0] read_num_L4;
+reg[`READ_NUM_WIDTH - 1:0] read_num_L4;
 reg[5:0] status_L4;
 reg[6:0] forward_size_n_L4; 
 reg[6:0] new_size_L4; 
@@ -152,7 +155,7 @@ reg[63:0] p_info_L4;
 reg[31:0] last_mem_info_L4; 
 reg[63:0] last_token_x2_L4; 
 reg[6:0] backward_x_L4; 
-reg[8:0] read_num_L5;
+reg[`READ_NUM_WIDTH - 1:0] read_num_L5;
 reg[5:0] status_L5;
 reg[6:0] forward_size_n_L5; 
 reg[6:0] new_size_L5; 
@@ -173,7 +176,7 @@ reg[63:0] p_info_L5;
 reg[31:0] last_mem_info_L5; 
 reg[63:0] last_token_x2_L5; 
 reg[6:0] backward_x_L5; 
-reg[8:0] read_num_L6;
+reg[`READ_NUM_WIDTH - 1:0] read_num_L6;
 reg[5:0] status_L6;
 reg[6:0] forward_size_n_L6; 
 reg[6:0] new_size_L6; 
@@ -194,7 +197,7 @@ reg[63:0] p_info_L6;
 reg[31:0] last_mem_info_L6; 
 reg[63:0] last_token_x2_L6; 
 reg[6:0] backward_x_L6; 
-reg[8:0] read_num_L7;
+reg[`READ_NUM_WIDTH - 1:0] read_num_L7;
 reg[5:0] status_L7;
 reg[6:0] forward_size_n_L7; 
 reg[6:0] new_size_L7; 
@@ -215,7 +218,7 @@ reg[63:0] p_info_L7;
 reg[31:0] last_mem_info_L7; 
 reg[63:0] last_token_x2_L7; 
 reg[6:0] backward_x_L7; 
-reg[8:0] read_num_L8;
+reg[`READ_NUM_WIDTH - 1:0] read_num_L8;
 reg[5:0] status_L8;
 reg[6:0] forward_size_n_L8; 
 reg[6:0] new_size_L8; 
@@ -236,7 +239,7 @@ reg[63:0] p_info_L8;
 reg[31:0] last_mem_info_L8; 
 reg[63:0] last_token_x2_L8; 
 reg[6:0] backward_x_L8; 
-reg[8:0] read_num_L9;
+reg[`READ_NUM_WIDTH - 1:0] read_num_L9;
 reg[5:0] status_L9;
 reg[6:0] forward_size_n_L9; 
 reg[6:0] new_size_L9; 
@@ -257,7 +260,7 @@ reg[63:0] p_info_L9;
 reg[31:0] last_mem_info_L9; 
 reg[63:0] last_token_x2_L9; 
 reg[6:0] backward_x_L9; 
-reg[8:0] read_num_L10;
+reg[`READ_NUM_WIDTH - 1:0] read_num_L10;
 reg[5:0] status_L10;
 reg[6:0] forward_size_n_L10; 
 reg[6:0] new_size_L10; 
@@ -278,7 +281,7 @@ reg[63:0] p_info_L10;
 reg[31:0] last_mem_info_L10; 
 reg[63:0] last_token_x2_L10; 
 reg[6:0] backward_x_L10; 
-reg[8:0] read_num_L11;
+reg[`READ_NUM_WIDTH - 1:0] read_num_L11;
 reg[5:0] status_L11;
 reg[6:0] forward_size_n_L11; 
 reg[6:0] new_size_L11; 
@@ -299,7 +302,7 @@ reg[63:0] p_info_L11;
 reg[31:0] last_mem_info_L11; 
 reg[63:0] last_token_x2_L11; 
 reg[6:0] backward_x_L11; 
-reg[8:0] read_num_L12;
+reg[`READ_NUM_WIDTH - 1:0] read_num_L12;
 reg[5:0] status_L12;
 reg[6:0] forward_size_n_L12; 
 reg[6:0] new_size_L12; 

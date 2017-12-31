@@ -1,4 +1,4 @@
-`include "cci_mpf_if.vh"
+
 `define CURR_QUEUE_ADDR_WIDTH 12
 `define MEM_QUEUE_ADDR_WIDTH 11
 `define READ_MAX_MEM 20
@@ -51,7 +51,7 @@ module RAM_curr_mem(
 	output reg output_finish
 
 );
-
+	`include "pipeline_head.vh"
 	//valid bits
 	//ik_x0 = 33; ik_x1 = 33; ik_x2 = 33; ik_info = 14;
 	//33+33+33+14 = 113 bits

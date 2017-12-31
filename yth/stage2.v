@@ -1,9 +1,11 @@
+
+
 module CONTROL_STAGE2(
 input wire clk,
 input wire rst,
 input wire stall,
 
-input wire [8:0] read_num_q,//onchip reads will not exceed 1024
+input wire [`READ_NUM_WIDTH - 1:0] read_num_q,//onchip reads will not exceed 1024
 input wire [5:0] status_q,
 input wire [63:0] primary_q,
 input wire [6:0] forward_size_n_q,
@@ -18,7 +20,7 @@ input wire [31:0]	reserved_mem_info_q,
 input wire iteration_boundary_q,
 //input wire j_bound;
 
-output reg [8:0] read_num,
+output reg [`READ_NUM_WIDTH - 1:0] read_num,
 output reg [6:0] current_rd_addr,
 
 //signals handled to next stage
@@ -35,7 +37,7 @@ output reg [63:0]	reserved_token_x2,
 output reg [31:0]	reserved_mem_info,
 output reg [5:0] status
 );
-
+	`include "pipeline_head.vh"
 	//j & i control logic 
 
 	wire [6:0] backward_j_d, backward_i_d;
@@ -62,16 +64,6 @@ output reg [5:0] status
 	
 	assign new_last_size_d		= j_bound ? new_size_q : new_last_size_q;
 	assign new_size_d			= j_bound ? 0 : new_size_q;
-
-	localparam [5:0]
-	F_init	= 6'h0,	//000
-	F_run	= 6'h1,	//001
-	F_break = 6'h2,	//010
-	BCK_INI = 6'h4,	//100
-	BCK_RUN = 6'h5,	//101
-	BCK_END = 6'h6,	//110
-	BUBBLE  = 6'h30,
-	DONE	= 6'b100000;
 
 
 	always @(posedge clk) begin

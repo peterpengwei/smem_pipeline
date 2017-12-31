@@ -1,3 +1,5 @@
+
+
 module CAL_KL(
 input wire clk,
 input wire rst,
@@ -6,7 +8,7 @@ input wire stall,
 //data used in this stage
 input wire [63:0] p_x0_licheng,p_x1_licheng,p_x2_licheng,p_info_licheng,
 
-input wire [8:0] read_num_licheng,
+input wire [`READ_NUM_WIDTH - 1:0] read_num_licheng,
 input wire [5:0] status_licheng,
 input wire [63:0] primary_licheng,
 input wire [6:0] current_rd_addr_licheng,
@@ -21,7 +23,7 @@ input wire finish_sign_licheng,iteration_boundary_licheng,
 input wire [63:0]	reserved_token_x2_licheng,
 input wire [31:0]	reserved_mem_info_licheng,
 
-output reg [8:0] read_num,
+output reg [`READ_NUM_WIDTH - 1:0] read_num,
 output reg [6:0] current_rd_addr,
 
 //[licheng] query request one cycle ahead
@@ -50,20 +52,11 @@ output reg [31:0]	reserved_mem_info,
 output reg [5:0] status
 
 );
-	localparam [5:0]
-	F_init	= 6'h0,	//000
-	F_run	= 6'h1,	//001
-	F_break = 6'h2,	//010
-	BCK_INI = 6'h4,	//100
-	BCK_RUN = 6'h5,	//101
-	BCK_END = 6'h6,	//110
-	BUBBLE  = 6'h30,
-	DONE	= 6'b100000;
-	
+	`include "pipeline_head.vh"
 
 	reg [63:0] p_x0_q,p_x1_q,p_x2_q,p_info_q;
 
-	reg [8:0] read_num_q;
+	reg [`READ_NUM_WIDTH - 1:0] read_num_q;
 	reg [5:0] status_q;
 	reg [63:0] primary_q;
 	reg [6:0] current_rd_addr_q;

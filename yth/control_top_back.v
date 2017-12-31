@@ -1,10 +1,12 @@
+
+
 module control_top_back(
 input  clk,
 input  rst,
 input  stall,
 
 ///////////////////////signals needs to be registered//////start////////
-input  [8:0] read_num_q,
+input  [`READ_NUM_WIDTH - 1:0] read_num_q,
 input  [5:0] status_q,
 input  [6:0] forward_size_n_q,
 input  [6:0] new_size_q,
@@ -32,7 +34,7 @@ input  [63:0] ok3_x0, ok3_x1, ok3_x2,
 input  [63:0] p_x0_q_S3,p_x1_q_S3,p_x2_q_S3,p_info_q_S3,
 
 //stage 1 output
-output  [8:0]	read_num_S1,
+output  [`READ_NUM_WIDTH - 1:0]	read_num_S1,
 output 			store_valid_mem,			
 output  [63:0]	mem_x_0,
 output  [63:0]	mem_x_1,
@@ -48,7 +50,7 @@ output  [63:0]	curr_x_info,
 output  [6:0]    curr_x_addr,
 
 //stage 2 output 
-output  [8:0] read_num_S2,
+output  [`READ_NUM_WIDTH - 1:0] read_num_S2,
 output  [6:0] current_rd_addr_S2,
 
 //stage 3 ////final stage output
@@ -56,7 +58,7 @@ output [5:0] status_query_B,
 output [`READ_NUM_WIDTH - 1:0] read_num_query_B,
 output [6:0] next_query_position_B,
 
-output  [8:0] read_num,
+output  [`READ_NUM_WIDTH - 1:0] read_num,
 output  [6:0] forward_size_n,
 output  [6:0] new_size,
 output  [63:0] primary,
@@ -83,8 +85,10 @@ output  finish_sign,
 output  [6:0] mem_size,
 output  [5:0] status
 );
+	`include "pipeline_head.vh"
+	
 	wire [6:0] backward_x_B1;
-	wire [8:0] read_num_B1;
+	wire [`READ_NUM_WIDTH - 1:0] read_num_B1;
 	wire [63:0] ok0_x0_B1, ok0_x1_B1, ok0_x2_B1;
 	wire [63:0] ok1_x0_B1, ok1_x1_B1, ok1_x2_B1;
 	wire [63:0] ok2_x0_B1, ok2_x1_B1, ok2_x2_B1;
@@ -103,7 +107,7 @@ output  [5:0] status
 	
 	
 	//signals handled to next stage
-	wire [8:0]	read_num_B2,read_num_B3;
+	wire [`READ_NUM_WIDTH - 1:0]	read_num_B2,read_num_B3;
 	wire [6:0]	new_size_B2;
 	wire [6:0]	current_wr_addr_B2,current_rd_addr_B2,mem_wr_addr_B2;
 	wire [63:0]	reserved_token_x2_B2;
@@ -129,7 +133,7 @@ output  [5:0] status
 	wire [6:0]	new_last_size_B3,forward_size_n_B3;
 	wire [63:0] p_x0_B3,p_x1_B3,p_x2_B3,p_info_B3;
 	wire [5:0] status_B2,status_B3;
-	wire [8:0]	read_num_B4;
+	wire [`READ_NUM_WIDTH - 1:0]	read_num_B4;
 	wire [6:0]	current_wr_addr_B4,current_rd_addr_B4,mem_wr_addr_B4;
 	wire [6:0]	min_intv_B4;
 	wire [6:0]	backward_i_B4,backward_j_B4;
