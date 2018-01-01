@@ -225,10 +225,26 @@ module Top(
 	wire DRAM_valid_B;
 	wire [41:0] addr_k_B, addr_l_B;
 	
+	reg  [`READ_NUM_WIDTH-1:0] DRAM_read_num_q;
+	always@(posedge Clk_32UI) begin
+		if(!stall_B) begin
+			DRAM_read_num_q <= DRAM_read_num;
+		end
+	end
+	
 	assign DRAM_valid = DRAM_valid_F | DRAM_valid_B;
 	assign addr_k = DRAM_valid_F ? addr_k_F : DRAM_valid_B ? addr_k_B : 0;
 	assign addr_l = DRAM_valid_F ? addr_l_F : DRAM_valid_B ? addr_l_B : 0;
-	assign DRAM_read_num = DRAM_valid_F ? read_num_out : DRAM_valid_B? read_num_B : 8'b1111_1111;
+	assign DRAM_read_num = DRAM_valid_F ? read_num_out : DRAM_valid_B? read_num_B : DRAM_read_num_q;
+	
+	always@(posedge Clk_32UI) begin
+		if(DRAM_valid_F && !stall_B && read_num_out == 39) begin
+			$display("F read num = %2d,\taddr_k = %08x\t, addr_l = %08x\n", read_num_out, addr_k_F, addr_l_F);
+		end
+		else if (DRAM_valid_B && !stall_B && read_num_B == 13) begin
+			$display("B read num = %2d,\taddr_k = %08x\t, addr_l = %08x\n", read_num_B, addr_k_B, addr_l_B);
+		end
+	end
 	
 	RAM_read ram_read(
 		.reset_n(reset_n),
@@ -433,6 +449,33 @@ module Top(
 		
 		
 	);
+	
+	always@(posedge Clk_32UI) begin
+		if(!stall_B) begin
+			if(mem_size_valid && mem_size_read_num == 13) begin
+				$display("read 13 push mem size = %d", mem_size);
+			end
+			
+			if(mem_we_1 && mem_read_num_1 == 13) begin
+				$display("read 13 push mem");
+				$display("mem.x[0] = %08x\t", mem_data_1[63:0]);
+				$display("mem.x[1] = %08x\t", mem_data_1[127:64]);
+				$display("mem.x[2] = %08x\t", mem_data_1[191:128]);
+				$display("mem.info = %08x\t", mem_data_1[255:192]);
+			end
+			
+			if(curr_we_1_B && curr_read_num_1_B == 13) begin
+				$display("read 13 push curr");
+				$display("curr.x[0] = %08x\t", curr_data_1_B[63:0]);
+				$display("curr.x[1] = %08x\t", curr_data_1_B[127:64]);
+				$display("curr.x[2] = %08x\t", curr_data_1_B[191:128]);
+				$display("curr.info = %08x\t", curr_data_1_B[255:192]);
+			end
+			if(curr_read_num_2 == 13) begin
+				$display("next accessing curr number %d", curr_addr_2);
+			end
+		end
+	end
 	
 	
 	
