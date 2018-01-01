@@ -50,7 +50,10 @@ module BWT_extend(
 	output reg [63:0] ok2_x0, ok2_x1, ok2_x2,
 	output reg [63:0] ok3_x0, ok3_x1, ok3_x2,
 	
-	output reg [5:0] status_L00
+	output reg [5:0] status_L00,
+	
+	input [7:0] query_L00_one_cycle_ahead,
+	output reg [63:0] ok_target_x0, ok_target_x1, ok_target_x2
 );
     
 	wire finish_k, finish_l, BWT_2occ4_finish;
@@ -258,6 +261,33 @@ module BWT_extend(
 		ok2_x2 <= ok2_x2_L4;
 		ok3_x2 <= ok3_x2_L4;   
 		status_L00 <= status_L4;
+		
+		case(query_L00_one_cycle_ahead[1:0])
+			0:begin
+				ok_target_x0 <= ok3_x0_L4;
+				ok_target_x1 <= ok3_x1_L4;
+				ok_target_x2 <= ok3_x2_L4;
+			end
+			
+			1:begin
+				ok_target_x0 <= ok2_x0_L4;
+				ok_target_x1 <= ok2_x1_L4;
+				ok_target_x2 <= ok2_x2_L4;
+;
+			end
+			
+			2:begin
+				ok_target_x0 <= ok1_x0_L4;
+				ok_target_x1 <= ok1_x1_L4;
+				ok_target_x2 <= ok1_x2_L4;
+			end
+			
+			3:begin
+				ok_target_x0 <= ok0_x0_L4;
+				ok_target_x1 <= ok0_x1_L4;
+				ok_target_x2 <= ok0_x2_L4;
+			end
+		endcase
 	end
 	end
 endmodule
