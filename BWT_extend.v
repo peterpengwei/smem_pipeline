@@ -23,6 +23,10 @@
 
 //output: ok
 
+`define CL 512
+`define MAX_READ 64
+`define READ_NUM_WIDTH 6
+
 module BWT_extend(
 	input stall,
 	
@@ -55,7 +59,17 @@ module BWT_extend(
 	input [7:0] query_L00_one_cycle_ahead,
 	output reg [63:0] ok_target_x0, ok_target_x1, ok_target_x2
 );
-    
+
+	parameter Len = 101;
+	
+	parameter F_init = 	6'b00_0001; // F_init will disable the forward pipeline
+	parameter F_run =  	6'b00_0010;
+	parameter F_break = 6'b00_0100;
+	parameter BCK_INI = 6'b00_1000;	//100
+	parameter BCK_RUN = 6'b01_0000;	//101
+	parameter BCK_END = 6'b10_0000;	//110
+	parameter BUBBLE = 	6'b00_0000;
+	
 	wire finish_k, finish_l, BWT_2occ4_finish;
 	wire [31:0] cnt_tk_out0,cnt_tk_out1,cnt_tk_out2,cnt_tk_out3;
 	wire [31:0] cnt_tl_out0,cnt_tl_out1,cnt_tl_out2,cnt_tl_out3;

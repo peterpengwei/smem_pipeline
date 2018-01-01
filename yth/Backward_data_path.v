@@ -1,4 +1,6 @@
-
+`define CL 512
+`define MAX_READ 64
+`define READ_NUM_WIDTH 6
 
 module Backward_data_path(
 	input clk,  
@@ -117,7 +119,15 @@ module Backward_data_path(
 	output [6:0] mem_size,
 	output [5:0] status
 );
-	`include "pipeline_head.vh"
+	parameter Len = 101;
+	
+	parameter F_init = 	6'b00_0001; // F_init will disable the forward pipeline
+	parameter F_run =  	6'b00_0010;
+	parameter F_break = 6'b00_0100;
+	parameter BCK_INI = 6'b00_1000;	//100
+	parameter BCK_RUN = 6'b01_0000;	//101
+	parameter BCK_END = 6'b10_0000;	//110
+	parameter BUBBLE = 	6'b00_0000;
 
 	reg [5:0] status_BB;wire [5:0] status_B1;
 	reg [63:0] ik_x0_new,ik_x1_new,ik_x2_new;

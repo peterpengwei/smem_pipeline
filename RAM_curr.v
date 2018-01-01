@@ -1,4 +1,6 @@
-
+`define CL 512
+`define MAX_READ 64
+`define READ_NUM_WIDTH 6
 `define CURR_QUEUE_ADDR_WIDTH 12
 `define MEM_QUEUE_ADDR_WIDTH 11
 `define READ_MAX_MEM 20
@@ -51,7 +53,15 @@ module RAM_curr_mem(
 	output reg output_finish
 
 );
-	`include "pipeline_head.vh"
+	parameter Len = 101;
+	
+	parameter F_init = 	6'b00_0001; // F_init will disable the forward pipeline
+	parameter F_run =  	6'b00_0010;
+	parameter F_break = 6'b00_0100;
+	parameter BCK_INI = 6'b00_1000;	//100
+	parameter BCK_RUN = 6'b01_0000;	//101
+	parameter BCK_END = 6'b10_0000;	//110
+	parameter BUBBLE = 	6'b00_0000;
 	//valid bits
 	//ik_x0 = 33; ik_x1 = 33; ik_x2 = 33; ik_info = 14;
 	//33+33+33+14 = 113 bits

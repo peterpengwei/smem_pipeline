@@ -8,6 +8,11 @@
 //            article can be downloaded from the
 //            Xilinx website. It has some minor modifications.
 //=========================================
+
+`define CL 512
+`define MAX_READ 64
+`define READ_NUM_WIDTH 6
+
 module aFIFO
   #(parameter    DATA_WIDTH    = 65,
                  ADDRESS_WIDTH = 2,

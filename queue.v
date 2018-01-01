@@ -14,7 +14,9 @@
 //will all run in the pipeline
 
 //==========================
-
+`define CL 512
+`define MAX_READ 64
+`define READ_NUM_WIDTH 6
 
 `define WIDTH_read 308 + 100 //[important] be careful not to exceed the width
 `define WIDTH_memory 768
@@ -141,7 +143,15 @@ module Queue(
 	input [7:0] new_read_query_2Queue
 );
 
-	`include "pipeline_head.vh"
+	parameter Len = 101;
+	
+	parameter F_init = 	6'b00_0001; // F_init will disable the forward pipeline
+	parameter F_run =  	6'b00_0010;
+	parameter F_break = 6'b00_0100;
+	parameter BCK_INI = 6'b00_1000;	//100
+	parameter BCK_RUN = 6'b01_0000;	//101
+	parameter BCK_END = 6'b10_0000;	//110
+	parameter BUBBLE = 	6'b00_0000;
 	
 	reg [31:0] cnt_a0_out,cnt_a1_out,cnt_a2_out,cnt_a3_out;
 	reg [63:0] cnt_b0_out,cnt_b1_out,cnt_b2_out,cnt_b3_out;

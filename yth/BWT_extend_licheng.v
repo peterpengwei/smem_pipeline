@@ -1,4 +1,6 @@
-
+`define CL 512
+`define MAX_READ 64
+`define READ_NUM_WIDTH 6
 
 module BWT_extend_lc(
 	input Clk_32UI,
@@ -65,7 +67,15 @@ module BWT_extend_lc(
 
 	output  reg [63:0] ok_b_temp_x0,ok_b_temp_x1,ok_b_temp_x2
 );
-	`include "pipeline_head.vh"
+	parameter Len = 101;
+	
+	parameter F_init = 	6'b00_0001; // F_init will disable the forward pipeline
+	parameter F_run =  	6'b00_0010;
+	parameter F_break = 6'b00_0100;
+	parameter BCK_INI = 6'b00_1000;	//100
+	parameter BCK_RUN = 6'b01_0000;	//101
+	parameter BCK_END = 6'b10_0000;	//110
+	parameter BUBBLE = 	6'b00_0000;
       
 	wire finish_k, finish_l, BWT_2occ4_finish;
 	wire [31:0] cnt_tk_out0,cnt_tk_out1,cnt_tk_out2,cnt_tk_out3;

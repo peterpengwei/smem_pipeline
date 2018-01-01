@@ -1,4 +1,6 @@
-
+`define CL 512
+`define MAX_READ 64
+`define READ_NUM_WIDTH 6
 
 module RAM_read(
 	input reset_n,
@@ -32,7 +34,15 @@ module RAM_read(
 	output [63:0] primary,
 	output [63:0] L2_0, L2_1, L2_2, L2_3
 );
-	`include "pipeline_head.vh"
+	parameter Len = 101;
+	
+	parameter F_init = 	6'b00_0001; // F_init will disable the forward pipeline
+	parameter F_run =  	6'b00_0010;
+	parameter F_break = 6'b00_0100;
+	parameter BCK_INI = 6'b00_1000;	//100
+	parameter BCK_RUN = 6'b01_0000;	//101
+	parameter BCK_END = 6'b10_0000;	//110
+	parameter BUBBLE = 	6'b00_0000;
 	
 	reg [`CL - 1:0] RAM_read_1[`MAX_READ - 1:0];
 	reg [`CL - 1:0] RAM_read_2[`MAX_READ - 1:0];
