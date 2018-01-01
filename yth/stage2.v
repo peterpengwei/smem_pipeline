@@ -5,6 +5,11 @@ input wire clk,
 input wire rst,
 input wire stall,
 
+input wire [63:0]	pendingcurr_x_0_q,
+input wire [63:0]	pendingcurr_x_1_q,
+input wire [63:0]	pendingcurr_x_2_q,
+input wire [63:0]	pendingcurr_x_info_q,
+
 input wire [`READ_NUM_WIDTH - 1:0] read_num_q,//onchip reads will not exceed 1024
 input wire [5:0] status_q,
 input wire [63:0] primary_q,
@@ -22,6 +27,12 @@ input wire iteration_boundary_q,
 
 output reg [`READ_NUM_WIDTH - 1:0] read_num,
 output reg [6:0] current_rd_addr,
+
+output reg last_one_read,
+output reg [63:0]	pendingcurr_x_0,
+output reg [63:0]	pendingcurr_x_1,
+output reg [63:0]	pendingcurr_x_2,
+output reg [63:0]	pendingcurr_x_info,
 
 //signals handled to next stage
 output reg [63:0] primary,
@@ -65,9 +76,15 @@ output reg [5:0] status
 	assign new_last_size_d		= j_bound ? new_size_q : new_last_size_q;
 	assign new_size_d			= j_bound ? 0 : new_size_q;
 
+	wire lastone;
+	assign lastone = (new_size_q == 7'b1) && j_bound;
 
 	always @(posedge clk) begin
 		if(!rst)begin
+			pendingcurr_x_0 <= 0;
+			pendingcurr_x_1 <= 0;
+			pendingcurr_x_2 <= 0;
+			pendingcurr_x_info <= 0;
 			finish_sign			<= 0;
 			iteration_boundary	<= 0;
 			backward_i			<= 0;
@@ -85,11 +102,15 @@ output reg [5:0] status
 			primary				<= 0;
 			reserved_token_x2	<= 0;
 			reserved_mem_info	<= 0;
-			
+			last_one_read <= 0;
 			status <= 5'b11110;
 		end	
 		else if (stall == 1) begin
 			primary				<= primary;
+						pendingcurr_x_0 <= pendingcurr_x_0;
+			pendingcurr_x_1 <= pendingcurr_x_1;
+			pendingcurr_x_2 <= pendingcurr_x_2;
+			pendingcurr_x_info <= pendingcurr_x_info;
 			reserved_token_x2	<= reserved_token_x2;
 			reserved_mem_info	<= reserved_mem_info;
 			finish_sign			<= finish_sign;
@@ -101,7 +122,7 @@ output reg [5:0] status
 			current_rd_addr		<= current_rd_addr;
 			new_size			<= new_size;
 			new_last_size		<= new_last_size;
-			
+			last_one_read <= last_one_read;
 			min_intv			<= min_intv;
 			read_num			<= read_num;
 			mem_wr_addr			<= mem_wr_addr;
@@ -112,7 +133,11 @@ output reg [5:0] status
 		else if(status_q==BCK_INI) begin
 			read_num			<= read_num_q;
 			current_rd_addr		<= current_rd_addr_q;
-
+			pendingcurr_x_0 <= 0;
+			pendingcurr_x_1 <= 0;
+			pendingcurr_x_2 <= 0;
+			pendingcurr_x_info <= 0;			
+			last_one_read <= 0;
 			//signals handled to next stage
 			primary				<= primary_q;
 			forward_size_n		<= forward_size_n_q;
@@ -132,6 +157,12 @@ output reg [5:0] status
 			status				<= BCK_INI;
 		end
 		else if(status_q==BCK_RUN) begin
+			last_one_read <= lastone;
+			pendingcurr_x_0 <= pendingcurr_x_0_q;
+			pendingcurr_x_1 <= pendingcurr_x_1_q;
+			pendingcurr_x_2 <= pendingcurr_x_2_q;
+			pendingcurr_x_info <= pendingcurr_x_info_q;	
+			
 			primary		<= primary_q;
 			reserved_token_x2	<= reserved_token_x2_q;
 			reserved_mem_info	<= reserved_mem_info_q;
@@ -153,7 +184,12 @@ output reg [5:0] status
 			
 			status				<= status_q;
 		end
-		else if(status_q==BUBBLE) begin
+		else begin
+			last_one_read <= 0;
+			pendingcurr_x_0 <= 0;
+			pendingcurr_x_1 <= 0;
+			pendingcurr_x_2 <= 0;
+			pendingcurr_x_info <= 0;
 			primary				<= 0;
 			reserved_token_x2	<= 0;
 			reserved_mem_info	<= 0;
