@@ -283,7 +283,7 @@ module BWT_extend(
 			end
 			
 			3:begin
-				ok_target_x0 <= ok0_x0_L4;
+				ok_target_x0 <= ok1_x0_L4 + ok1_x2_L4;
 				ok_target_x1 <= ok0_x1_L4;
 				ok_target_x2 <= ok0_x2_L4;
 			end

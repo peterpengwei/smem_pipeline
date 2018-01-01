@@ -288,10 +288,7 @@ module Datapath(
 			curr_read_num_1 <= read_num_L00;
 			curr_data_1 <= {ik_info_L00, ik_x2_L00, ik_x1_L00, ik_x0_L00};
 			curr_addr_1 <= ptr_curr_L00;
-			
-			ok_target_x0_L1 <= ok_target_x0_L0;
-			ok_target_x1_L1 <= ok_target_x1_L0;
-			ok_target_x2_L1 <= ok_target_x2_L0;
+
 			
 			if(status_L00_eq_F_run) begin
 				ret <= 0;
@@ -478,6 +475,10 @@ module Datapath(
 			ok1_x0_L1 <= ok1_x0_L0; ok1_x1_L1 <= ok1_x1_L0; ok1_x2_L1 <= ok1_x2_L0;
 			ok2_x0_L1 <= ok2_x0_L0; ok2_x1_L1 <= ok2_x1_L0; ok2_x2_L1 <= ok2_x2_L0;
 			ok3_x0_L1 <= ok3_x0_L0; ok3_x1_L1 <= ok3_x1_L0; ok3_x2_L1 <= ok3_x2_L0;
+						
+			ok_target_x0_L1 <= ok_target_x0_L0;
+			ok_target_x1_L1 <= ok_target_x1_L0;
+			ok_target_x2_L1 <= ok_target_x2_L0;
 			
 			forward_i_L1 <= forward_i_L00;
 			min_intv_L1 <= min_intv_L00;
@@ -521,7 +522,7 @@ module Datapath(
 		else if(!stall) begin
 			if(status_L1 == F_run) begin
 				if (is_update_ik) begin
-/* 					ik_x0_L2 <= ok_target_x0_L1;
+					ik_x0_L2 <= ok_target_x0_L1;
 					ik_x1_L2 <= ok_target_x1_L1;
 					ik_x2_L2 <= ok_target_x2_L1;
 					
@@ -529,9 +530,9 @@ module Datapath(
 					forward_l_temp_L2 <= ok_target_x1_L1 - 1 + ok_target_x2_L1;
 					
 					forward_k_temp_L2_minus <= ok_target_x1_L1 - 1 - 1;
-					forward_l_temp_L2_minus <= ok_target_x1_L1 - 1 + ok_target_x2_L1 - 1; */
+					forward_l_temp_L2_minus <= ok_target_x1_L1 - 1 + ok_target_x2_L1 - 1;
 					
-					case(query_L1[1:0])
+/* 					case(query_L1[1:0])
 						0: begin
 							ik_x0_L2 <= ok3_x0_L1;
 							ik_x1_L2 <= ok3_x1_L1;
@@ -575,7 +576,7 @@ module Datapath(
 							forward_k_temp_L2_minus <= ok0_x1_L1 - 1 - 1;
 							forward_l_temp_L2_minus <= ok0_x1_L1 - 1 + ok0_x2_L1 - 1;
 						end	
-					endcase
+					endcase */
 					ik_info_L2 <= forward_i_L1 + 1;
 				end
 				else begin
