@@ -61,7 +61,9 @@ module BWT_extend_lc(
 	output  reg [63:0] ok1_x0, ok1_x1, ok1_x2,
 	output  reg [63:0] ok2_x0, ok2_x1, ok2_x2,
 	output  reg [63:0] ok3_x0, ok3_x1, ok3_x2,
-	output  [63:0] p_x0,p_x1,p_x2,p_info	
+	output  [63:0] p_x0,p_x1,p_x2,p_info,
+
+	output  reg [63:0] ok_b_temp_x0,ok_b_temp_x1,ok_b_temp_x2
 );
 	`include "pipeline_head.vh"
       
@@ -1398,6 +1400,10 @@ reg[6:0] backward_x_L12;
 		ok1_x2 <= ok1_x2_L4;
 		ok2_x2 <= ok2_x2_L4;
 		ok3_x2 <= ok3_x2_L4;   
+		
+		ok_b_temp_x0 <= output_c_L11[1]? (output_c_L11[0]?ok3_x0_L4:ok2_x0_L4) : (output_c_L11[0]?ok1_x0_L4:ok0_x0_L4);
+		ok_b_temp_x1 <= output_c_L11[1]? (output_c_L11[0]?ok3_x1_L4:ok2_x1_L4) : (output_c_L11[0]?ok1_x1_L4:ok1_x1_L4 + ok1_x2_L4);
+		ok_b_temp_x2 <= output_c_L11[1]? (output_c_L11[0]?ok3_x2_L4:ok2_x2_L4) : (output_c_L11[0]?ok1_x2_L4:ok0_x2_L4);
 	end
 
 	end

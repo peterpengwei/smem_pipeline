@@ -147,6 +147,8 @@ module Backward_data_path(
 	wire [31:0] last_mem_info_B1;
 	wire [63:0] last_token_x2_B1;
 	wire [7:0] output_c_B1;
+	
+	wire [63:0] ok_b_temp_x0_B1,ok_b_temp_x1_B1,ok_b_temp_x2_B1;
 
 
 BWT_extend_lc	BWT_ext_lc(
@@ -227,7 +229,11 @@ BWT_extend_lc	BWT_ext_lc(
 	.ok2_x2           (ok2_x2_B1),     
 	.ok3_x0           (ok3_x0_B1),     
 	.ok3_x1           (ok3_x1_B1),     
-	.ok3_x2           (ok3_x2_B1)    
+	.ok3_x2           (ok3_x2_B1),
+
+	.ok_b_temp_x0(ok_b_temp_x0_B1),
+	.ok_b_temp_x1(ok_b_temp_x1_B1),
+	.ok_b_temp_x2(ok_b_temp_x2_B1)
 );
 
 control_top_back bck_ctrl(
@@ -267,6 +273,10 @@ control_top_back bck_ctrl(
 	.ok3_x0           (ok3_x0_B1),     
 	.ok3_x1           (ok3_x1_B1),     
 	.ok3_x2           (ok3_x2_B1),   
+	
+	.ok_b_temp_x0(ok_b_temp_x0_B1),
+	.ok_b_temp_x1(ok_b_temp_x1_B1),
+	.ok_b_temp_x2(ok_b_temp_x2_B1),
 	 
 	 //stage 3 input
 	 .p_x0_q_S3(p_x0_q_S3_q),

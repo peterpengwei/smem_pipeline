@@ -29,6 +29,8 @@ input  [63:0] ok1_x0, ok1_x1, ok1_x2,
 input  [63:0] ok2_x0, ok2_x1, ok2_x2,
 input  [63:0] ok3_x0, ok3_x1, ok3_x2,
 
+input [63:0] ok_b_temp_x0,ok_b_temp_x1,ok_b_temp_x2,
+
 
 //stage 3 input
 input  [63:0] p_x0_q_S3,p_x1_q_S3,p_x2_q_S3,p_info_q_S3,
@@ -170,6 +172,11 @@ output  [5:0] status
      .ok3_x0           (ok3_x0),     
      .ok3_x1           (ok3_x1),     
      .ok3_x2           (ok3_x2), 
+	 
+	.ok_b_temp_x0(ok_b_temp_x0),
+	.ok_b_temp_x1(ok_b_temp_x1),
+	.ok_b_temp_x2(ok_b_temp_x2),
+	
 	 .p_x0(p_x0_q),.p_x1(p_x1_q),
 	 .p_x2(p_x2_q),.p_info(p_info_q),
 
