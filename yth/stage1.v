@@ -90,7 +90,7 @@ assign reserved_token_x2_d		= cond_2 ? ok_b_temp_x2 : last_token_x2;
 assign new_size_d				= cond_2 ? (new_size_q + 1) : new_size_q;
 assign store_valid_mem_d		= cond_1 ; 
 assign store_valid_curr_d		= cond_2 ; 
-assign new_i				= backward_i_q + 1; //solely for conditional judgement
+assign new_i				= iteration_boundary_q ? 0 : backward_i_q + 1;
 assign ambiguous			= output_c_q < 4 ? 0 : 1;//decide whether the current c is ambiguous
 assign ini_pos = forward_size_n_q - 1;
 wire j_bound;
@@ -224,7 +224,7 @@ always@(posedge clk) begin
 		store_valid_curr	<= store_valid_curr_d;
 		status <= BCK_RUN;
 	end
-	else if (status_q==BUBBLE) begin
+	else begin
 		primary			<= 0;
 		read_num		<= 0;
 		current_rd_addr	<= 0;
