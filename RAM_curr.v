@@ -1,10 +1,10 @@
 `define CL 512
 `define MAX_READ 64
 `define READ_NUM_WIDTH 6
-`define CURR_QUEUE_ADDR_WIDTH 12
-`define MEM_QUEUE_ADDR_WIDTH 11
-`define READ_MAX_MEM 20
-`define READ_MAX_CURR 52
+`define CURR_QUEUE_ADDR_WIDTH 15
+`define MEM_QUEUE_ADDR_WIDTH 15
+`define READ_MAX_MEM 101
+`define READ_MAX_CURR 101
 
 module RAM_curr_mem(
 	input reset_n,
