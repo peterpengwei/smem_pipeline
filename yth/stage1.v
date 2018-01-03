@@ -1,6 +1,4 @@
-`define CL 512
-`define MAX_READ 64
-`define READ_NUM_WIDTH 6
+
 
 module CONTROL_STAGE1(
 input wire clk,
@@ -62,21 +60,13 @@ output reg [63:0]	curr_x_info,
 output reg [6:0]    curr_x_addr,
 
 output reg iteration_boundary,
-output reg [5:0] status,
-input [63:0] ok_b_temp_x0,ok_b_temp_x1,ok_b_temp_x2
+output reg [5:0] status
 );
-	parameter Len = 101;
-	
-	parameter F_init = 	6'b00_0001; // F_init will disable the forward pipeline
-	parameter F_run =  	6'b00_0010;
-	parameter F_break = 6'b00_0100;
-	parameter BCK_INI = 6'b00_1000;	//100
-	parameter BCK_RUN = 6'b01_0000;	//101
-	parameter BCK_END = 6'b10_0000;	//110
-	parameter BUBBLE = 	6'b00_0000;
+	`include "pipeline_head.vh"
 
 wire [6:0] new_i;
 wire ambiguous;
+wire [63:0] ok_b_temp_x0,ok_b_temp_x1,ok_b_temp_x2;
 wire [6:0] new_size_d;
 wire [6:0]  mem_wr_addr_d;
 wire [6:0]  current_wr_addr_d;
@@ -259,25 +249,33 @@ always@(posedge clk) begin
 end
 
 always @(posedge clk) begin
-   	if((ambiguous==1) || (iteration_boundary_q==1) || (ok_b_temp_x2 < min_intv_q)) begin
-   		if(new_size_q==0) begin
-   	 		if((mem_wr_addr_q == 0) || (new_i < last_mem_info)) begin
-				mem_x_0 <= p_x0;
-				mem_x_1 <= p_x1;
-				mem_x_2 <= p_x2;
-				mem_x_info <= {new_i,p_info[31:0]};
-				mem_x_addr <= mem_wr_addr_q;
-   	 		end
+	if(!stall)begin
+   		if((ambiguous==1) || (iteration_boundary_q==1) || (ok_b_temp_x2 < min_intv_q)) begin
+   			if(new_size_q==0) begin
+   	 			if((mem_wr_addr_q == 0) || (new_i < last_mem_info)) begin
+					mem_x_0 <= p_x0;
+					mem_x_1 <= p_x1;
+					mem_x_2 <= p_x2;
+					mem_x_info <= {new_i,p_info[31:0]};
+					mem_x_addr <= mem_wr_addr_q;
+   	 			end
+   			end
    		end
-   	end
-   	else if((new_size_q==0) || (ok_b_temp_x2 != last_token_x2)) begin
-		curr_x_0			<= ok_b_temp_x0;
-		curr_x_1			<= ok_b_temp_x1;
-		curr_x_2			<= ok_b_temp_x2;
-		curr_x_info			<= p_info;
-		curr_x_addr			<= current_wr_addr_q;
+   		else if((new_size_q==0) || (ok_b_temp_x2 != last_token_x2)) begin
+			curr_x_0			<= ok_b_temp_x0;
+			curr_x_1			<= ok_b_temp_x1;
+			curr_x_2			<= ok_b_temp_x2;
+			curr_x_info			<= p_info;
+			curr_x_addr			<= current_wr_addr_q;
+		end
 	end
 end
+
+assign ok_b_temp_x0 = output_c_q[1]? (output_c_q[0]?ok3_x0:ok2_x0) : (output_c_q[0]?ok1_x0:ok0_x0);
+assign ok_b_temp_x1 = output_c_q[1]? (output_c_q[0]?ok3_x1:ok2_x1) : (output_c_q[0]?ok1_x1:ok0_x1);
+assign ok_b_temp_x2 = output_c_q[1]? (output_c_q[0]?ok3_x2:ok2_x2) : (output_c_q[0]?ok1_x2:ok0_x2);
+
+
 
 
 endmodule
