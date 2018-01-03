@@ -119,6 +119,14 @@ output reg [5:0] status
 			backward_l_temp <= p_x0_licheng - 1 + p_x2_licheng;
 			backward_k_temp_minus_1 <= p_x0_licheng - 2;
 			backward_l_temp_minus_1 <= p_x0_licheng - 2 + p_x2_licheng;
+			
+			// if(status_licheng != BUBBLE) begin
+				// $display("get p");
+				// $display("p.x[0] = %08x\t", p_x0_licheng);
+				// $display("p.x[1] = %08x\t", p_x1_licheng);
+				// $display("p.x[2] = %08x\t", p_x2_licheng);
+				// $display("p.info = %08x\t", p_info_licheng);
+			// end
 		end
 	end
 

@@ -238,10 +238,10 @@ module Top(
 	assign DRAM_read_num = DRAM_valid_F ? read_num_out : DRAM_valid_B? read_num_B : DRAM_read_num_q;
 	
 	always@(posedge Clk_32UI) begin
-		if(DRAM_valid_F && !stall_B && read_num_out == 39) begin
+		if(DRAM_valid_F && !stall_B) begin
 			$display("F read num = %2d,\taddr_k = %08x\t, addr_l = %08x\n", read_num_out, addr_k_F, addr_l_F);
 		end
-		else if (DRAM_valid_B && !stall_B && read_num_B == 13) begin
+		else if (DRAM_valid_B && !stall_B) begin
 			$display("B read num = %2d,\taddr_k = %08x\t, addr_l = %08x\n", read_num_B, addr_k_B, addr_l_B);
 		end
 	end
@@ -452,28 +452,33 @@ module Top(
 	
 	always@(posedge Clk_32UI) begin
 		if(!stall_B) begin
-			if(mem_size_valid && mem_size_read_num == 13) begin
-				$display("read 13 push mem size = %d", mem_size);
+			if(mem_size_valid) begin
+				$display("read %2d push mem size = %d", mem_size_read_num, mem_size);
 			end
 			
-			if(mem_we_1 && mem_read_num_1 == 13) begin
-				$display("read 13 push mem");
+			if(mem_we_1) begin
+				$display("read %d push mem", mem_read_num_1);
 				$display("mem.x[0] = %08x\t", mem_data_1[63:0]);
 				$display("mem.x[1] = %08x\t", mem_data_1[127:64]);
 				$display("mem.x[2] = %08x\t", mem_data_1[191:128]);
 				$display("mem.info = %08x\t", mem_data_1[255:192]);
 			end
 			
-			if(curr_we_1_B && curr_read_num_1_B == 13) begin
-				$display("read 13 push curr");
-				$display("curr.x[0] = %08x\t", curr_data_1_B[63:0]);
-				$display("curr.x[1] = %08x\t", curr_data_1_B[127:64]);
-				$display("curr.x[2] = %08x\t", curr_data_1_B[191:128]);
-				$display("curr.info = %08x\t", curr_data_1_B[255:192]);
-			end
-			if(curr_read_num_2 == 13) begin
-				$display("next accessing curr number %d", curr_addr_2);
-			end
+			// if(curr_we_1_B) begin
+				// $display("read %d backward push curr", curr_read_num_1_B);
+				// $display("curr.x[0] = %08x\t", curr_data_1_B[63:0]);
+				// $display("curr.x[1] = %08x\t", curr_data_1_B[127:64]);
+				// $display("curr.x[2] = %08x\t", curr_data_1_B[191:128]);
+				// $display("curr.info = %08x\t", curr_data_1_B[255:192]);
+			// end
+			
+			// if(curr_we_1_F) begin
+				// $display("read %d forward push curr", curr_read_num_1_F);
+				// $display("curr.x[0] = %08x\t", curr_data_1_F[63:0]);
+				// $display("curr.x[1] = %08x\t", curr_data_1_F[127:64]);
+				// $display("curr.x[2] = %08x\t", curr_data_1_F[191:128]);
+				// $display("curr.info = %08x\t", curr_data_1_F[255:192]);
+			// end
 		end
 	end
 	
