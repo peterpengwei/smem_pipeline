@@ -259,6 +259,7 @@ always@(posedge clk) begin
 end
 
 always @(posedge clk) begin
+	if(!stall) begin
    	if((ambiguous==1) || (iteration_boundary_q==1) || (ok_b_temp_x2 < min_intv_q)) begin
    		if(new_size_q==0) begin
    	 		if((mem_wr_addr_q == 0) || (new_i < last_mem_info)) begin
@@ -276,6 +277,7 @@ always @(posedge clk) begin
 		curr_x_2			<= ok_b_temp_x2;
 		curr_x_info			<= p_info;
 		curr_x_addr			<= current_wr_addr_q;
+	end
 	end
 end
 
