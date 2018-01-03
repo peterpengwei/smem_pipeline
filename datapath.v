@@ -59,14 +59,15 @@ module Datapath(
 	
 	
 );
-	parameter F_init = 	6'b00_0001,
-			Len = 101,
-			F_run =  	6'b00_0010,
-			F_break = 6'b00_0100,
-			BCK_INI = 6'b00_1000,
-			BCK_RUN = 6'b01_0000,
-			BCK_END = 6'b10_0000,
-			BUBBLE = 	6'b00_0000;
+	parameter Len = 101;
+	
+	parameter F_init = 	6'b00_0001; // F_init will disable the forward pipeline
+	parameter F_run =  	6'b00_0010;
+	parameter F_break = 6'b00_0100;
+	parameter BCK_INI = 6'b00_1000;	//100
+	parameter BCK_RUN = 6'b01_0000;	//101
+	parameter BCK_END = 6'b10_0000;	//110
+	parameter BUBBLE = 	6'b00_0000;
 	
 	//-----------------------------------------------------------
 	//** initial case unsolved ** what to do with F_init? => left with the final stage
@@ -791,14 +792,9 @@ module Pipe_BWT_extend(
 		output reg [63:0] ik_x0_pipe, ik_x1_pipe, ik_x2_pipe, ik_info_pipe
 
 	);
-	parameter F_init = 	6'b00_0001,
-			Len = 101,
-			F_run =  	6'b00_0010,
-			F_break = 6'b00_0100,
-			BCK_INI = 6'b00_1000,
-			BCK_RUN = 6'b01_0000,
-			BCK_END = 6'b10_0000,
-			BUBBLE = 	6'b00_0000;	
+	
+	`include "pipeline_head.vh"
+	
 	reg [6:0] forward_i_L1;
 	reg [6:0] min_intv_L1;
 	reg [6:0] backward_x_L1;
