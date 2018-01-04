@@ -44,7 +44,7 @@ module afu_core(
     input  wire                             csr_ctx_base_valid,
     input  wire [57:0]                      csr_ctx_base,
 
-	input  [63:0]	dsm_base_addr,	
+	input  [63:0]						dsm_base_addr,	
 	input  [63:0] 						io_src_ptr,
 	input  [63:0] 						io_dst_ptr,
 	input  [63:0] 						io_hand_ptr,
@@ -505,7 +505,7 @@ module afu_core(
 	parameter OUTPUT 	= 8'b0010_0000;
 	parameter FINAL 	= 8'b0100_0000;
 	parameter FINAL_2 	= 8'b1000_0000;
-	reg [7:0] state;
+	reg [7:0] state, state_q;
 	
 	
 	wire read_load_done;
@@ -527,6 +527,56 @@ module afu_core(
 	reg reset_n_200M;
 	always@(posedge CLK_200M) begin reset_n_200M <= reset_n;end
 	
+	//------------------------------------------------
+	//tracker
+	
+	reg [31:0] timer;
+	reg [31:0] run_counter;
+	reg [31:0] request_counter;
+	reg [31:0] stall_counter;
+	reg [31:0] load_counter;
+	reg [31:0] output_counter;
+	reg [31:0] idle_counter;
+	always@(posedge CLK_200M) begin
+		state_q <= state;
+		if(state_q == IDLE) begin
+			timer <= 0;
+			run_counter <= 0;
+			idle_counter <= 0;
+			request_counter <= 0;
+			stall_counter <= 0;
+			load_counter <= 0;
+			output_counter <= 0;
+		end
+		else begin			
+			timer <= timer + 1;
+			
+			if(state_q == POLLING_1 || state_q == POLLING_2) begin
+				idle_counter <= idle_counter + 1;
+			end
+			if(state_q == LOAD_READ) begin
+				load_counter <= load_counter + 1;
+			end
+			if(state_q == RUN) begin
+				run_counter <= run_counter + 1;
+				if(!stall_A) begin
+					if(DRAM_valid) begin
+						request_counter <= request_counter + 2;
+					end
+				end
+				else begin
+					stall_counter <= stall_counter + 1;
+				end
+			end
+			if(state_q == OUTPUT) begin
+				output_counter <= output_counter + 1;
+			end
+			
+		end
+	end
+	
+	//------------------------------------------------
+	reg tracker_tag;
 	always@(posedge CLK_200M) begin
 		if(!reset_n_200M) begin
 			state <= IDLE;
@@ -541,6 +591,7 @@ module afu_core(
 			//CL_1_200M <= 0;
 			//CL_2_200M <= 0;
 			output_permit <= 0;
+			tracker_tag <= 0;
 		end
 		else begin
 			case(state)
@@ -560,6 +611,7 @@ module afu_core(
 					FIFO_output_WriteEn_in <= 0;
 					FIFO_request_WriteEn_in_2 <= 0;
 					FIFO_output_Data_in <= 0;
+					tracker_tag <= 0;
 					if(core_start)state <= POLLING_1;
 				end
 				
@@ -661,6 +713,13 @@ module afu_core(
 							FIFO_output_Data_in[511:0]      <= output_data_200M;
 						
 							if(output_valid_200M) output_addr <= output_addr + 1;
+						end
+						else if(!tracker_tag) begin
+							FIFO_output_WriteEn_in <= 1;
+							FIFO_output_Data_in[512+57:512] <= dsm_base_addr;
+							FIFO_output_Data_in[511:0]      <= {64'b0,32'b0,timer, 32'b0, run_counter, 32'b0, request_counter, 32'b0, stall_counter, 32'b0, load_counter, 32'b0, output_counter, 32'b0, idle_counter};
+						
+							tracker_tag <= 1;
 						end
 						else begin
 							FIFO_output_WriteEn_in 			<= 1;
