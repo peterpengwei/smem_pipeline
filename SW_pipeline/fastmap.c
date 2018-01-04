@@ -334,7 +334,6 @@ int main_fastmap(int argc, char *argv[])
 }
 
 static void *harp_management(void * data) {
-	int licheng=0;
 	int num_counter = 0;
 	int nthreads = *((int *) data);
 	double afu_time = 0;
@@ -352,10 +351,13 @@ static void *harp_management(void * data) {
 	int i, j;
 	printf("Thread numbers: %d\n",nthreads);
 
-	unsigned long int rd_cnt = 123;
-	unsigned long int clk_cnt = 123;
-	unsigned long int rd_full_cnt = 123;
-	//unsigned long int *dsm = DSM; 
+	unsigned long int timer;
+	unsigned long int run_counter;
+	unsigned long int request_counter;
+	unsigned long int stall_counter;
+	unsigned long int load_counter;
+	unsigned long int output_counter;
+	unsigned long int idle_counter;
 
 	struct OneCL {                      // Make a cache-line sized structure
 		unsigned long int dw[8];       //    for array arithmetic
@@ -393,15 +395,6 @@ static void *harp_management(void * data) {
 
 			    	int watch_dog = *handshake & 0x0000000f;
 	
-				rd_cnt = 123;
-				clk_cnt = 123;
-				rd_full_cnt = 123;
-	
-				dsm = (struct OneCL *)(DSM);
-				//*dsm = DSM; 
-
-
-
 				double start_time = realtime();
 				double this_time = 0;
 				#if LOG_LEVEL == 2
@@ -435,24 +428,22 @@ static void *harp_management(void * data) {
 				this_time = realtime() - start_time;
 				afu_time += realtime() - start_time;
 
-				rd_cnt = dsm[0].dw[0];
-				clk_cnt = dsm[0].dw[1];
-				rd_full_cnt = dsm[0].dw[2];
+				timer = dsm[0].dw[6];
+				run_counter = dsm[0].dw[5];
+				request_counter = dsm[0].dw[4];
+				stall_counter = dsm[0].dw[3];
+				load_counter = dsm[0].dw[2];
+				output_counter = dsm[0].dw[1];
+				idle_counter = dsm[0].dw[0];
 				
-				//printf("Batch contains %d reads\t", read_num);
-				//printf("read count = %lu\t,bandwidth = %lf \tGb/s\n", rd_cnt, rd_cnt * 64.0 / this_time / 1024 / 1024/ 1024 );
-				//printf("clock count = %lu\t", clk_cnt);
-				//printf("read almost full count = %lu\n", rd_full_cnt);
-
-				for(int pe = 1; pe <= 8; pe++)
-				{
-					//printf("PE %d\t:wait\t%6lu\twork\t%6lu\tidle\t%6lu\tefficiency\t%lf\n", 2*pe-1, dsm[pe].dw[0], dsm[pe].dw[1], dsm[pe].dw[2],dsm[pe].dw[1]*1.0/clk_cnt);
-					//printf("PE %d\t:wait\t%6lu\twork\t%6lu\tidle\t%6lu\tefficiency\t%lf\n", 2*pe, dsm[pe].dw[3], dsm[pe].dw[4], dsm[pe].dw[5], dsm[pe].dw[4]*1.0/clk_cnt);
-				}
-
-				licheng++;
-				//printf("\n[MANAGER] %d BWT_Done in time: %f\n\n", licheng,  realtime() - start_time);
-    			
+				printf("timer = %lu\n", timer);
+				printf("run_counter = %lu\n", run_counter);
+				printf("request_counter = %lu\n", request_counter);
+				printf("stall_counter = %lu\n", stall_counter);
+				printf("load_counter = %lu\n", load_counter);
+				printf("output_counter = %lu\n", output_counter);
+				printf("idle_counter = %lu\n", idle_counter);
+				printf("bandwidth = %lf\n", request_counter * 64.0 / this_time / timer / 200000000/1024 / 1024 / 1024);
 
     			*handshake = 0;
 
@@ -499,6 +490,6 @@ static void *harp_management(void * data) {
 		}
 	}
 
-	fprintf(stderr, "Shutdown HARP management, total kernel time %fs, AFU signaled %d BWT_dones\n", afu_time, licheng);
+	printf("Shutdown HARP management, total kernel time %fs\n", afu_time);
 	pthread_exit(0);
 }

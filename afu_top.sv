@@ -63,8 +63,8 @@ module afu_top #(
 	wire [63:0] 					 io_dst_ptr;
 	wire [63:0] 					 io_hand_ptr;
 	wire [63:0] 					 io_input_base;
+	wire [63:0] 					 dsm_base_addr;	
 	
-	wire [63:0] dsm_base_addr;	
 	afu_core afu_core(
 		.CLK_400M(clk),
 		.CLK_200M(CLK_200M),

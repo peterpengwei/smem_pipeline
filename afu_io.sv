@@ -90,7 +90,7 @@ module afu_io#(
 	output reg [63:0] 						io_dst_ptr,
 	output reg [63:0]  						io_hand_ptr,
 	output reg [63:0] 						io_input_base,
- 	output reg  [63:0]  dsm_base_addr,
+ 	output reg [63:0]  						dsm_base_addr,
 	
 	// afu_csr-->afu_core, afu_id
     output reg                              csr_id_valid,
