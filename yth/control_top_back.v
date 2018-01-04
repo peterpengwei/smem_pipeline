@@ -235,10 +235,11 @@ output wire  [5:0] status
 	.curr_x_info(curr_x_info),
 	.curr_x_addr(curr_x_addr),
 
+	.last_one_read(last_one_read_B2),
 	.iteration_boundary(iteration_boundary_B2),
 	.status(status_B2)
 );  
-wire last_one_read_B3;
+wire last_one_read_B2, last_one_read_B3;
 wire [63:0] curr_x_0_B3,curr_x_1_B3,curr_x_2_B3,curr_x_info_B3;
 wire [63:0] p_x0_B3;
 wire [63:0] p_x1_B3;
@@ -250,6 +251,7 @@ CONTROL_STAGE2 bc2(
 	.rst(rst),
 	.stall(stall),
 
+	.last_one_read_q(last_one_read_B2),
 	.pendingcurr_x_0_q(curr_x_0),
 	.pendingcurr_x_1_q(curr_x_1),
 	.pendingcurr_x_2_q(curr_x_2),

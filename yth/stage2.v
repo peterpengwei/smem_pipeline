@@ -7,6 +7,7 @@ input wire clk,
 input wire rst,
 input wire stall,
 
+input wire last_one_read_q,
 input wire [63:0]	pendingcurr_x_0_q,
 input wire [63:0]	pendingcurr_x_1_q,
 input wire [63:0]	pendingcurr_x_2_q,
@@ -86,8 +87,8 @@ output reg [5:0] status
 	assign new_last_size_d		= j_bound ? new_size_q : new_last_size_q;
 	assign new_size_d			= j_bound ? 0 : new_size_q;
 
-	wire lastone;
-	assign lastone = (new_size_q == 7'b1) && j_bound;
+	//wire lastone;
+	//assign lastone = (new_size_q == 7'b1) && j_bound;
 
 	always @(posedge clk) begin
 		if(!rst)begin
@@ -167,7 +168,7 @@ output reg [5:0] status
 			status				<= BCK_INI;
 		end
 		else if(status_q==BCK_RUN) begin
-			last_one_read <= lastone;
+			last_one_read <= last_one_read_q;
 			pendingcurr_x_0 <= pendingcurr_x_0_q;
 			pendingcurr_x_1 <= pendingcurr_x_1_q;
 			pendingcurr_x_2 <= pendingcurr_x_2_q;
