@@ -1,9 +1,9 @@
 `define CL 512
-`define MAX_READ 64
-`define READ_NUM_WIDTH 6
-`define CURR_QUEUE_ADDR_WIDTH 15
-`define MEM_QUEUE_ADDR_WIDTH 15
-`define READ_MAX_MEM 101
+`define MAX_READ 1024
+`define READ_NUM_WIDTH 10
+`define CURR_QUEUE_ADDR_WIDTH 17
+`define MEM_QUEUE_ADDR_WIDTH 17
+`define READ_MAX_MEM 40
 `define READ_MAX_CURR 101
 
 module RAM_curr_mem(
@@ -75,24 +75,28 @@ module RAM_curr_mem(
 	wire [112:0] curr_data_A = {curr_data_1[230:224],curr_data_1[198:192],curr_data_1[160:128],curr_data_1[96:64],curr_data_1[32:0]};
 	
 	//add one pipeline stage for RAM write
-	reg curr_we_1_q;
-	reg [`CURR_QUEUE_ADDR_WIDTH-1 : 0] curr_addr_A_q;
-	reg [112:0] curr_data_A_q;
+	reg curr_we_1_q, curr_we_1_qq;
+	reg [`CURR_QUEUE_ADDR_WIDTH-1 : 0] curr_addr_A_q, curr_addr_A_qq;
+	reg [112:0] curr_data_A_q, curr_data_A_qq;
 	
 	always@(posedge clk) begin
 		if(!stall) begin
 			curr_we_1_q <= curr_we_1;
 			curr_addr_A_q <= curr_addr_A;
 			curr_data_A_q <= curr_data_A;
+			
+			curr_we_1_qq <= curr_we_1_q;
+			curr_addr_A_qq <= curr_addr_A_q;
+			curr_data_A_qq <= curr_data_A_q;
 		end
 	end
 	
 	RAM_Curr_Queue curr_queue(
 		.clk(clk),
 		
-		.curr_we_1(curr_we_1_q),
-		.addr_1(curr_addr_A_q),
-		.data(curr_data_A_q),
+		.curr_we_1(curr_we_1_qq),
+		.addr_1(curr_addr_A_qq),
+		.data(curr_data_A_qq),
 		
 		.read_en(!stall),
 		.addr_2(curr_addr_B),

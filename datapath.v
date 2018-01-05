@@ -1,6 +1,6 @@
 `define CL 512
-`define MAX_READ 64
-`define READ_NUM_WIDTH 6
+`define MAX_READ 1024
+`define READ_NUM_WIDTH 10
 
 module Datapath(
 	// input of BWT_extend
@@ -330,125 +330,6 @@ module Datapath(
 					is_update_ik <= 1;
 					is_add_i <= 1;
 				end
-					
-				/* case(query_L00[1:0]) 
-				
-					0: begin
-						if (ok3_x2_L0 != ik_x2_L00) begin
-							
-							curr_we_1 <= 1;
-							
-							ptr_curr_L1 <= ptr_curr_L00_add_1;
-							
-							if (ok3_x2_L0 < min_intv_L00) begin
-								status_L1 <= F_break; // if (ok[c].x[2] < min_intv) break;
-								is_update_ik <= 0; // after break, "ik = ok[c]; ik.info = i + 1;" won't be executed.
-								is_add_i <= 0;
-							end
-							else begin
-								status_L1 <= status_L00;
-								is_update_ik <= 1; // after break, "ik = ok[c]; ik.info = i + 1;" won't be executed.
-								is_add_i <= 1;
-							end
-						end
-						else begin
-							curr_we_1 <= 0;
-
-							ptr_curr_L1 <= ptr_curr_L00;
-							status_L1 <= status_L00;
-							is_update_ik <= 1;
-							is_add_i <= 1;
-						end
-					end // end 0
-					
-					1: begin
-						if (ok2_x2_L0 != ik_x2_L00) begin
-							curr_we_1 <= 1;
-							ptr_curr_L1 <= ptr_curr_L00_add_1;
-							
-							if (ok2_x2_L0 < min_intv_L00) begin
-								status_L1 <= F_break; // if (ok[c].x[2] < min_intv) break;
-								is_update_ik <= 0; // after break, "ik = ok[c]; ik.info = i + 1;" won't be executed.
-								is_add_i <= 0;
-							end
-							else begin
-								status_L1 <= status_L00;
-								is_update_ik <= 1; // after break, "ik = ok[c]; ik.info = i + 1;" won't be executed.
-								is_add_i <= 1;
-							end
-						end
-						else begin
-							curr_we_1 <= 0;
-
-							ptr_curr_L1 <= ptr_curr_L00;
-							status_L1 <= status_L00;
-							is_update_ik <= 1;
-							is_add_i <= 1;
-						end
-					end // end 1
-					
-					2: begin
-						if (ok1_x2_L0 != ik_x2_L00) begin
-							curr_we_1 <= 1;
-							ptr_curr_L1 <= ptr_curr_L00_add_1;
-							
-							if (ok1_x2_L0 < min_intv_L00) begin
-								status_L1 <= F_break; // if (ok[c].x[2] < min_intv) break;
-								is_update_ik <= 0; // after break, "ik = ok[c]; ik.info = i + 1;" won't be executed.
-								is_add_i <= 0;
-							end
-							else begin
-								status_L1 <= status_L00;
-								is_update_ik <= 1; // after break, "ik = ok[c]; ik.info = i + 1;" won't be executed.
-								is_add_i <= 1;
-							end
-						end
-						else begin
-							curr_we_1 <= 0;
-
-							ptr_curr_L1 <= ptr_curr_L00;
-							status_L1 <= status_L00;
-							is_update_ik <= 1;
-							is_add_i <= 1;
-						end
-					end // end 2
-					
-					3: begin
-						if (ok0_x2_L0 != ik_x2_L00) begin
-							curr_we_1 <= 1;
-							ptr_curr_L1 <= ptr_curr_L00_add_1;
-							
-							if (ok0_x2_L0 < min_intv_L00) begin
-								status_L1 <= F_break; // if (ok[c].x[2] < min_intv) break;
-								is_update_ik <= 0; // after break, "ik = ok[c]; ik.info = i + 1;" won't be executed.
-								is_add_i <= 0;
-							end
-							else begin
-								status_L1 <= status_L00;
-								is_update_ik <= 1; // after break, "ik = ok[c]; ik.info = i + 1;" won't be executed.
-								is_add_i <= 1;
-							end
-						end
-						else begin
-							curr_we_1 <= 0;
-
-							ptr_curr_L1 <= ptr_curr_L00;
-							status_L1 <= status_L00;
-							is_update_ik <= 1;
-							is_add_i <= 1;
-						end
-					end // end 3
-					
-					default: begin // equal to else		
-						curr_we_1 <= 1;
-
-						ptr_curr_L1 <= ptr_curr_L00 + 1;
-
-						status_L1 <= F_break; // if (ok[c].x[2] < min_intv) break;
-						is_update_ik <= 0; // after break, "ik = ok[c]; ik.info = i + 1;" won't be executed.
-						is_add_i <= 0;	
-					end
-				endcase */
 			end
 			else if(status_L00_eq_F_break) begin
 				if(forward_i_L00_eq_Len) begin
@@ -542,51 +423,6 @@ module Datapath(
 					forward_k_temp_L2_minus <= ok_target_x1_L1 - 1 - 1;
 					forward_l_temp_L2_minus <= ok_target_x1_L1 - 1 + ok_target_x2_L1 - 1;
 					
-/* 					case(query_L1[1:0])
-						0: begin
-							ik_x0_L2 <= ok3_x0_L1;
-							ik_x1_L2 <= ok3_x1_L1;
-							ik_x2_L2 <= ok3_x2_L1;
-							
-							forward_k_temp_L2 <= ok3_x1_L1 - 1;
-							forward_l_temp_L2 <= ok3_x1_L1 - 1 + ok3_x2_L1;
-							
-							forward_k_temp_L2_minus <= ok3_x1_L1 - 1 - 1;
-							forward_l_temp_L2_minus <= ok3_x1_L1 - 1 + ok3_x2_L1 - 1;
-						end	
-						1: begin
-							ik_x0_L2 <= ok2_x0_L1;
-							ik_x1_L2 <= ok2_x1_L1;
-							ik_x2_L2 <= ok2_x2_L1;
-							
-							forward_k_temp_L2 <= ok2_x1_L1 - 1;
-							forward_l_temp_L2 <= ok2_x1_L1 - 1 + ok2_x2_L1;
-							forward_k_temp_L2_minus <= ok2_x1_L1 - 1 - 1;
-							forward_l_temp_L2_minus <= ok2_x1_L1 - 1 + ok2_x2_L1 - 1;
-							
-						end	
-						2: begin
-							ik_x0_L2 <= ok1_x0_L1;
-							ik_x1_L2 <= ok1_x1_L1;
-							ik_x2_L2 <= ok1_x2_L1;
-							
-							forward_k_temp_L2 <= ok1_x1_L1 - 1;
-							forward_l_temp_L2 <= ok1_x1_L1 - 1 + ok1_x2_L1;
-							forward_k_temp_L2_minus <= ok1_x1_L1 - 1 - 1;
-							forward_l_temp_L2_minus <= ok1_x1_L1 - 1 + ok1_x2_L1 - 1;
-						end	
-						3: begin
-							ik_x0_L2 <= ok0_x0_L1;
-							ik_x1_L2 <= ok0_x1_L1;
-							ik_x2_L2 <= ok0_x2_L1;
-							
-							
-							forward_k_temp_L2 <= ok0_x1_L1 - 1;
-							forward_l_temp_L2 <= ok0_x1_L1 - 1 + ok0_x2_L1;
-							forward_k_temp_L2_minus <= ok0_x1_L1 - 1 - 1;
-							forward_l_temp_L2_minus <= ok0_x1_L1 - 1 + ok0_x2_L1 - 1;
-						end	
-					endcase */
 					ik_info_L2 <= forward_i_L1 + 1;
 				end
 				else begin
