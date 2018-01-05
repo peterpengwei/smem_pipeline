@@ -837,7 +837,7 @@ int bwt_smem1(const bwt_t *bwt, int len, const uint8_t *q, int x, int min_intv, 
 	bwt_reverse_intvs(curr); // s.t. smaller intervals (i.e. longer matches) visited first
 	ret = curr->a[0].info; // this will be the returned value
 	swap = curr; curr = prev; prev = swap;
-
+	
 	for (i = x - 1; i >= -1; --i) { // backward search for MEMs
 		c = i < 0 ? -1 : q[i] < 4 ? q[i] : -1; // c==-1 if i<0 or q[i] is an ambiguous base
 		for (j = 0, curr->n = 0; j < prev->n; ++j) {

@@ -108,39 +108,39 @@ module RAM_curr_mem(
 	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A = (mem_read_num_1 * `READ_MAX_MEM + mem_addr_1);
 	wire [112:0] mem_data_A = {mem_data_1[230:224],mem_data_1[198:192],mem_data_1[160:128],mem_data_1[96:64],mem_data_1[32:0]};
 	reg [`READ_NUM_WIDTH+1 - 1:0] output_result_ptr;
-	reg [6:0] already_output_num, already_output_num_q, already_output_num_qq; //mem number, not read number
+
 	
 	//add one pipeline stage for mem write
-	reg mem_we_1_q;
-	reg [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_q;
-	reg [112:0] mem_data_A_q;
+	reg mem_we_1_q, mem_we_1_qq;
+	reg [112:0] mem_data_A_q, mem_data_A_qq;
 	
 	always@(posedge clk) begin
 		if(!stall) begin
 			mem_we_1_q <= mem_we_1;
-			mem_addr_A_q <= mem_addr_A;
+			mem_we_1_qq <= mem_we_1_q;
 			mem_data_A_q <= mem_data_A;
+			mem_data_A_qq <= mem_data_A_q;
 		end
 	end
 	
+	reg [6:0] already_output_num, already_output_num_q, already_output_num_qq, already_output_num_qqq, already_output_num_qqqq;
 	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_out = (output_result_ptr * `READ_MAX_MEM + already_output_num);
 	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_B_out = (output_result_ptr * `READ_MAX_MEM + already_output_num + 1);
 	
 	reg [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_out_q, mem_addr_B_out_q;
 	always@(posedge clk) begin
 		if(!stall) begin
-			mem_addr_A_out_q <= mem_addr_A_out;
 			mem_addr_B_out_q <= mem_addr_B_out;
 		end
 	end
 	
-	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_q_MUX = mem_we_1_q ? mem_addr_A_q : mem_addr_A_out_q;
 	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_MUX = mem_we_1? mem_addr_A: mem_addr_A_out;
-	reg  [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_MUX_q;
+	reg  [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_MUX_q, mem_addr_A_MUX_qq;
 	
 	always@(posedge clk) begin
 		if(!stall) begin
 			mem_addr_A_MUX_q <= mem_addr_A_MUX;
+			mem_addr_A_MUX_qq <= mem_addr_A_MUX_q;
 		end
 	end
 	
@@ -152,9 +152,9 @@ module RAM_curr_mem(
 		.clk(clk),
 		.read_en(!stall),
 		
-		.mem_we_1(mem_we_1_q),
-		.addr_1(mem_addr_A_MUX_q),
-		.data_1(mem_data_A_q),
+		.mem_we_1(mem_we_1_qq),
+		.addr_1(mem_addr_A_MUX_qq),
+		.data_1(mem_data_A_qq),
 		.q_1(mem_q_out_A),
 		
 		.mem_we_2(1'b0),
@@ -211,40 +211,66 @@ module RAM_curr_mem(
 	
 	
 	reg [6:0] output_mem_ptr;
-	reg [6:0] curr_size;//mem size, not read size
+	reg [6:0] curr_size, curr_size_q, curr_size_qq, curr_size_qqq, curr_size_qqqq;//mem size, not read size
 	
-	reg group_start; //indicate the initial of a read's data
-	reg group_start_q, group_start_qq;
+	reg group_start, group_start_q, group_start_qq, group_start_qqq, group_start_qqqq;
+	
+	 //mem number, not read number
+	reg [112:0] mem_q_out_A_q, mem_q_out_B_q;
+	reg [`READ_NUM_WIDTH+1 - 1:0] output_result_ptr_q, output_result_ptr_qq, output_result_ptr_qqq, output_result_ptr_qqqq;
+	
+	reg [6:0] mem_size_qqqq;
+	reg [6:0] ret_size_qqqq;
 	
 	always@(posedge clk) begin
 		if(!stall) begin
+			output_result_ptr_qqqq <= output_result_ptr_qqq;
+			output_result_ptr_qqq <= output_result_ptr_qq;
+			output_result_ptr_qq <= output_result_ptr_q;
+			output_result_ptr_q <= output_result_ptr;
+			
 			group_start_q <= group_start;
 			group_start_qq <= group_start_q;
+			group_start_qqq <= group_start_qq;
+			group_start_qqqq <= group_start_qqq;
 			
 			already_output_num_q <= already_output_num;
 			already_output_num_qq <= already_output_num_q;
+			already_output_num_qqq <= already_output_num_qq;
+			already_output_num_qqqq <= already_output_num_qqq;
+			
+			mem_q_out_A_q <= mem_q_out_A;
+			mem_q_out_B_q <= mem_q_out_B;
+			
+			mem_size_qqqq <= mem_size_queue[output_result_ptr_qqq];
+			ret_size_qqqq <= ret_queue[output_result_ptr_qqq];
+			
+			curr_size_q <= curr_size;
+			curr_size_qq <= curr_size_q;
+			curr_size_qqq <= curr_size_qq;
+			curr_size_qqqq <= curr_size_qqq;
 		end
 	end
 	
 	always@(posedge clk) begin
 		if(!stall) begin
-			if(group_start_qq) begin
-				output_data[9:0]     <= output_result_ptr; //read num
+			if(group_start_qqqq) begin
+				output_data[9:0]     <= output_result_ptr_qqqq; //read num
 				output_data[63:10]   <= 0;
-				output_data[70:64]   <= mem_size_queue[output_result_ptr];
+				output_data[70:64]   <= mem_size_qqqq;
 				output_data[127:71]  <= 0;
-				output_data[159:128] <= {25'b0, ret_queue[output_result_ptr]};
+				output_data[159:128] <= {25'b0, ret_size_qqqq};
 				output_data[511:160] <= 0;
 			end
-			else if(already_output_num_qq < curr_size - 1) begin
-				{output_data[230:224],output_data[198:192],output_data[160:128],output_data[96:64],output_data[32:0]} <= mem_q_out_A;
+			else if(already_output_num_qqqq < curr_size_qqqq - 1) begin
+				{output_data[230:224],output_data[198:192],output_data[160:128],output_data[96:64],output_data[32:0]} <= mem_q_out_A_q;
 				{output_data[255:231],output_data[223:199],output_data[191:161],output_data[127:97],output_data[63:33]} <= 0;
 				
-				{output_data[486:480],output_data[454:448],output_data[416:384],output_data[352:320],output_data[288:256]} <= mem_q_out_B;
+				{output_data[486:480],output_data[454:448],output_data[416:384],output_data[352:320],output_data[288:256]} <= mem_q_out_B_q;
 				{output_data[511:487],output_data[479:455],output_data[447:417],output_data[383:353],output_data[319:289]} <= 0;
 			end
-			else if(already_output_num_qq == curr_size - 1) begin
-				{output_data[230:224],output_data[198:192],output_data[160:128],output_data[96:64],output_data[32:0]} <= mem_q_out_A;
+			else if(already_output_num_qqqq == curr_size_qqqq - 1) begin
+				{output_data[230:224],output_data[198:192],output_data[160:128],output_data[96:64],output_data[32:0]} <= mem_q_out_A_q;
 				{output_data[255:231],output_data[223:199],output_data[191:161],output_data[127:97],output_data[63:33]} <= 0;
 				
 				{output_data[486:480],output_data[454:448],output_data[416:384],output_data[352:320],output_data[288:256]} <= 0;
@@ -257,22 +283,26 @@ module RAM_curr_mem(
 		end
 	end
 	
-	reg output_valid_d, output_valid_dd, output_finish_d, output_finish_dd;
+	reg output_valid_d, output_valid_dd, output_valid_ddd, output_valid_dddd;
+	reg output_finish_d, output_finish_dd, output_finish_ddd, output_finish_dddd;
 	//add one pipeline stage for output_valid and output_finish;
 	always@(posedge clk) begin
 		if(!stall) begin
-			output_valid <= output_valid_dd;	
-			output_finish <= output_finish_dd;
+			output_valid <= output_valid_dddd;
+			output_valid_dddd <= output_valid_ddd;
+			output_valid_ddd <= output_valid_dd;
+			output_valid_dd <= output_valid_d;
+			
+			output_finish <= output_finish_dddd;
+			output_finish_dddd <= output_finish_ddd;
+			output_finish_ddd <= output_finish_dd;				
+			output_finish_dd <= output_finish_d;
 		end
-		// else begin
-			// output_valid <= 0;
-		// end
 	end
 	
 	always@(posedge clk) begin
 		if(!stall) begin
-			output_valid_dd <= output_valid_d;	
-			output_finish_dd <= output_finish_d;
+
 		end
 	end
 	
