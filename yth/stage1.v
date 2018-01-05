@@ -61,6 +61,7 @@ output reg [63:0]	curr_x_2,
 output reg [63:0]	curr_x_info,
 output reg [6:0]    curr_x_addr,
 
+output reg last_one_read,
 output reg iteration_boundary,
 output reg [5:0] status,
 input [63:0] ok_b_temp_x0,ok_b_temp_x1,ok_b_temp_x2
@@ -111,6 +112,9 @@ assign current_rd_addr_d	= j_bound ? ini_pos : current_rd_addr_q - 1; //request 
 reg stall_pulse;
 reg stall_sig,stall_sig_q;
 
+wire lastone;
+assign lastone = (new_size_q == 0) && cond_2 && j_bound;
+
 always@(posedge clk) begin
 	if(!rst)begin
 		stall_sig_q <= 0;
@@ -130,6 +134,7 @@ end
 always@(posedge clk) begin
 	//handled to the next stage
 	if(!rst)begin
+		last_one_read <= 0;
 		read_num			<= 0;
 		current_rd_addr		<= 0;
 		min_intv		<= 0;
@@ -153,6 +158,7 @@ always@(posedge clk) begin
 		status <= BUBBLE;
 	end
 	else if (stall == 1) begin
+		last_one_read	<= last_one_read;
 		primary			<= primary;
 		read_num		<= read_num;
 		current_rd_addr	<= current_rd_addr;
@@ -176,6 +182,7 @@ always@(posedge clk) begin
 		status	<= status;	
 	end
 	else if(status_q==BCK_INI) begin
+		last_one_read	<= 0;
 		primary			<= primary_q;
 		read_num		<= read_num_q;
 		current_rd_addr	<= ini_pos;
@@ -210,6 +217,7 @@ always@(posedge clk) begin
 	end
 	
 	else if(status_q==BCK_RUN) begin
+		last_one_read	<= lastone;
 		primary			<= primary_q;
 		read_num		<= read_num_q;
 		current_rd_addr	<= current_rd_addr_d;
@@ -235,6 +243,7 @@ always@(posedge clk) begin
 		status <= BCK_RUN;
 	end
 	else begin
+		last_one_read	<= 0;
 		primary			<= 0;
 		read_num		<= 0;
 		current_rd_addr	<= 0;
