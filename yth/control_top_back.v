@@ -241,10 +241,6 @@ output wire  [5:0] status
 );  
 wire last_one_read_B2, last_one_read_B3;
 wire [63:0] curr_x_0_B3,curr_x_1_B3,curr_x_2_B3,curr_x_info_B3;
-wire [63:0] p_x0_B3;
-wire [63:0] p_x1_B3;
-wire [63:0] p_x2_B3;
-wire [63:0] p_info_B3;
 
 CONTROL_STAGE2 bc2(
 	.clk(clk),
@@ -301,11 +297,69 @@ CONTROL_STAGE2 bc2(
 	.status(status_B3)
 );   
 
-assign p_x0_B3 = last_one_read_B3 ? curr_x_0_B3 : p_x0_q_S3;
-assign p_x1_B3 = last_one_read_B3 ? curr_x_1_B3 : p_x1_q_S3;
-assign p_x2_B3 = last_one_read_B3 ? curr_x_2_B3 : p_x2_q_S3;
-assign p_info_B3 = last_one_read_B3 ? curr_x_info_B3 : p_info_q_S3;
 
+
+reg [63:0] p_x0_q_S3_delay,p_x1_q_S3_delay,p_x2_q_S3_delay,p_info_q_S3_delay;
+reg last_one_read_B3_delay;
+reg [63:0] curr_x_0_B3_delay,curr_x_1_B3_delay,curr_x_2_B3_delay,curr_x_info_B3_delay;
+
+reg [`READ_NUM_WIDTH - 1:0] read_num_B3_delay;
+reg [5:0] status_B3_delay;
+reg [63:0] primary_B3_delay;
+reg [6:0] current_rd_addr_B3_delay;
+reg [6:0] forward_size_n_B3_delay;
+reg [6:0] new_size_B3_delay;
+reg [6:0] new_last_size_B3_delay;
+reg [6:0] current_wr_addr_B3_delay,mem_wr_addr_B3_delay;
+reg [6:0] backward_i_B3_delay, backward_j_B3_delay;
+reg [7:0] output_c_B3_delay; //[licheng]useless
+reg [6:0] min_intv_B3_delay;
+reg finish_sign_B3_delay,iteration_boundary_B3_delay;
+reg [63:0]	reserved_token_x2_B3_delay;
+reg [31:0]	reserved_mem_info_B3_delay;
+
+always@(posedge clk) begin
+	if(!rst) begin
+		status_B3_delay <= BUBBLE;
+	end
+	if(!stall) begin
+		p_x0_q_S3_delay <= p_x0_q_S3;
+		p_x1_q_S3_delay <= p_x1_q_S3;
+		p_x2_q_S3_delay <= p_x2_q_S3;
+		p_info_q_S3_delay <= p_info_q_S3;
+		
+		last_one_read_B3_delay <= last_one_read_B3;
+		curr_x_0_B3_delay <= curr_x_0_B3;
+		curr_x_1_B3_delay <= curr_x_1_B3;
+		curr_x_2_B3_delay <= curr_x_2_B3;
+		curr_x_info_B3_delay <= curr_x_info_B3;
+		
+		read_num_B3_delay <= read_num_B3;
+		status_B3_delay <= status_B3;
+		primary_B3_delay <= primary_B3;
+		current_rd_addr_B3_delay <= current_rd_addr_B3;
+		forward_size_n_B3_delay <= forward_size_n_B3;
+		new_size_B3_delay <= new_size_B3;
+		new_last_size_B3_delay <= new_last_size_B3;
+		current_wr_addr_B3_delay <= current_wr_addr_B3;
+		mem_wr_addr_B3_delay <= mem_wr_addr_B3;
+		backward_i_B3_delay <= backward_i_B3;
+		backward_j_B3_delay <= backward_j_B3;
+		output_c_B3_delay <= output_c_B3; 
+		min_intv_B3_delay <= min_intv_B3;
+		finish_sign_B3_delay <= finish_sign_B3;
+		iteration_boundary_B3_delay <= iteration_boundary_B3;
+		reserved_token_x2_B3_delay <= reserved_token_x2_B3;
+		reserved_mem_info_B3_delay <= reserved_mem_info_B3;
+		
+
+	end
+end
+
+wire [63:0]  p_x0_B3_delay = last_one_read_B3_delay ? curr_x_0_B3_delay : p_x0_q_S3_delay;
+wire [63:0]  p_x1_B3_delay = last_one_read_B3_delay ? curr_x_1_B3_delay : p_x1_q_S3_delay;
+wire [63:0]  p_x2_B3_delay = last_one_read_B3_delay ? curr_x_2_B3_delay : p_x2_q_S3_delay;
+wire [63:0]  p_info_B3_delay = last_one_read_B3_delay ? curr_x_info_B3_delay : p_info_q_S3_delay;
 
 CAL_KL bc3(
 	.clk(clk),
@@ -313,25 +367,29 @@ CAL_KL bc3(
 	.stall(stall),
 //data used in this stage
 
-	.p_x0_licheng(p_x0_B3),.p_x1_licheng(p_x1_B3),
-	.p_x2_licheng(p_x2_B3),.p_info_licheng(p_info_B3),
+	.p_x0_licheng(p_x0_B3_delay),
+	.p_x1_licheng(p_x1_B3_delay),
+	.p_x2_licheng(p_x2_B3_delay),
+	.p_info_licheng(p_info_B3_delay),
 
-	.read_num_licheng(read_num_B3),
+	.read_num_licheng(read_num_B3_delay),
 
-	.status_licheng(status_B3),
-	.primary_licheng(primary_B3),
-	.current_rd_addr_licheng(current_rd_addr_B3),
-	.forward_size_n_licheng(forward_size_n_B3),
-	.new_size_licheng(new_size_B3),
-	.new_last_size_licheng(new_last_size_B3),
-	.current_wr_addr_licheng(current_wr_addr_B3),
-	.mem_wr_addr_licheng(mem_wr_addr_B3),
-	.backward_i_licheng(backward_i_B3),.backward_j_licheng(backward_j_B3),
-	.output_c_licheng(output_c_B3),
-	.min_intv_licheng(min_intv_B3),
-	.finish_sign_licheng(finish_sign_B3),.iteration_boundary_licheng(iteration_boundary_B3),
-	.reserved_token_x2_licheng(reserved_token_x2_B3),
-	.reserved_mem_info_licheng(reserved_mem_info_B3),
+	.status_licheng(status_B3_delay),
+	.primary_licheng(primary_B3_delay),
+	.current_rd_addr_licheng(current_rd_addr_B3_delay),
+	.forward_size_n_licheng(forward_size_n_B3_delay),
+	.new_size_licheng(new_size_B3_delay),
+	.new_last_size_licheng(new_last_size_B3_delay),
+	.current_wr_addr_licheng(current_wr_addr_B3_delay),
+	.mem_wr_addr_licheng(mem_wr_addr_B3_delay),
+	.backward_i_licheng(backward_i_B3_delay),
+	.backward_j_licheng(backward_j_B3_delay),
+	.output_c_licheng(output_c_B3_delay),
+	.min_intv_licheng(min_intv_B3_delay),
+	.finish_sign_licheng(finish_sign_B3_delay),
+	.iteration_boundary_licheng(iteration_boundary_B3_delay),
+	.reserved_token_x2_licheng(reserved_token_x2_B3_delay),
+	.reserved_mem_info_licheng(reserved_mem_info_B3_delay),
 	
 	.read_num(read_num),
 	.current_rd_addr(current_rd_addr),

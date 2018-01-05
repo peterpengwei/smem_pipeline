@@ -487,31 +487,71 @@ module Datapath(
 	reg [63:0] forward_k_temp_L22_minus;
 	reg [63:0] forward_l_temp_L22_minus;
 	
+	reg [6:0] forward_i_L222;
+    reg [6:0] min_intv_L222;
+	reg [6:0] backward_x_L222;
+    
+    reg [5:0] status_L222;
+    reg [6:0] ptr_curr_L222;// record the status of curr and mem queue
+
+    
+    reg [`READ_NUM_WIDTH - 1:0] read_num_L222;
+    reg [63:0] ik_x0_L222, ik_x1_L222, ik_x2_L222, ik_info_L222;
+	
+	reg [63:0] forward_k_temp_L222;
+	reg [63:0] forward_l_temp_L222;
+	reg [63:0] forward_k_temp_L222_minus;
+	reg [63:0] forward_l_temp_L222_minus;
+	
+	always@(posedge Clk_32UI) begin
+		if(!reset_BWT_extend) begin
+			status_L222 <= BUBBLE;
+		
+		end
+		else if(!stall) begin
+			forward_i_L222 		<= forward_i_L2;
+			min_intv_L222 		<= min_intv_L2;
+			backward_x_L222 		<= backward_x_L2;
+			status_L222 			<= status_L2;
+			ptr_curr_L222 		<= ptr_curr_L2;
+			read_num_L222 		<= read_num_L2;
+			ik_x0_L222 			<= ik_x0_L2;
+			ik_x1_L222 			<= ik_x1_L2;
+			ik_x2_L222 			<= ik_x2_L2;
+			ik_info_L222 		<= ik_info_L2;
+			forward_k_temp_L222 	<= forward_k_temp_L2;
+			forward_l_temp_L222 	<= forward_l_temp_L2;
+			forward_k_temp_L222_minus 	<= forward_k_temp_L2_minus;
+			forward_l_temp_L222_minus 	<= forward_l_temp_L2_minus;		
+		end
+	
+	end
+	
 	always@(posedge Clk_32UI) begin
 		if(!reset_BWT_extend) begin
 			status_L22 <= BUBBLE;
 		
 		end
 		else if(!stall) begin
-			forward_i_L22 		<= forward_i_L2;
-			min_intv_L22 		<= min_intv_L2;
-			backward_x_L22 		<= backward_x_L2;
-			status_L22 			<= status_L2;
-			ptr_curr_L22 		<= ptr_curr_L2;
-			read_num_L22 		<= read_num_L2;
-			ik_x0_L22 			<= ik_x0_L2;
-			ik_x1_L22 			<= ik_x1_L2;
-			ik_x2_L22 			<= ik_x2_L2;
-			ik_info_L22 		<= ik_info_L2;
-			forward_k_temp_L22 	<= forward_k_temp_L2;
-			forward_l_temp_L22 	<= forward_l_temp_L2;
-			forward_k_temp_L22_minus 	<= forward_k_temp_L2_minus;
-			forward_l_temp_L22_minus 	<= forward_l_temp_L2_minus;		
+			forward_i_L22 		<= forward_i_L222;
+			min_intv_L22 		<= min_intv_L222;
+			backward_x_L22 		<= backward_x_L222;
+			status_L22 			<= status_L222;
+			ptr_curr_L22 		<= ptr_curr_L222;
+			read_num_L22 		<= read_num_L222;
+			ik_x0_L22 			<= ik_x0_L222;
+			ik_x1_L22 			<= ik_x1_L222;
+			ik_x2_L22 			<= ik_x2_L222;
+			ik_info_L22 		<= ik_info_L222;
+			forward_k_temp_L22 	<= forward_k_temp_L222;
+			forward_l_temp_L22 	<= forward_l_temp_L222;
+			forward_k_temp_L22_minus 	<= forward_k_temp_L222_minus;
+			forward_l_temp_L22_minus 	<= forward_l_temp_L222_minus;		
 			
 			//query request one cycle ahead
-			status_query <= status_L2;
-			read_num_query <= read_num_L2;
-			next_query_position <= forward_i_L2;
+			status_query <= status_L222;
+			read_num_query <= read_num_L222;
+			next_query_position <= forward_i_L222;
 		end
 	
 	end
