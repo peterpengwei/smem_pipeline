@@ -531,22 +531,36 @@ module afu_core(
 	//tracker
 	
 	reg [31:0] timer;
+	reg [31:0] run_idle_counter;
 	reg [31:0] run_counter;
 	reg [31:0] request_counter;
 	reg [31:0] stall_counter;
 	reg [31:0] load_counter;
 	reg [31:0] output_counter;
 	reg [31:0] idle_counter;
+	reg [31:0] timer_q;
+	reg [31:0] run_idle_counter_q;
+	reg [31:0] run_counter_q;
+	reg [31:0] request_counter_q;
+	reg [31:0] stall_counter_q;
+	reg [31:0] load_counter_q;
+	reg [31:0] output_counter_q;
+	reg [31:0] idle_counter_q;
 	always@(posedge CLK_200M) begin
 		state_q <= state;
+		timer_q <= timer;
+		run_idle_counter_q <= run_idle_counter;
+		run_counter_q <= run_counter;
+		request_counter_q <= request_counter;
+		stall_counter_q <= stall_counter;
+		idle_counter_q <= idle_counter;
 		if(state_q == IDLE) begin
 			timer <= 0;
+			run_idle_counter <= 0;
 			run_counter <= 0;
 			idle_counter <= 0;
 			request_counter <= 0;
 			stall_counter <= 0;
-			load_counter <= 0;
-			output_counter <= 0;
 		end
 		else begin			
 			timer <= timer + 1;
@@ -554,24 +568,21 @@ module afu_core(
 			if(state_q == POLLING_1 || state_q == POLLING_2) begin
 				idle_counter <= idle_counter + 1;
 			end
-			if(state_q == LOAD_READ) begin
-				load_counter <= load_counter + 1;
-			end
+
 			if(state_q == RUN) begin
 				run_counter <= run_counter + 1;
 				if(!stall_A) begin
 					if(DRAM_valid) begin
-						request_counter <= request_counter + 2;
+						request_counter <= request_counter + 1;
+					end
+					else begin
+						run_idle_counter <= run_idle_counter + 1;
 					end
 				end
 				else begin
 					stall_counter <= stall_counter + 1;
 				end
-			end
-			if(state_q == OUTPUT) begin
-				output_counter <= output_counter + 1;
-			end
-			
+			end			
 		end
 	end
 	
@@ -717,7 +728,7 @@ module afu_core(
 						else if(!tracker_tag) begin
 							FIFO_output_WriteEn_in <= 1;
 							FIFO_output_Data_in[512+57:512] <= dsm_base_addr;
-							FIFO_output_Data_in[511:0]      <= {64'b0,32'b0,timer, 32'b0, run_counter, 32'b0, request_counter, 32'b0, stall_counter, 32'b0, load_counter, 32'b0, output_counter, 32'b0, idle_counter};
+							FIFO_output_Data_in[511:0]      <= {32'b0,run_idle_counter_q,32'b0,timer_q, 32'b0, run_counter_q, 32'b0, request_counter_q, 32'b0, stall_counter_q, 32'b0, 32'b0, 32'b0, 32'b0, 32'b0, idle_counter_q};
 						
 							tracker_tag <= 1;
 						end

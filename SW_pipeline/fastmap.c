@@ -351,6 +351,7 @@ static void *harp_management(void * data) {
 	int i, j;
 	printf("Thread numbers: %d\n",nthreads);
 
+	unsigned long int run_idle_counter;
 	unsigned long int timer;
 	unsigned long int run_counter;
 	unsigned long int request_counter;
@@ -428,6 +429,7 @@ static void *harp_management(void * data) {
 				this_time = realtime() - start_time;
 				afu_time += realtime() - start_time;
 
+				run_idle_counter = dsm[0].dw[7];
 				timer = dsm[0].dw[6];
 				run_counter = dsm[0].dw[5];
 				request_counter = dsm[0].dw[4];
@@ -437,13 +439,12 @@ static void *harp_management(void * data) {
 				idle_counter = dsm[0].dw[0];
 				
 				printf("timer = %lu\n", timer);
+				printf("run_idle_counter = %lu\n", run_idle_counter);
 				printf("run_counter = %lu\n", run_counter);
 				printf("request_counter = %lu\n", request_counter);
 				printf("stall_counter = %lu\n", stall_counter);
-				printf("load_counter = %lu\n", load_counter);
-				printf("output_counter = %lu\n", output_counter);
 				printf("idle_counter = %lu\n", idle_counter);
-				printf("bandwidth = %lf\n", request_counter * 64.0 / this_time / timer / 200000000/1024 / 1024 / 1024);
+				printf("bandwidth = %lf\n", request_counter * 2 * 64.0 / (run_counter*1.0/200000000) /1024 / 1024 / 1024);
 
     			*handshake = 0;
 
