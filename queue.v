@@ -565,8 +565,8 @@ module Queue(
 	end
 	
 	//[important] whether to fetch new read
-	assign new_read = new_read_valid & (!memory_valid) & (!stall);
 	wire [5:0] next_status = (read_ptr_f != write_ptr_f) ? RAM_forward_status[read_ptr_f][5:0] : BUBBLE;
+	assign new_read = new_read_valid & (!memory_valid) & (!stall) & (next_status != F_break) & (next_status != BCK_INI);
 	
 	always@(posedge Clk_32UI) begin
 		if (!reset_n) begin
