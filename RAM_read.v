@@ -85,9 +85,9 @@ module RAM_read(
 	assign L2_3 = RAM_ik[0][511:448];
 	
 	//part 2: provide new reads to pipeline
-	reg [`READ_NUM_WIDTH-1:0] new_read_ptr;	
+	reg [`READ_NUM_WIDTH-1 + 1:0] new_read_ptr;	
 	
-	assign new_read_num = new_read_valid ? new_read_ptr : 9'b1_1111_1111;
+	assign new_read_num = new_read_ptr;
 	
 	assign new_ik_x0[32:0]   = RAM_ik[new_read_ptr][32:0];
 	assign new_ik_x1[32:0]   = RAM_ik[new_read_ptr][96:64];
