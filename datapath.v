@@ -1,6 +1,6 @@
 `define CL 512
-`define MAX_READ 1024
-`define READ_NUM_WIDTH 10
+`define MAX_READ 256
+`define READ_NUM_WIDTH 8
 
 module Datapath(
 	// input of BWT_extend
@@ -23,7 +23,11 @@ module Datapath(
 	input [7:0] query, //only send the current query into the pipeline
 	input [6:0] ptr_curr, // record the status of curr and mem queue
 	input [`READ_NUM_WIDTH - 1:0] read_num,
+
 	input [63:0] ik_x0, ik_x1, ik_x2, ik_info,
+	input [63:0] forward_k_temp,
+	input [63:0] forward_l_temp,
+	
 	input [6:0] forward_i,
 	input [6:0] min_intv,
 	input [6:0] backward_x,
@@ -72,8 +76,8 @@ module Datapath(
 	//-----------------------------------------------------------
 	//** initial case unsolved ** what to do with F_init? => left with the final stage
 	// this stage is too damn trivial.
-	wire [63:0] forward_k_temp = ik_x1 -1;
-	wire [63:0] forward_l_temp = forward_k_temp + ik_x2; 
+	// wire [63:0] forward_k_temp = ik_x1 -1;
+	// wire [63:0] forward_l_temp = forward_k_temp + ik_x2; 
 	reg [63:0] forward_k_L0;
     reg [63:0] forward_l_L0; 
 	reg forward_all_done_L0;

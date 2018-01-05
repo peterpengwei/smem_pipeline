@@ -20,8 +20,8 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 `define CL 512
-`define MAX_READ 1024
-`define READ_NUM_WIDTH 10
+`define MAX_READ 256
+`define READ_NUM_WIDTH 8
 
 module Top(
 	input Clk_32UI,
@@ -75,7 +75,11 @@ module Top(
 	wire [7:0] query; //only send the current query into the pipeline
 	wire [6:0] ptr_curr; // record the status of curr and mem queue
 	wire [`READ_NUM_WIDTH - 1:0] read_num;
+	
 	wire [63:0] ik_x0, ik_x1, ik_x2, ik_info;
+	wire [63:0] forward_k_temp;
+	wire [63:0] forward_l_temp;
+	
 	wire [6:0] forward_i;
 	wire [6:0] min_intv;
 	wire [6:0] backward_x;
@@ -306,7 +310,11 @@ module Top(
 		.query(query), //only send the current query into the pipeline
 		.ptr_curr(ptr_curr), // record the status of curr and mem queue
 		.read_num(read_num),
+		
 		.ik_x0(ik_x0), .ik_x1(ik_x1), .ik_x2(ik_x2), .ik_info(ik_info),
+		.forward_k_temp(forward_k_temp),
+		.forward_l_temp(forward_l_temp),
+		
 		.forward_i(forward_i),
 		.min_intv(min_intv),
 		.backward_x(backward_x),
@@ -534,6 +542,9 @@ module Top(
 		.ptr_curr_out_q(ptr_curr), // record the status of curr and mem queue
 		.read_num_out_q(read_num),
 		.ik_x0_out_q(ik_x0), .ik_x1_out_q(ik_x1), .ik_x2_out_q(ik_x2), .ik_info_out_q(ik_info),
+		.forward_k_temp_q(forward_k_temp),
+		.forward_l_temp_q(forward_l_temp),
+		
 		.forward_i_out_q(forward_i),
 		.min_intv_out_q(min_intv),
 		.backward_x_out_q(backward_x),

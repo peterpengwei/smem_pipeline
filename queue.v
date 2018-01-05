@@ -15,8 +15,8 @@
 
 //==========================
 `define CL 512
-`define MAX_READ 64
-`define READ_NUM_WIDTH 6
+`define MAX_READ 256
+`define READ_NUM_WIDTH 8
 
 `define WIDTH_read 308 + 100 //[important] be careful not to exceed the width
 `define WIDTH_memory 768
@@ -56,7 +56,11 @@ module Queue(
 	output reg [5:0] status_out_q,
 	output reg [6:0] ptr_curr_out_q, // record the status of curr and mem queue
 	output reg [`READ_NUM_WIDTH - 1 :0] read_num_out_q,
+	
 	output reg [63:0] ik_x0_out_q, ik_x1_out_q, ik_x2_out_q, ik_info_out_q,
+	output reg [63:0] forward_k_temp_q,
+	output reg [63:0] forward_l_temp_q,
+	
 	output reg [6:0] forward_i_out_q,
 	output reg [6:0] min_intv_out_q,
 	output reg [6:0] backward_x_out_q,
@@ -247,6 +251,9 @@ module Queue(
 			min_intv_out_q <= min_intv_out;
 			backward_x_out_q <= backward_x_out;
 			query_out_q <= query_out;
+			
+			forward_k_temp_q <= ik_x1_out - 1;
+			forward_l_temp_q <= ik_x1_out - 1 + ik_x2_out;
 				
 			//======================================================================
 				
