@@ -573,7 +573,8 @@ module Queue(
 	
 	//[important] whether to fetch new read
 	wire [5:0] next_status = (read_ptr_f != write_ptr_f) ? RAM_forward_status[read_ptr_f][5:0] : BUBBLE;
-	assign new_read = new_read_valid & (!memory_valid) & (!stall) & (next_status != F_break) & (next_status != BCK_INI);
+	// assign new_read = new_read_valid & (!memory_valid) & (!stall) & (next_status != F_break) & (next_status != BCK_INI);
+	assign new_read = new_read_valid & (!stall) & (next_status != F_break) & (next_status != BCK_INI);
 	
 	always@(posedge Clk_32UI) begin
 		if (!reset_n) begin
@@ -650,6 +651,29 @@ module Queue(
 			end
 			///////////////////////////////////////////
 			
+			else if (new_read_valid) begin // no memory response, fetch new read
+
+				//-------------------
+                status_out <= F_init;
+                ptr_curr_out <= 0;
+                read_num_out <= new_read_num; //from RAM
+                ik_x0_out[32:0] <= new_ik_x0[32:0]; //from RAM
+                ik_x1_out[32:0] <= new_ik_x1[32:0]; //from RAM
+                ik_x2_out[32:0] <= new_ik_x2[32:0]; //from RAM
+                ik_info_out[38:32] <= new_ik_info[38:32]; //from RAM
+				ik_info_out[6:0] <= new_ik_info[6:0]; //from RAM
+                forward_i_out <= new_forward_i + 1; // from RAM
+				backward_x_out <= new_forward_i;
+                min_intv_out <= new_min_intv; 
+                query_out <= 0; // !!!!the first round doesn't need query
+				
+                //-------------------
+
+				status_q <= BUBBLE;
+
+			end
+			
+			
 			else if (memory_valid) begin // get memory responses, output old read
 					if(next_status == F_run) begin
 						{ptr_curr_out, read_num_out, ik_x0_out[32:0], ik_x1_out[32:0], ik_x2_out[32:0], ik_info_out[38:32], ik_info_out[6:0], 
@@ -686,27 +710,7 @@ module Queue(
 			end
 			
 			
-			else if (new_read_valid) begin // no memory response, fetch new read
-
-				//-------------------
-                status_out <= F_init;
-                ptr_curr_out <= 0;
-                read_num_out <= new_read_num; //from RAM
-                ik_x0_out[32:0] <= new_ik_x0[32:0]; //from RAM
-                ik_x1_out[32:0] <= new_ik_x1[32:0]; //from RAM
-                ik_x2_out[32:0] <= new_ik_x2[32:0]; //from RAM
-                ik_info_out[38:32] <= new_ik_info[38:32]; //from RAM
-				ik_info_out[6:0] <= new_ik_info[6:0]; //from RAM
-                forward_i_out <= new_forward_i + 1; // from RAM
-				backward_x_out <= new_forward_i;
-                min_intv_out <= new_min_intv; 
-                query_out <= 0; // !!!!the first round doesn't need query
-				
-                //-------------------
-
-				status_q <= BUBBLE;
-
-			end
+			
 			else begin // no memory responses and no more reads
 				// new_read <= 0;
 				//-------------------
