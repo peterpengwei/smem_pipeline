@@ -297,7 +297,26 @@ CONTROL_STAGE2 bc2(
 	.status(status_B3)
 );   
 
+reg [63:0] p_x0_q_S3_d,p_x1_q_S3_d,p_x2_q_S3_d,p_info_q_S3_d;
+reg last_one_read_B3_d;
+reg [63:0] curr_x_0_B3_d,curr_x_1_B3_d,curr_x_2_B3_d,curr_x_info_B3_d;
 
+reg [`READ_NUM_WIDTH - 1:0] read_num_B3_d;
+reg [5:0] status_B3_d;
+reg [63:0] primary_B3_d;
+reg [6:0] current_rd_addr_B3_d;
+reg [6:0] forward_size_n_B3_d;
+reg [6:0] new_size_B3_d;
+reg [6:0] new_last_size_B3_d;
+reg [6:0] current_wr_addr_B3_d,mem_wr_addr_B3_d;
+reg [6:0] backward_i_B3_d, backward_j_B3_d;
+reg [7:0] output_c_B3_d; //[licheng]useless
+reg [6:0] min_intv_B3_d;
+reg finish_sign_B3_d,iteration_boundary_B3_d;
+reg [63:0]	reserved_token_x2_B3_d;
+reg [31:0]	reserved_mem_info_B3_d;
+
+//--------------------------------------------------
 
 reg [63:0] p_x0_q_S3_delay,p_x1_q_S3_delay,p_x2_q_S3_delay,p_info_q_S3_delay;
 reg last_one_read_B3_delay;
@@ -320,6 +339,47 @@ reg [31:0]	reserved_mem_info_B3_delay;
 
 always@(posedge clk) begin
 	if(!rst) begin
+		status_B3_d <= BUBBLE;
+	end
+	if(!stall) begin
+		// shift the delay to read side
+		
+		// p_x0_q_S3_d <= p_x0_q_S3;
+		// p_x1_q_S3_d <= p_x1_q_S3;
+		// p_x2_q_S3_d <= p_x2_q_S3;
+		// p_info_q_S3_d <= p_info_q_S3;
+		
+		last_one_read_B3_d <= last_one_read_B3;
+		curr_x_0_B3_d <= curr_x_0_B3;
+		curr_x_1_B3_d <= curr_x_1_B3;
+		curr_x_2_B3_d <= curr_x_2_B3;
+		curr_x_info_B3_d <= curr_x_info_B3;
+		
+		read_num_B3_d <= read_num_B3;
+		status_B3_d <= status_B3;
+		primary_B3_d <= primary_B3;
+		current_rd_addr_B3_d <= current_rd_addr_B3;
+		forward_size_n_B3_d <= forward_size_n_B3;
+		new_size_B3_d <= new_size_B3;
+		new_last_size_B3_d <= new_last_size_B3;
+		current_wr_addr_B3_d <= current_wr_addr_B3;
+		mem_wr_addr_B3_d <= mem_wr_addr_B3;
+		backward_i_B3_d <= backward_i_B3;
+		backward_j_B3_d <= backward_j_B3;
+		output_c_B3_d <= output_c_B3; 
+		min_intv_B3_d <= min_intv_B3;
+		finish_sign_B3_d <= finish_sign_B3;
+		iteration_boundary_B3_d <= iteration_boundary_B3;
+		reserved_token_x2_B3_d <= reserved_token_x2_B3;
+		reserved_mem_info_B3_d <= reserved_mem_info_B3;
+		
+
+	end
+end
+
+
+always@(posedge clk) begin
+	if(!rst) begin
 		status_B3_delay <= BUBBLE;
 	end
 	if(!stall) begin
@@ -330,29 +390,29 @@ always@(posedge clk) begin
 		// p_x2_q_S3_delay <= p_x2_q_S3;
 		// p_info_q_S3_delay <= p_info_q_S3;
 		
-		last_one_read_B3_delay <= last_one_read_B3;
-		curr_x_0_B3_delay <= curr_x_0_B3;
-		curr_x_1_B3_delay <= curr_x_1_B3;
-		curr_x_2_B3_delay <= curr_x_2_B3;
-		curr_x_info_B3_delay <= curr_x_info_B3;
+		last_one_read_B3_delay <= last_one_read_B3_d;
+		curr_x_0_B3_delay <= curr_x_0_B3_d;
+		curr_x_1_B3_delay <= curr_x_1_B3_d;
+		curr_x_2_B3_delay <= curr_x_2_B3_d;
+		curr_x_info_B3_delay <= curr_x_info_B3_d;
 		
-		read_num_B3_delay <= read_num_B3;
-		status_B3_delay <= status_B3;
-		primary_B3_delay <= primary_B3;
-		current_rd_addr_B3_delay <= current_rd_addr_B3;
-		forward_size_n_B3_delay <= forward_size_n_B3;
-		new_size_B3_delay <= new_size_B3;
-		new_last_size_B3_delay <= new_last_size_B3;
-		current_wr_addr_B3_delay <= current_wr_addr_B3;
-		mem_wr_addr_B3_delay <= mem_wr_addr_B3;
-		backward_i_B3_delay <= backward_i_B3;
-		backward_j_B3_delay <= backward_j_B3;
-		output_c_B3_delay <= output_c_B3; 
-		min_intv_B3_delay <= min_intv_B3;
-		finish_sign_B3_delay <= finish_sign_B3;
-		iteration_boundary_B3_delay <= iteration_boundary_B3;
-		reserved_token_x2_B3_delay <= reserved_token_x2_B3;
-		reserved_mem_info_B3_delay <= reserved_mem_info_B3;
+		read_num_B3_delay <= read_num_B3_d;
+		status_B3_delay <= status_B3_d;
+		primary_B3_delay <= primary_B3_d;
+		current_rd_addr_B3_delay <= current_rd_addr_B3_d;
+		forward_size_n_B3_delay <= forward_size_n_B3_d;
+		new_size_B3_delay <= new_size_B3_d;
+		new_last_size_B3_delay <= new_last_size_B3_d;
+		current_wr_addr_B3_delay <= current_wr_addr_B3_d;
+		mem_wr_addr_B3_delay <= mem_wr_addr_B3_d;
+		backward_i_B3_delay <= backward_i_B3_d;
+		backward_j_B3_delay <= backward_j_B3_d;
+		output_c_B3_delay <= output_c_B3_d; 
+		min_intv_B3_delay <= min_intv_B3_d;
+		finish_sign_B3_delay <= finish_sign_B3_d;
+		iteration_boundary_B3_delay <= iteration_boundary_B3_d;
+		reserved_token_x2_B3_delay <= reserved_token_x2_B3_d;
+		reserved_mem_info_B3_delay <= reserved_mem_info_B3_d;
 		
 
 	end

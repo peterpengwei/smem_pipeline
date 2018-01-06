@@ -21,7 +21,7 @@ module RAM_curr_mem(
 	//read port B
 	input [`READ_NUM_WIDTH - 1:0] curr_read_num_2,
 	input [6:0] curr_addr_2,
-	output [255:0] curr_q_2,
+	output reg [255:0] curr_q_2,
 	
 	//--------------------------------
 	
@@ -79,6 +79,13 @@ module RAM_curr_mem(
 	reg [`CURR_QUEUE_ADDR_WIDTH-1 : 0] curr_addr_A_q, curr_addr_A_qq, curr_addr_B_q;
 	reg [112:0] curr_data_A_q, curr_data_A_qq;
 	
+	wire [255:0] curr_q_2_wire;
+	always@(posedge clk) begin
+		if(!stall) begin
+			curr_q_2 <= curr_q_2_wire;
+		end
+	end
+	
 	always@(posedge clk) begin
 		if(!stall) begin
 			curr_we_1_q <= curr_we_1;
@@ -102,9 +109,9 @@ module RAM_curr_mem(
 		
 		.read_en(!stall),
 		.addr_2(curr_addr_B_q),
-		.q({curr_q_2[230:224],curr_q_2[198:192],curr_q_2[160:128],curr_q_2[96: 64],curr_q_2[32: 0]})
+		.q({curr_q_2_wire[230:224],curr_q_2_wire[198:192],curr_q_2_wire[160:128],curr_q_2_wire[96: 64],curr_q_2_wire[32: 0]})
 	);
-	assign {curr_q_2[255:231],curr_q_2[223:199],curr_q_2[191:161],curr_q_2[127:97],curr_q_2[63:33]} = 0;
+	assign {curr_q_2_wire[255:231],curr_q_2_wire[223:199],curr_q_2_wire[191:161],curr_q_2_wire[127:97],curr_q_2_wire[63:33]} = 0;
 	
 	
 	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A = (mem_read_num_1 * `READ_MAX_MEM + mem_addr_1);
