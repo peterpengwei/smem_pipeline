@@ -113,15 +113,22 @@ module RAM_curr_mem(
 
 	
 	//add one pipeline stage for mem write
-	reg mem_we_1_q, mem_we_1_qq;
+	reg mem_we_1_q, mem_we_1_qq_0, mem_we_1_qq_1, mem_we_1_qq_2, mem_we_1_qq_3;
 	reg [112:0] mem_data_A_q, mem_data_A_qq;
+	reg [112:0] mem_data_A_qq_0, mem_data_A_qq_1, mem_data_A_qq_2, mem_data_A_qq_3;
 	
 	always@(posedge clk) begin
 		if(!stall) begin
 			mem_we_1_q <= mem_we_1;
-			mem_we_1_qq <= mem_we_1_q;
+			mem_we_1_qq_0 <= mem_we_1_q;
+			mem_we_1_qq_1 <= mem_we_1_q;
+			mem_we_1_qq_2 <= mem_we_1_q;
+			mem_we_1_qq_3 <= mem_we_1_q;
 			mem_data_A_q <= mem_data_A;
-			mem_data_A_qq <= mem_data_A_q;
+			mem_data_A_qq_0 <= mem_data_A_q;
+			mem_data_A_qq_1 <= mem_data_A_q;
+			mem_data_A_qq_2 <= mem_data_A_q;
+			mem_data_A_qq_3 <= mem_data_A_q;
 		end
 	end
 	
@@ -129,42 +136,100 @@ module RAM_curr_mem(
 	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_out = (output_result_ptr * `READ_MAX_MEM + already_output_num);
 	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_B_out = (output_result_ptr * `READ_MAX_MEM + already_output_num + 1);
 	
-	reg [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_out_q, mem_addr_B_out_q, mem_addr_B_out_qq;
+	reg [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_out_q, mem_addr_B_out_q, mem_addr_B_out_qqq;
+	reg [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_B_out_qq_0, mem_addr_B_out_qq_1, mem_addr_B_out_qq_2, mem_addr_B_out_qq_3;
 	always@(posedge clk) begin
 		if(!stall) begin
 			mem_addr_B_out_q <= mem_addr_B_out;
-			mem_addr_B_out_qq <= mem_addr_B_out_q;
+			mem_addr_B_out_qq_0 <= mem_addr_B_out_q;
+			mem_addr_B_out_qq_1 <= mem_addr_B_out_q;
+			mem_addr_B_out_qq_2 <= mem_addr_B_out_q;
+			mem_addr_B_out_qq_3 <= mem_addr_B_out_q;
+			mem_addr_B_out_qqq <= mem_addr_B_out_qq_0;
 		end
 	end
 	
 	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_MUX = mem_we_1? mem_addr_A: mem_addr_A_out;
-	reg  [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_MUX_q, mem_addr_A_MUX_qq;
-	
+	reg  [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_MUX_q, mem_addr_A_MUX_qqq;
+	reg  [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A_MUX_qq_0, mem_addr_A_MUX_qq_1, mem_addr_A_MUX_qq_2, mem_addr_A_MUX_qq_3;
 	always@(posedge clk) begin
 		if(!stall) begin
 			mem_addr_A_MUX_q <= mem_addr_A_MUX;
-			mem_addr_A_MUX_qq <= mem_addr_A_MUX_q;
+			mem_addr_A_MUX_qq_0 <= mem_addr_A_MUX_q;
+			mem_addr_A_MUX_qq_1 <= mem_addr_A_MUX_q;
+			mem_addr_A_MUX_qq_2 <= mem_addr_A_MUX_q;
+			mem_addr_A_MUX_qq_3 <= mem_addr_A_MUX_q;
+			mem_addr_A_MUX_qqq <= mem_addr_A_MUX_qq_0;
 		end
 	end
 	
-	wire [112:0] mem_q_out_A, mem_q_out_B;
-	
+	wire [112:0] mem_q_out_A_0, mem_q_out_B_0;
+	wire [112:0] mem_q_out_A_1, mem_q_out_B_1;
+	wire [112:0] mem_q_out_A_2, mem_q_out_B_2;
+	wire [112:0] mem_q_out_A_3, mem_q_out_B_3;
 
 	
-	RAM_Mem_Queue mem_queue(
+	RAM_Mem_Queue mem_queue_0(
 		.clk(clk),
 		.read_en(!stall),
 		
-		.mem_we_1(mem_we_1_qq),
-		.addr_1(mem_addr_A_MUX_qq),
-		.data_1(mem_data_A_qq),
-		.q_1(mem_q_out_A),
+		.mem_we_1(mem_we_1_qq_0),
+		.addr_1(mem_addr_A_MUX_qq_0[`MEM_QUEUE_ADDR_WIDTH-1-2 : 0]),
+		.data_1(mem_data_A_qq_0),
+		.q_1(mem_q_out_A_0),
 		
 		.mem_we_2(1'b0),
-		.addr_2(mem_addr_B_out_qq),
+		.addr_2(mem_addr_B_out_qq_0[`MEM_QUEUE_ADDR_WIDTH-1-2 : 0]),
 		.data_2(113'b0),
-		.q_2(mem_q_out_B)
+		.q_2(mem_q_out_B_0)
 	);
+	
+	RAM_Mem_Queue mem_queue_1(
+		.clk(clk),
+		.read_en(!stall),
+		
+		.mem_we_1(mem_we_1_qq_1),
+		.addr_1(mem_addr_A_MUX_qq_1[`MEM_QUEUE_ADDR_WIDTH-1-2 : 0]),
+		.data_1(mem_data_A_qq_1),
+		.q_1(mem_q_out_A_1),
+		
+		.mem_we_2(1'b0),
+		.addr_2(mem_addr_B_out_qq_1[`MEM_QUEUE_ADDR_WIDTH-1-2 : 0]),
+		.data_2(113'b0),
+		.q_2(mem_q_out_B_1)
+	);
+	
+	RAM_Mem_Queue mem_queue_2(
+		.clk(clk),
+		.read_en(!stall),
+		
+		.mem_we_1(mem_we_1_qq_2),
+		.addr_1(mem_addr_A_MUX_qq_2[`MEM_QUEUE_ADDR_WIDTH-1-2 : 0]),
+		.data_1(mem_data_A_qq_2),
+		.q_1(mem_q_out_A_2),
+		
+		.mem_we_2(1'b0),
+		.addr_2(mem_addr_B_out_qq_2[`MEM_QUEUE_ADDR_WIDTH-1-2 : 0]),
+		.data_2(113'b0),
+		.q_2(mem_q_out_B_2)
+	);
+	
+	RAM_Mem_Queue mem_queue_3(
+		.clk(clk),
+		.read_en(!stall),
+		
+		.mem_we_1(mem_we_1_qq_3),
+		.addr_1(mem_addr_A_MUX_qq_3[`MEM_QUEUE_ADDR_WIDTH-1-2 : 0]),
+		.data_1(mem_data_A_qq_3),
+		.q_1(mem_q_out_A_3),
+		
+		.mem_we_2(1'b0),
+		.addr_2(mem_addr_B_out_qq_3[`MEM_QUEUE_ADDR_WIDTH-1-2 : 0]),
+		.data_2(113'b0),
+		.q_2(mem_q_out_B_3)
+	);
+	
+
 	
 	//params
 	reg [`READ_NUM_WIDTH+1 - 1:0] done_counter;
@@ -242,8 +307,19 @@ module RAM_curr_mem(
 			already_output_num_qqq <= already_output_num_qq;
 			already_output_num_qqqq <= already_output_num_qqq;
 			
-			mem_q_out_A_q <= mem_q_out_A;
-			mem_q_out_B_q <= mem_q_out_B;
+			case(mem_addr_A_MUX_qqq[`MEM_QUEUE_ADDR_WIDTH-1: `MEM_QUEUE_ADDR_WIDTH-2])
+				0: mem_q_out_A_q <= mem_q_out_A_0;
+				1: mem_q_out_A_q <= mem_q_out_A_1;
+				2: mem_q_out_A_q <= mem_q_out_A_2;
+				3: mem_q_out_A_q <= mem_q_out_A_3;
+			endcase
+			
+			case(mem_addr_B_out_qqq[`MEM_QUEUE_ADDR_WIDTH-1: `MEM_QUEUE_ADDR_WIDTH-2])
+				0: mem_q_out_B_q <= mem_q_out_B_0;
+				1: mem_q_out_B_q <= mem_q_out_B_1;
+				2: mem_q_out_B_q <= mem_q_out_B_2;
+				3: mem_q_out_B_q <= mem_q_out_B_3;
+			endcase
 			
 			mem_size_qqqq <= mem_size_queue[output_result_ptr_qqq];
 			ret_size_qqqq <= ret_queue[output_result_ptr_qqq];
@@ -390,12 +466,12 @@ module RAM_Mem_Queue(
 	input clk,
 	input read_en,
 	input mem_we_1,
-	input [`MEM_QUEUE_ADDR_WIDTH-1 : 0] addr_1,
+	input [`MEM_QUEUE_ADDR_WIDTH-1 -2: 0] addr_1,
 	input [112:0] data_1,
 	output reg [112:0] q_1,
 	
 	input mem_we_2,
-	input [`MEM_QUEUE_ADDR_WIDTH-1 : 0] addr_2,
+	input [`MEM_QUEUE_ADDR_WIDTH-1 -2: 0] addr_2,
 	input [112:0] data_2,
 	output reg [112:0] q_2
 );
