@@ -24,8 +24,8 @@
 //output: ok
 
 `define CL 512
-`define MAX_READ 256
-`define READ_NUM_WIDTH 8
+`define MAX_READ 512
+`define READ_NUM_WIDTH 9
 
 module BWT_extend(
 	input stall,

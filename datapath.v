@@ -1,6 +1,6 @@
 `define CL 512
-`define MAX_READ 256
-`define READ_NUM_WIDTH 8
+`define MAX_READ 512
+`define READ_NUM_WIDTH 9
 
 module Datapath(
 	// input of BWT_extend
@@ -74,8 +74,7 @@ module Datapath(
 	parameter BUBBLE = 	6'b00_0000;
 	
 	//-----------------------------------------------------------
-	//** initial case unsolved ** what to do with F_init? => left with the final stage
-	// this stage is too damn trivial.
+
 	// wire [63:0] forward_k_temp = ik_x1 -1;
 	// wire [63:0] forward_l_temp = forward_k_temp + ik_x2; 
 	reg [63:0] forward_k_L0;

@@ -1,6 +1,6 @@
 `define CL 512
-`define MAX_READ 256
-`define READ_NUM_WIDTH 8
+`define MAX_READ 512
+`define READ_NUM_WIDTH 9
 
 module control_top_back(
 input wire clk,
@@ -323,10 +323,12 @@ always@(posedge clk) begin
 		status_B3_delay <= BUBBLE;
 	end
 	if(!stall) begin
-		p_x0_q_S3_delay <= p_x0_q_S3;
-		p_x1_q_S3_delay <= p_x1_q_S3;
-		p_x2_q_S3_delay <= p_x2_q_S3;
-		p_info_q_S3_delay <= p_info_q_S3;
+		// shift the delay to read side
+		
+		// p_x0_q_S3_delay <= p_x0_q_S3;
+		// p_x1_q_S3_delay <= p_x1_q_S3;
+		// p_x2_q_S3_delay <= p_x2_q_S3;
+		// p_info_q_S3_delay <= p_info_q_S3;
 		
 		last_one_read_B3_delay <= last_one_read_B3;
 		curr_x_0_B3_delay <= curr_x_0_B3;
@@ -356,10 +358,10 @@ always@(posedge clk) begin
 	end
 end
 
-wire [63:0]  p_x0_B3_delay = last_one_read_B3_delay ? curr_x_0_B3_delay : p_x0_q_S3_delay;
-wire [63:0]  p_x1_B3_delay = last_one_read_B3_delay ? curr_x_1_B3_delay : p_x1_q_S3_delay;
-wire [63:0]  p_x2_B3_delay = last_one_read_B3_delay ? curr_x_2_B3_delay : p_x2_q_S3_delay;
-wire [63:0]  p_info_B3_delay = last_one_read_B3_delay ? curr_x_info_B3_delay : p_info_q_S3_delay;
+wire [63:0]  p_x0_B3_delay = last_one_read_B3_delay ? curr_x_0_B3_delay : p_x0_q_S3;
+wire [63:0]  p_x1_B3_delay = last_one_read_B3_delay ? curr_x_1_B3_delay : p_x1_q_S3;
+wire [63:0]  p_x2_B3_delay = last_one_read_B3_delay ? curr_x_2_B3_delay : p_x2_q_S3;
+wire [63:0]  p_info_B3_delay = last_one_read_B3_delay ? curr_x_info_B3_delay : p_info_q_S3;
 
 CAL_KL bc3(
 	.clk(clk),
