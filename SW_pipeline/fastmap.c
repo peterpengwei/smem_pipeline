@@ -360,6 +360,7 @@ static void *harp_management(void * data) {
 	unsigned long int output_counter;
 	unsigned long int idle_counter;
 
+	unsigned int dsm_counter;
 	struct OneCL {                      // Make a cache-line sized structure
 		unsigned long int dw[8];       //    for array arithmetic
 	};
@@ -384,17 +385,17 @@ static void *harp_management(void * data) {
 				// Execute on FPGA
 				if (!tick_tock) {
 		  			//*handshake = 1;
-		  			*handshake = 1 + 2863311520;
+		  			*handshake = 1;
 					polling = 1;
 				}
 				else {
 					//*handshake = 4;
-					*handshake = 4 + 2863311520;
+					*handshake = 4;
 					polling = 4;
 				}
 				tick_tock = tick_tock ^ 0x1;
 
-			    	int watch_dog = *handshake & 0x0000000f;
+			    	int watch_dog = *handshake;
 	
 				double start_time = realtime();
 				double this_time = 0;
@@ -419,7 +420,7 @@ static void *harp_management(void * data) {
 							sw_handshake[j] = 3;
 						if (watch_dog != polling) break;
 					}
-					watch_dog = *handshake  & 0x0000000f ;
+					watch_dog = *handshake;
 				}
 #endif
 				// Finish execution
@@ -444,7 +445,12 @@ static void *harp_management(void * data) {
 				printf("request_counter = %lu\n", request_counter);
 				printf("stall_counter = %lu\n", stall_counter);
 				printf("idle_counter = %lu\n", idle_counter);
-				printf("bandwidth = %lf\n", request_counter * 2 * 64.0 / (run_counter*1.0/200000000) /1024 / 1024 / 1024);
+				printf("bandwidth = %lf\n", request_counter * 2 * 64 / 1024 / 1024 / 1024 / (run_counter*1.0/200000000) );
+
+				dsm_counter = dsm[1].dw[0];
+				for (unsigned int i = 0; i < dsm_counter; i++) {
+					printf("run idle counter [%u] = %lu, finished size = %lu\n", i, dsm[i+2].dw[0], dsm[i + 2].dw[1]);
+				}
 
     			*handshake = 0;
 

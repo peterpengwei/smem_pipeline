@@ -588,6 +588,15 @@ module afu_core(
 	
 	//------------------------------------------------
 	reg tracker_tag;
+	reg [31:0] dsm_counter;
+	wire [`READ_NUM_WIDTH+1 - 1:0] done_counter;
+	reg [`READ_NUM_WIDTH+1 - 1:0] done_counter_q;
+	always@(posedge CLK_200M) begin
+		if(!stall_A) begin
+			done_counter_q <= done_counter;
+		end
+	end
+	
 	always@(posedge CLK_200M) begin
 		if(!reset_n_200M) begin
 			state <= IDLE;
@@ -603,6 +612,7 @@ module afu_core(
 			//CL_2_200M <= 0;
 			output_permit <= 0;
 			tracker_tag <= 0;
+			dsm_counter <= 0;
 		end
 		else begin
 			case(state)
@@ -623,6 +633,7 @@ module afu_core(
 					FIFO_request_WriteEn_in_2 <= 0;
 					FIFO_output_Data_in <= 0;
 					tracker_tag <= 0;
+					dsm_counter <= 0;
 					if(core_start)state <= POLLING_1;
 				end
 				
@@ -707,6 +718,21 @@ module afu_core(
 							FIFO_request_WriteEn_in_2 <= 0;
 							output_permit <= 1;
 							state <= OUTPUT;
+						end
+						
+						if(run_counter[12:0] == 0) begin
+							FIFO_output_WriteEn_in <= 1;
+							FIFO_output_Data_in[512+57:512] <= dsm_base_addr+2 + dsm_counter;
+							FIFO_output_Data_in[511:0]      <= {done_counter_q, 32'b0, run_idle_counter_q};
+						end
+						else if(run_counter[12:0] == 1)begin
+							FIFO_output_WriteEn_in <= 1;
+							FIFO_output_Data_in[512+57:512] <= dsm_base_addr+1;
+							FIFO_output_Data_in[511:0]      <= {480'b0, dsm_counter+1};
+							dsm_counter <= dsm_counter + 1;
+						end
+						else begin
+							FIFO_output_WriteEn_in <= 0;
 						end
 					end
 										
@@ -796,6 +822,7 @@ module afu_core(
 		.cntl_a0(CL_2_200M[31:0]),		.cntl_a1(CL_2_200M[95:64]),		.cntl_a2(CL_2_200M[159:128]),	.cntl_a3(CL_2_200M[223:192]),
 		.cntl_b0(CL_2_200M[319:256]),	.cntl_b1(CL_2_200M[383:320]),	.cntl_b2(CL_2_200M[447:384]),	.cntl_b3(CL_2_200M[511:448]),
 		
+		.done_counter(done_counter),
 		.output_request(output_request_200M),
 		.output_permit(output_permit),
 		

@@ -46,6 +46,7 @@ module Top(
 	input [63:0] cntl_b0,cntl_b1,cntl_b2,cntl_b3,
 	
 	output output_request,
+	output [`READ_NUM_WIDTH+1 - 1:0] done_counter,
 	input output_permit,
 	
 	output [`CL -1:0] output_data,
@@ -661,6 +662,7 @@ module Top(
 		//---------------------------------
 		
 		//mem size
+		.done_counter(done_counter),
 		.mem_size_valid(mem_size_valid),
 		.mem_size(mem_size),
 		.mem_size_read_num(mem_size_read_num),

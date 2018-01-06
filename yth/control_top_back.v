@@ -160,6 +160,7 @@ output wire  [5:0] status
 	assign read_num_S2 = read_num_B2;
 	assign current_rd_addr_S2 = current_rd_addr_B2;
 
+	wire last_one_read_B2, last_one_read_B3;
 //data portion
  CONTROL_STAGE1 bc1(
 	.clk(clk),
@@ -239,7 +240,7 @@ output wire  [5:0] status
 	.iteration_boundary(iteration_boundary_B2),
 	.status(status_B2)
 );  
-wire last_one_read_B2, last_one_read_B3;
+
 wire [63:0] curr_x_0_B3,curr_x_1_B3,curr_x_2_B3,curr_x_info_B3;
 
 CONTROL_STAGE2 bc2(
