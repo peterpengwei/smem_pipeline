@@ -439,17 +439,18 @@ static void *harp_management(void * data) {
 				output_counter = dsm[0].dw[1];
 				idle_counter = dsm[0].dw[0];
 				
-				printf("timer = %lu\n", timer);
-				printf("run_idle_counter = %lu\n", run_idle_counter);
-				printf("run_counter = %lu\n", run_counter);
-				printf("request_counter = %lu\n", request_counter);
-				printf("stall_counter = %lu\n", stall_counter);
-				printf("idle_counter = %lu\n", idle_counter);
-				printf("bandwidth = %lf\n", request_counter * 2 * 64 / 1024 / 1024 / 1024 / (run_counter*1.0/200000000) );
+				fprintf(stderr,"timer = %lu\n", timer);
+				fprintf(stderr,"run_idle_counter = %lu\n", run_idle_counter);
+				fprintf(stderr,"run_counter = %lu\n", run_counter);
+				fprintf(stderr,"request_counter = %lu\n", request_counter);
+				fprintf(stderr,"stall_counter = %lu\n", stall_counter);
+				fprintf(stderr,"idle_counter = %lu\n", idle_counter);
+				fprintf(stderr,"bandwidth = %lf\n", (request_counter * 2 * 64.0)  / (run_counter * 5.0) );
 
 				dsm_counter = dsm[1].dw[0];
 				for (unsigned int i = 0; i < dsm_counter; i++) {
-					printf("run idle counter [%u] = %lu, finished size = %lu\n", i, dsm[i+2].dw[0], dsm[i + 2].dw[1]);
+					fprintf(stderr,"run idle counter [%u] = %lu, finished size = %lu\n num_of_reads_inqueue = %lu\n", i, dsm[i+2].dw[2], dsm[i + 2].dw[0], dsm[i + 2].dw[1]);
+					fprintf(stderr,"run_counter_q = %lu, stall_counter_q = %lu, request_counter_q = %lu\n", i, dsm[i + 2].dw[3], dsm[i + 2].dw[4], dsm[i + 2].dw[5]);
 				}
 
     			*handshake = 0;

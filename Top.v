@@ -56,8 +56,8 @@ module Top(
 	//----------------------------
 	//for test
 	output [6:0] backward_i_q_test,
-	output [6:0] backward_j_q_test
-	
+	output [6:0] backward_j_q_test,
+	output wire [10:0] num_reads_inqueue
 );
 	
 	parameter Len = 101;
@@ -494,6 +494,9 @@ module Top(
 	
 	
 	Queue queue(
+		//debugging
+		.num_reads_inqueue(num_reads_inqueue),
+
 		.next_query_position_B(next_query_position_B),
 		.read_num_query_B(read_num_query_B),
 		.status_query_B(status_query_B),

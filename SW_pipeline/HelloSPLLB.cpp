@@ -349,14 +349,14 @@ btInt MMULApp::run(int argc, char *argv[])
 
    // User Virtual address of the pointer is returned directly in the function
    // Remember, we're using VTP, so no need to convert to physical addresses
-   if( ali_errnumOK != m_pVTPService->bufferAllocate(MB(1), &m_DSMVirt)){
+   if( ali_errnumOK != m_pVTPService->bufferAllocate(MB(5), &m_DSMVirt)){
       m_bIsOK = false;
       m_Result = -1;
       goto done_2;
    }
 
    // Save the size
-   m_DSMSize = MB(1);
+   m_DSMSize = MB(5);
 
    // Repeat for the Input and Output Buffers
    m_InputSize = LB_BUFFER_SIZE;

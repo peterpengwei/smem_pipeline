@@ -144,7 +144,10 @@ module Queue(
 	output [6:0] query_position_2RAM,
 	output [`READ_NUM_WIDTH - 1 :0] query_read_num_2RAM,
 	output [5:0] query_status_2RAM,
-	input [7:0] new_read_query_2Queue
+	input [7:0] new_read_query_2Queue,
+
+	//debugging info
+	output wire [10:0] num_reads_inqueue
 );
 
 	parameter Len = 101;
@@ -550,9 +553,7 @@ module Queue(
 			end
 		end
 	end
-	
 
-	
 	wire memory_valid = (write_ptr_m != read_ptr_m);
 	
 	always@(posedge Clk_32UI) begin
@@ -575,7 +576,23 @@ module Queue(
 	wire [5:0] next_status = (read_ptr_f != write_ptr_f) ? RAM_forward_status[read_ptr_f][5:0] : BUBBLE;
 	// assign new_read = new_read_valid & (!memory_valid) & (!stall) & (next_status != F_break) & (next_status != BCK_INI);
 	assign new_read = new_read_valid & (!stall) & (next_status != F_break) & (next_status != BCK_INI);
-	
+	reg [10:0] total_inqueue_num;
+
+	always@(posedge Clk_32UI) begin
+		if (!reset_n) begin
+			total_inqueue_num <= 0;
+		end
+		else if (stall) begin
+			total_inqueue_num <= write_ptr_f - read_ptr_f;
+		end
+		else begin
+			total_inqueue_num <= total_inqueue_num;
+		end
+	end
+
+
+	assign num_reads_inqueue = total_inqueue_num;
+
 	always@(posedge Clk_32UI) begin
 		if (!reset_n) begin
 			read_ptr_f <= 0;
