@@ -75,43 +75,105 @@ module RAM_curr_mem(
 	wire [112:0] curr_data_A = {curr_data_1[230:224],curr_data_1[198:192],curr_data_1[160:128],curr_data_1[96:64],curr_data_1[32:0]};
 	
 	//add one pipeline stage for RAM write
-	reg curr_we_1_q, curr_we_1_qq;
-	reg [`CURR_QUEUE_ADDR_WIDTH-1 : 0] curr_addr_A_q, curr_addr_A_qq, curr_addr_B_q;
-	reg [112:0] curr_data_A_q, curr_data_A_qq;
+	reg curr_we_1_q_0, curr_we_1_q_1, curr_we_1_q_2, curr_we_1_q_3;
 	
-	wire [255:0] curr_q_2_wire;
+	reg [`CURR_QUEUE_ADDR_WIDTH-1 : 0] curr_addr_B_q_0, curr_addr_B_q_1, curr_addr_B_q_2, curr_addr_B_q_3;
+	reg [`CURR_QUEUE_ADDR_WIDTH-1 : 0] curr_addr_A_q_0, curr_addr_A_q_1, curr_addr_A_q_2, curr_addr_A_q_3;
+	reg [`CURR_QUEUE_ADDR_WIDTH-1 : 0] curr_addr_B_qq;
+	
+	reg [112:0] curr_data_A_q_0, curr_data_A_q_1, curr_data_A_q_2, curr_data_A_q_3;
+	
+	wire [255:0] curr_q_2_wire_0, curr_q_2_wire_1, curr_q_2_wire_2, curr_q_2_wire_3;
 	always@(posedge clk) begin
 		if(!stall) begin
-			curr_q_2 <= curr_q_2_wire;
+			case (curr_addr_B_qq[`CURR_QUEUE_ADDR_WIDTH-1 : `CURR_QUEUE_ADDR_WIDTH-2] )
+				0: curr_q_2 <= curr_q_2_wire_0;
+				1: curr_q_2 <= curr_q_2_wire_1;
+				2: curr_q_2 <= curr_q_2_wire_2;
+				3: curr_q_2 <= curr_q_2_wire_3;
+			endcase
+		
 		end
 	end
 	
 	always@(posedge clk) begin
 		if(!stall) begin
-			curr_we_1_q <= curr_we_1;
-			curr_addr_A_q <= curr_addr_A;
-			curr_data_A_q <= curr_data_A;
 			
-			curr_we_1_qq <= curr_we_1_q;
-			curr_addr_A_qq <= curr_addr_A_q;
-			curr_data_A_qq <= curr_data_A_q;
+			curr_we_1_q_0 <= curr_we_1;
+			curr_we_1_q_1 <= curr_we_1;
+			curr_we_1_q_2 <= curr_we_1;
+			curr_we_1_q_3 <= curr_we_1;
 			
-			curr_addr_B_q <= curr_addr_B;
+			curr_addr_A_q_0 <= curr_addr_A;
+			curr_addr_A_q_1 <= curr_addr_A;
+			curr_addr_A_q_2 <= curr_addr_A;
+			curr_addr_A_q_3 <= curr_addr_A;
+			
+			curr_data_A_q_0 <= curr_data_A;
+			curr_data_A_q_1 <= curr_data_A;
+			curr_data_A_q_2 <= curr_data_A;
+			curr_data_A_q_3 <= curr_data_A;
+			
+			curr_addr_B_q_0 <= curr_addr_B;
+			curr_addr_B_q_1 <= curr_addr_B;
+			curr_addr_B_q_2 <= curr_addr_B;
+			curr_addr_B_q_3 <= curr_addr_B;
+			
+			curr_addr_B_qq <= curr_addr_B_q_0;
 		end
 	end
 	
-	RAM_Curr_Queue curr_queue(
-		.clk(clk),
+	RAM_Curr_Queue curr_queue_0(
+		.clk		(clk),
 		
-		.curr_we_1(curr_we_1_qq),
-		.addr_1(curr_addr_A_qq),
-		.data(curr_data_A_qq),
+		.curr_we_1	(curr_we_1_q_0),
+		.addr_1		(curr_addr_A_q_0[`CURR_QUEUE_ADDR_WIDTH-1-2 : 0]),
+		.data		(curr_data_A_q_0),
 		
-		.read_en(!stall),
-		.addr_2(curr_addr_B_q),
-		.q({curr_q_2_wire[230:224],curr_q_2_wire[198:192],curr_q_2_wire[160:128],curr_q_2_wire[96: 64],curr_q_2_wire[32: 0]})
+		.read_en	(!stall),
+		.addr_2		(curr_addr_B_q_0[`CURR_QUEUE_ADDR_WIDTH-1-2 : 0]),
+		.q			({curr_q_2_wire_0[230:224],curr_q_2_wire_0[198:192],curr_q_2_wire_0[160:128],curr_q_2_wire_0[96: 64],curr_q_2_wire_0[32: 0]})
 	);
-	assign {curr_q_2_wire[255:231],curr_q_2_wire[223:199],curr_q_2_wire[191:161],curr_q_2_wire[127:97],curr_q_2_wire[63:33]} = 0;
+	assign 			 {curr_q_2_wire_0[255:231],curr_q_2_wire_0[223:199],curr_q_2_wire_0[191:161],curr_q_2_wire_0[127:97],curr_q_2_wire_0[63:33]} = 0;
+	
+	RAM_Curr_Queue curr_queue_1(
+		.clk		(clk),
+		
+		.curr_we_1	(curr_we_1_q_1),
+		.addr_1		(curr_addr_A_q_1[`CURR_QUEUE_ADDR_WIDTH-1-2 : 0]),
+		.data		(curr_data_A_q_1),
+		
+		.read_en	(!stall),
+		.addr_2		(curr_addr_B_q_1[`CURR_QUEUE_ADDR_WIDTH-1-2 : 0]),
+		.q			({curr_q_2_wire_1[230:224],curr_q_2_wire_1[198:192],curr_q_2_wire_1[160:128],curr_q_2_wire_1[96: 64],curr_q_2_wire_1[32: 0]})
+	);
+	assign 			 {curr_q_2_wire_1[255:231],curr_q_2_wire_1[223:199],curr_q_2_wire_1[191:161],curr_q_2_wire_1[127:97],curr_q_2_wire_1[63:33]} = 0;
+	
+	RAM_Curr_Queue curr_queue_2(
+		.clk		(clk),
+		
+		.curr_we_1	(curr_we_1_q_2),
+		.addr_1		(curr_addr_A_q_2[`CURR_QUEUE_ADDR_WIDTH-1-2 : 0]),
+		.data		(curr_data_A_q_2),
+		
+		.read_en	(!stall),
+		.addr_2		(curr_addr_B_q_2[`CURR_QUEUE_ADDR_WIDTH-1-2 : 0]),
+		.q			({curr_q_2_wire_2[230:224],curr_q_2_wire_2[198:192],curr_q_2_wire_2[160:128],curr_q_2_wire_2[96: 64],curr_q_2_wire_2[32: 0]})
+	);
+	assign 			 {curr_q_2_wire_2[255:231],curr_q_2_wire_2[223:199],curr_q_2_wire_2[191:161],curr_q_2_wire_2[127:97],curr_q_2_wire_2[63:33]} = 0;
+	
+	RAM_Curr_Queue curr_queue_3(
+		.clk		(clk),
+		
+		.curr_we_1	(curr_we_1_q_3),
+		.addr_1		(curr_addr_A_q_3[`CURR_QUEUE_ADDR_WIDTH-1-2 : 0]),
+		.data		(curr_data_A_q_3),
+		
+		.read_en	(!stall),
+		.addr_2		(curr_addr_B_q_3[`CURR_QUEUE_ADDR_WIDTH-1-2 : 0]),
+		.q			({curr_q_2_wire_3[230:224],curr_q_2_wire_3[198:192],curr_q_2_wire_3[160:128],curr_q_2_wire_3[96: 64],curr_q_2_wire_3[32: 0]})
+	);
+	assign 			 {curr_q_2_wire_3[255:231],curr_q_2_wire_3[223:199],curr_q_2_wire_3[191:161],curr_q_2_wire_3[127:97],curr_q_2_wire_3[63:33]} = 0;
 	
 	
 	wire [`MEM_QUEUE_ADDR_WIDTH-1 : 0] mem_addr_A = (mem_read_num_1 * `READ_MAX_MEM + mem_addr_1);
@@ -148,10 +210,12 @@ module RAM_curr_mem(
 	always@(posedge clk) begin
 		if(!stall) begin
 			mem_addr_B_out_q <= mem_addr_B_out;
+			
 			mem_addr_B_out_qq_0 <= mem_addr_B_out_q;
 			mem_addr_B_out_qq_1 <= mem_addr_B_out_q;
 			mem_addr_B_out_qq_2 <= mem_addr_B_out_q;
 			mem_addr_B_out_qq_3 <= mem_addr_B_out_q;
+			
 			mem_addr_B_out_qqq <= mem_addr_B_out_qq_0;
 		end
 	end
@@ -162,10 +226,12 @@ module RAM_curr_mem(
 	always@(posedge clk) begin
 		if(!stall) begin
 			mem_addr_A_MUX_q <= mem_addr_A_MUX;
+			
 			mem_addr_A_MUX_qq_0 <= mem_addr_A_MUX_q;
 			mem_addr_A_MUX_qq_1 <= mem_addr_A_MUX_q;
 			mem_addr_A_MUX_qq_2 <= mem_addr_A_MUX_q;
 			mem_addr_A_MUX_qq_3 <= mem_addr_A_MUX_q;
+			
 			mem_addr_A_MUX_qqq <= mem_addr_A_MUX_qq_0;
 		end
 	end
@@ -445,11 +511,11 @@ module RAM_Curr_Queue(
 	input clk,
 	
 	input curr_we_1,
-	input [`CURR_QUEUE_ADDR_WIDTH-1 : 0] addr_1,
+	input [`CURR_QUEUE_ADDR_WIDTH-1 -2: 0] addr_1,
 	input [112:0] data,
 	
 	input read_en,
-	input [`CURR_QUEUE_ADDR_WIDTH-1 : 0] addr_2,
+	input [`CURR_QUEUE_ADDR_WIDTH-1 -2: 0] addr_2,
 	output reg [112:0] q
 
 );
