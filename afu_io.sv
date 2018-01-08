@@ -154,7 +154,7 @@ module afu_io#(
 						
 						//afu_tx_wr_hdr.vc_sel   <= eVC_VA;
 						afu_tx_wr_hdr.vc_sel   <= eVC_VL0;
-						afu_tx_wr_hdr.req_type <= eREQ_WRLINE_I;
+						afu_tx_wr_hdr.req_type <= eREQ_WRLINE_M;
 						afu_tx_wr_hdr.address  <= cor_tx_wr_addr[41:0];
 						afu_tx_wr_hdr.mdata    <= {9'b0, tx_wr_tag};
 						afu_tx_wr_hdr.sop      <= 1'b1;        // TODO: multi-CL
@@ -167,7 +167,7 @@ module afu_io#(
                         
 						//afu_tx_wr_hdr.vc_sel   <= eVC_VA;
 						afu_tx_wr_hdr.vc_sel   <= eVC_VL0;
-						afu_tx_wr_hdr.req_type <= eREQ_WRLINE_I;
+						afu_tx_wr_hdr.req_type <= eREQ_WRLINE_M;
 						afu_tx_wr_hdr.address  <= cor_tx_wr_addr[41:0];
 						afu_tx_wr_hdr.mdata    <= {9'b0, tx_wr_tag};
 						afu_tx_wr_hdr.sop      <= 1'b1;        // TODO: multi-CL
@@ -224,8 +224,9 @@ module afu_io#(
                 //afu_tx_rd_hdr <= {cor_tx_rd_len, cor_tx_rd_addr[57:32], 6'b0 ,5'b0, `CCI_REQ_RD ,6'b0, cor_tx_rd_addr[31:0], 8'h2, tx_rd_tag};
                 tx_rd_tag <= tx_rd_tag + 1'b1;
 				
-				afu_tx_rd_hdr.vc_sel   <= eVC_VA;
-				afu_tx_rd_hdr.req_type <= eREQ_RDLINE_I;
+				//afu_tx_rd_hdr.vc_sel   <= eVC_VA;
+				afu_tx_rd_hdr.vc_sel   <= eVC_VL0;
+				afu_tx_rd_hdr.req_type <= eREQ_RDLINE_S;
 				afu_tx_rd_hdr.address  <= cor_tx_rd_addr[41:0];
 				afu_tx_rd_hdr.mdata    <= {9'b0, tx_rd_tag};
 				afu_tx_rd_hdr.cl_len   <= eCL_LEN_1;
