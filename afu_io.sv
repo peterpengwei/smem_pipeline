@@ -138,8 +138,8 @@ module afu_io#(
                     2'b10 : begin      // fence
                         /* afu_tx_wr_hdr <= {6'b0, 26'b0, 6'b0 ,5'b0, `CCI_REQ_WR_FENCE ,6'b0, 32'b0, 14'b0}; */    
 
-						//afu_tx_wr_hdr.vc_sel   <= eVC_VA;
-						afu_tx_wr_hdr.vc_sel   <= eVC_VL0;
+						afu_tx_wr_hdr.vc_sel   <= eVC_VA;
+						//afu_tx_wr_hdr.vc_sel   <= eVC_VL0;
 						afu_tx_wr_hdr.req_type <= eREQ_WRFENCE;
 						afu_tx_wr_hdr.address  <= 42'h0;
 						afu_tx_wr_hdr.mdata    <= 16'h0;
@@ -152,8 +152,8 @@ module afu_io#(
 						
 						tx_wr_tag <= tx_wr_tag + 1;
 						
-						//afu_tx_wr_hdr.vc_sel   <= eVC_VA;
-						afu_tx_wr_hdr.vc_sel   <= eVC_VL0;
+						afu_tx_wr_hdr.vc_sel   <= eVC_VA;
+						//afu_tx_wr_hdr.vc_sel   <= eVC_VL0;
 						afu_tx_wr_hdr.req_type <= eREQ_WRLINE_M;
 						afu_tx_wr_hdr.address  <= cor_tx_wr_addr[41:0];
 						afu_tx_wr_hdr.mdata    <= {9'b0, tx_wr_tag};
@@ -165,8 +165,8 @@ module afu_io#(
                     default : begin     // mem_wr
                         //afu_tx_wr_hdr <= {cor_tx_wr_len, cor_tx_wr_addr[57:32], 1'b1, 5'b0 ,5'b0, `CCI_REQ_WR ,6'b0, cor_tx_wr_addr[31:0], 8'h3, tx_wr_tag};
                         
-						//afu_tx_wr_hdr.vc_sel   <= eVC_VA;
-						afu_tx_wr_hdr.vc_sel   <= eVC_VL0;
+						afu_tx_wr_hdr.vc_sel   <= eVC_VA;
+						//afu_tx_wr_hdr.vc_sel   <= eVC_VL0;
 						afu_tx_wr_hdr.req_type <= eREQ_WRLINE_M;
 						afu_tx_wr_hdr.address  <= cor_tx_wr_addr[41:0];
 						afu_tx_wr_hdr.mdata    <= {9'b0, tx_wr_tag};
@@ -224,8 +224,8 @@ module afu_io#(
                 //afu_tx_rd_hdr <= {cor_tx_rd_len, cor_tx_rd_addr[57:32], 6'b0 ,5'b0, `CCI_REQ_RD ,6'b0, cor_tx_rd_addr[31:0], 8'h2, tx_rd_tag};
                 tx_rd_tag <= tx_rd_tag + 1'b1;
 				
-				//afu_tx_rd_hdr.vc_sel   <= eVC_VA;
-				afu_tx_rd_hdr.vc_sel   <= eVC_VL0;
+				afu_tx_rd_hdr.vc_sel   <= eVC_VA;
+				//afu_tx_rd_hdr.vc_sel   <= eVC_VL0;
 				afu_tx_rd_hdr.req_type <= eREQ_RDLINE_S;
 				afu_tx_rd_hdr.address  <= cor_tx_rd_addr[41:0];
 				afu_tx_rd_hdr.mdata    <= {9'b0, tx_rd_tag};

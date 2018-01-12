@@ -422,6 +422,35 @@ module RAM_curr_mem(
 	reg [6:0] ret_queue[`MAX_READ - 1:0] ; //ret = 7 bits;
 	reg all_read_done;
 	
+	reg mem_size_valid_q,
+	reg [6:0] mem_size_q,
+	reg [`READ_NUM_WIDTH - 1:0] mem_size_read_num_q,
+	
+	reg ret_valid_q,
+	reg [6:0] ret_q,
+	reg [`READ_NUM_WIDTH - 1:0] ret_read_num_q,
+	
+	always@(posedge clk) begin
+		if(!reset_n) begin
+			mem_size_valid_q <= 0;
+			mem_size_q <= 0;
+			mem_size_read_num_q <= 0;
+			
+			ret_valid_q <= 0;
+			ret_q <= 0;
+			ret_read_num_q <= 0;
+		end
+		else if(!stall) begin
+			mem_size_valid_q <= mem_size_valid;
+			mem_size_q <= mem_size;
+			mem_size_read_num_q <= mem_size_read_num;
+			
+			ret_valid_q <= ret_valid;
+			ret_q <= ret;
+			ret_read_num_q <= ret_read_num;
+		end
+	end
+	
 	always@(posedge clk) begin
 		if(!reset_n) begin
 			done_counter <= 0;
@@ -429,8 +458,12 @@ module RAM_curr_mem(
 		end
 		else begin
 			if(!stall) begin
-				if(mem_size_valid) begin
-					mem_size_queue[mem_size_read_num] <= mem_size;
+				if(ret_valid_q) begin
+					ret_queue[ret_read_num_q] <= ret_q;
+				end
+				
+				if(mem_size_valid_q) begin
+					mem_size_queue[mem_size_read_num_q] <= mem_size_q;
 					done_counter <= done_counter + 1;
 				end
 				
@@ -441,9 +474,7 @@ module RAM_curr_mem(
 					all_read_done <= 0;
 				end
 				
-				if(ret_valid) begin
-					ret_queue[ret_read_num] <= ret;
-				end
+
 			end
 		end
 	end

@@ -69,6 +69,8 @@ module afu_core(
 	reg core_start;
 	always@(posedge CLK_200M) core_start <= core_start_d;
 	
+	reg [63:0] dsm_base_addr_q;
+	always@(posedge CLK_200M) dsm_base_addr_q <= dsm_base_addr;
 	reg batch_reset_n;
 	// 400M domain
 
@@ -583,20 +585,24 @@ module afu_core(
 	end
 	wire [10:0] num_reads_inqueue;
 	reg stall_q,stall_qq,stall_qqq,stall_qqqq;
-	reg stall_pulse;
+	reg stall_pulse, stall_pulse_q;
 	always@(posedge CLK_200M) begin
-		stall_q <= stall_A;
-		stall_qq <= stall_q;
-		stall_qqq <= stall_qq;
-		stall_qqqq <= stall_qqq;
 		if(!reset_n_200M) begin
-		stall_q <= 0;
-		stall_qq <= 0;
-		stall_qqq <= 0;
-		stall_qqqq <= 0;
+			stall_q <= 0;
+			stall_qq <= 0;
+			stall_qqq <= 0;
+			stall_qqqq <= 0;
 		end
-		if(stall_qqq==1&&stall_qqqq==0) stall_pulse <= 1;
-		else stall_pulse <= 0;
+		else begin	
+			stall_q <= stall_A;
+			stall_qq <= stall_q;
+			stall_qqq <= stall_qq;
+			stall_qqqq <= stall_qqq;
+			
+			stall_pulse_q <= stall_pulse;
+			if(stall_qqq==1&&stall_qqqq==0) stall_pulse <= 1;
+			else stall_pulse <= 0;
+		end
 	end
 	//------------------------------------------------
 	reg tracker_tag;
@@ -608,7 +614,7 @@ module afu_core(
 			done_counter_q <= done_counter;
 		end
 	end
-	reg finish_wrt_dsm;
+
 	always@(posedge CLK_200M) begin
 		if(!reset_n_200M) begin
 			state <= IDLE;
@@ -625,7 +631,8 @@ module afu_core(
 			output_permit <= 0;
 			tracker_tag <= 0;
 			dsm_counter <= 0;
-			finish_wrt_dsm <= 0;
+			FIFO_output_WriteEn_in <= 0;
+			FIFO_request_WriteEn_in_2 <= 0;
 		end
 		else begin
 			case(state)
@@ -647,13 +654,16 @@ module afu_core(
 					FIFO_output_Data_in <= 0;
 					tracker_tag <= 0;
 					dsm_counter <= 0;
-					finish_wrt_dsm <= 0;
-					if(core_start)state <= POLLING_1;
+
+					if(core_start) begin
+						state <= POLLING_1;
+					end
 				end
 				
 				POLLING_1: begin
-					batch_reset_n <= 1;
 					if(!stall_A) begin
+						batch_reset_n <= 1;
+						FIFO_output_WriteEn_in <= 0;
 						FIFO_request_Data_in_1 <= hand_ptr;
 						FIFO_request_Data_in_2 <= hand_ptr;
 						FIFO_request_WriteEn_in_2 <= 1;
@@ -671,12 +681,22 @@ module afu_core(
 							batch_size <= batch_size_temp;
 							
 							polling_tag <= ~polling_tag;
+							
+							FIFO_output_WriteEn_in <= 1;
+							FIFO_output_Data_in[512+57:512] <= hand_ptr;
+							FIFO_output_Data_in[511:480]    <= 128;
+							FIFO_output_Data_in[479:0]    <= 0;
 						end
 						else if(BWT_read_tag_1 && (polling_tag==1)) begin
 							state <= LOAD_READ;
 							batch_size <= batch_size_temp;
 							
 							polling_tag <= ~polling_tag;
+							
+							FIFO_output_WriteEn_in <= 1;
+							FIFO_output_Data_in[512+57:512] <= hand_ptr;
+							FIFO_output_Data_in[511:480]    <= 128;
+							FIFO_output_Data_in[479:0]    <= 0;
 						end
 						else begin
 							state <= POLLING_1;
@@ -703,6 +723,14 @@ module afu_core(
 						//control
 						if(read_load_done) begin
 							state <= RUN;
+							
+							FIFO_output_WriteEn_in <= 1;
+							FIFO_output_Data_in[512+57:512] <= hand_ptr;
+							FIFO_output_Data_in[511:480]    <= 256;
+							FIFO_output_Data_in[479:0]    <= 0;
+						end
+						else begin
+							FIFO_output_WriteEn_in <= 0;
 						end
 					
 					end 
@@ -726,28 +754,38 @@ module afu_core(
 							FIFO_request_Data_in_2 <= BWT_base + addr_l[31:4];
 							FIFO_request_WriteEn_in_2 <= DRAM_valid;
 							
-						end
-						
-						else begin
-							FIFO_request_WriteEn_in_2 <= 0;
-							output_permit <= 1;
-							state <= OUTPUT;
-						end
-						
-						if(dsm_counter <= 8000 ) begin
-							if(stall_pulse == 1) begin
-								FIFO_output_WriteEn_in <= 1;
-								FIFO_output_Data_in[512+57:512] <= dsm_base_addr + 2 + dsm_counter;
-								FIFO_output_Data_in[511:0]     <= {request_counter_q, stall_counter_q, run_counter_q, run_idle_counter_q, 53'b0, num_reads_inqueue, 55'b0,done_counter_q};
-								dsm_counter <= dsm_counter + 1;
+							if(dsm_counter <= 8000 ) begin
+								if(run_counter_q[9:0] == 0) begin
+									FIFO_output_WriteEn_in <= 1;
+									FIFO_output_Data_in[512+57:512] <= dsm_base_addr_q + 2 + dsm_counter;
+									FIFO_output_Data_in[511:0]     <= {request_counter_q, stall_counter_q, run_counter_q, run_idle_counter_q, 55'b0, DRAM_read_num_q, 54'b0,done_counter_q};
+									dsm_counter <= dsm_counter + 1;
+								end
+								else if (run_counter_q[9:0] == 1)begin 
+									FIFO_output_WriteEn_in <= 1;
+									FIFO_output_Data_in[512+57:512] <= dsm_base_addr_q+1;
+									FIFO_output_Data_in[511:0]      <= {dsm_counter};
+								end
+								else begin
+									FIFO_output_WriteEn_in <= 0;
+								end
 							end
 							else begin
 								FIFO_output_WriteEn_in <= 0;
 							end
 						end
 						else begin
-								FIFO_output_WriteEn_in <= 0;
+							FIFO_request_WriteEn_in_2 <= 0;
+							output_permit <= 1;
+							state <= OUTPUT;
+							
+							FIFO_output_WriteEn_in <= 1;
+							FIFO_output_Data_in[512+57:512] <= hand_ptr;
+							FIFO_output_Data_in[511:480]    <= 512;
+							FIFO_output_Data_in[479:0]    <= 0;
 						end
+						
+
 					end
 										
 					//get response
@@ -767,16 +805,10 @@ module afu_core(
 						end
 						else if(!tracker_tag) begin
 							FIFO_output_WriteEn_in <= 1;
-							FIFO_output_Data_in[512+57:512] <= dsm_base_addr;
+							FIFO_output_Data_in[512+57:512] <= dsm_base_addr_q;
 							FIFO_output_Data_in[511:0]      <= {run_idle_counter_q,timer_q,  run_counter_q,  request_counter_q,  stall_counter_q, load_counter_q,output_counter_q, idle_counter_q};
 						
 							tracker_tag <= 1;
-						end
-						else if(dsm_counter != 16'b0 && finish_wrt_dsm == 0)begin
-								FIFO_output_WriteEn_in <= 1;
-								FIFO_output_Data_in[512+57:512] <= dsm_base_addr+1;
-								FIFO_output_Data_in[511:0]      <= {dsm_counter};
-								finish_wrt_dsm <= 1;
 						end
 						else begin
 							FIFO_output_WriteEn_in 			<= 1;
@@ -793,22 +825,22 @@ module afu_core(
 						FIFO_output_Data_in[512+57:512] <= hand_ptr;
 						FIFO_output_Data_in[511:480]    <= 16;
 						FIFO_output_Data_in[479:0]    <= 0;
-						state <= FINAL_2;
-					
-					end
-				end
-				
-				FINAL_2: begin
-					if(!stall_A) begin
-
-						FIFO_output_WriteEn_in 			<= 1;
-						FIFO_output_Data_in[512+57:512] <= 0;
-						FIFO_output_Data_in[511:0]      <= {1'b1,511'b0}; //fence
-
 						state <= IDLE;
 					
 					end
 				end
+				
+				// FINAL_2: begin
+					// if(!stall_A) begin
+
+						// FIFO_output_WriteEn_in 			<= 1;
+						// FIFO_output_Data_in[512+57:512] <= 0;
+						// FIFO_output_Data_in[511:0]      <= {1'b1,511'b0}; //fence
+
+						// state <= IDLE;
+					
+					// end
+				// end
 		
 				
 			endcase

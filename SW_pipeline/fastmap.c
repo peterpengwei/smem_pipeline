@@ -395,7 +395,10 @@ static void *harp_management(void * data) {
 				}
 				tick_tock = tick_tock ^ 0x1;
 
-			    	int watch_dog = *handshake;
+			    int watch_dog = *handshake;
+				int last_watch_dog = *handshake;
+				int last_dsm_counter = 0;
+				dsm_counter = dsm[1].dw[0];
 	
 				double start_time = realtime();
 				double this_time = 0;
@@ -413,14 +416,30 @@ static void *harp_management(void * data) {
 					usleep(1);
 				}
 #else
-			  	while (watch_dog == polling) {
-		     			for (j = 0; j < nthreads; ++j) {
+			  	while (watch_dog != 16) {
+		     		for (j = 0; j < nthreads; ++j) {
 						if (j == i) continue;
 						if (sw_handshake[j] == 1)
 							sw_handshake[j] = 3;
 						if (watch_dog != polling) break;
 					}
 					watch_dog = *handshake;
+					dsm_counter = dsm[1].dw[0];
+					
+
+					if (watch_dog != last_watch_dog) {
+						printf("current state is %d\n", watch_dog);
+						last_watch_dog = watch_dog;
+					}
+					if (dsm_counter != last_dsm_counter) {
+						unsigned long int run_time = dsm[dsm_counter - 2 + 2].dw[3];
+						unsigned long int stall_time = dsm[dsm_counter - 2 + 2].dw[4];
+						unsigned long int request_time = dsm[dsm_counter - 2 + 2].dw[5];
+						unsigned long int done_number = dsm[dsm_counter - 2 + 2].dw[0];
+						printf("dsm_counter = %5d,\trun time = %7lu,\tstall time = %7lu,\trequest time = %7lu\t, last DRAM_valid_read_num = %d\n", dsm_counter, run_time, stall_time, request_time, done_number);
+						last_dsm_counter = dsm_counter;
+					}
+					
 				}
 #endif
 				// Finish execution
@@ -439,18 +458,18 @@ static void *harp_management(void * data) {
 				output_counter = dsm[0].dw[1];
 				idle_counter = dsm[0].dw[0];
 				
-				fprintf(stderr,"timer = %lu\n", timer);
-				fprintf(stderr,"run_idle_counter = %lu\n", run_idle_counter);
-				fprintf(stderr,"run_counter = %lu\n", run_counter);
-				fprintf(stderr,"request_counter = %lu\n", request_counter);
-				fprintf(stderr,"stall_counter = %lu\n", stall_counter);
-				fprintf(stderr,"idle_counter = %lu\n", idle_counter);
-				fprintf(stderr,"bandwidth = %lf\n", (request_counter * 2 * 64.0)  / (run_counter * 5.0) );
+				//printf("timer = %lu\n", timer);
+				printf("Run time = %7lu,\tIdle time = %f\tStall Time = %f\tbandwidth = %lf\n", run_counter, 1.0*run_idle_counter/ run_counter, 1.0*stall_counter / run_counter, (request_counter * 2 * 64.0) / (run_counter * 5.0));
+				
+				//printf("request_counter = %lu\n", request_counter);
+				//printf("stall_counter = %lu\n", stall_counter);
+				//printf("idle_counter = %lu\n", idle_counter);
+				//printf("bandwidth = %lf\n", (request_counter * 2 * 64.0)  / (run_counter * 5.0) );
 
 				dsm_counter = dsm[1].dw[0];
 				for (unsigned int i = 0; i < dsm_counter; i++) {
-					fprintf(stderr,"run idle counter [%u] = %lu, finished size = %lu\n num_of_reads_inqueue = %lu\n", i, dsm[i+2].dw[2], dsm[i + 2].dw[0], dsm[i + 2].dw[1]);
-					fprintf(stderr,"run_counter_q = %lu, stall_counter_q = %lu, request_counter_q = %lu\n", i, dsm[i + 2].dw[3], dsm[i + 2].dw[4], dsm[i + 2].dw[5]);
+					//fprintf(stderr,"run idle counter [%u] = %lu, finished size = %lu\n", i, dsm[i+2].dw[2], dsm[i + 2].dw[0]);
+					//fprintf(stderr,"run_counter_q = %lu, stall_counter_q = %lu, request_counter_q = %lu\n", dsm[i + 2].dw[3], dsm[i + 2].dw[4], dsm[i + 2].dw[5]);
 				}
 
     			*handshake = 0;
