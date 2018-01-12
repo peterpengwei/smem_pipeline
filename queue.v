@@ -15,8 +15,8 @@
 
 //==========================
 `define CL 512
-`define MAX_READ 512
-`define READ_NUM_WIDTH 9
+`define MAX_READ 1024
+`define READ_NUM_WIDTH 10
 
 `define WIDTH_read 308 + 100 //[important] be careful not to exceed the width
 `define WIDTH_memory 768

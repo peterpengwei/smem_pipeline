@@ -1,6 +1,6 @@
 `define CL 512
-`define MAX_READ 512
-`define READ_NUM_WIDTH 9
+`define MAX_READ 1024
+`define READ_NUM_WIDTH 10
 
 module CONTROL_STAGE1(
 input wire clk,
