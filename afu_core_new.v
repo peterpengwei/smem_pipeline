@@ -614,6 +614,8 @@ module afu_core(
 			done_counter_q <= done_counter;
 		end
 	end
+	
+	reg load_read_tag;
 
 	always@(posedge CLK_200M) begin
 		if(!reset_n_200M) begin
@@ -633,6 +635,7 @@ module afu_core(
 			dsm_counter <= 0;
 			FIFO_output_WriteEn_in <= 0;
 			FIFO_request_WriteEn_in_2 <= 0;
+			load_read_tag <= 0;
 		end
 		else begin
 			case(state)
@@ -654,6 +657,7 @@ module afu_core(
 					FIFO_output_Data_in <= 0;
 					tracker_tag <= 0;
 					dsm_counter <= 0;
+					load_read_tag <= 0;
 
 					if(core_start) begin
 						state <= POLLING_1;
@@ -708,13 +712,18 @@ module afu_core(
 					//memory request
 					if(!stall_A) begin
 						if(load_ptr < CL_num) begin
-						
-							//send out two identical request for compatibility with other modules
-							FIFO_request_Data_in_1 <= input_base + load_ptr;
-							FIFO_request_Data_in_2 <= input_base + load_ptr;
-							FIFO_request_WriteEn_in_2 <= 1;
-						
-							load_ptr <= load_ptr + 1;
+							if(load_read_tag) begin
+								//send out two identical request for compatibility with other modules
+								FIFO_request_Data_in_1 <= input_base + load_ptr;
+								FIFO_request_Data_in_2 <= input_base + load_ptr;
+								FIFO_request_WriteEn_in_2 <= 1;
+							
+								load_ptr <= load_ptr + 1;
+							end
+							else begin
+								FIFO_request_WriteEn_in_2 <= 0;
+							end
+							load_read_tag <= ~load_read_tag;
 						end
 						else begin
 							FIFO_request_WriteEn_in_2 <= 0;

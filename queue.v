@@ -573,9 +573,7 @@ module Queue(
 	end
 	
 	//[important] whether to fetch new read
-	wire [5:0] next_status = (read_ptr_f != write_ptr_f) ? RAM_forward_status[read_ptr_f][5:0] : BUBBLE;
-	// assign new_read = new_read_valid & (!memory_valid) & (!stall) & (next_status != F_break) & (next_status != BCK_INI);
-	assign new_read = new_read_valid & (!stall) & (next_status != F_break) & (next_status != BCK_INI);
+	
 	reg [10:0] total_inqueue_num;
 
 	always@(posedge Clk_32UI) begin
@@ -592,6 +590,11 @@ module Queue(
 
 
 	assign num_reads_inqueue = total_inqueue_num;
+	
+	reg bubble_flag;
+	wire [5:0] next_status = (read_ptr_f != write_ptr_f) ? RAM_forward_status[read_ptr_f][5:0] : BUBBLE;
+	// assign new_read = new_read_valid & (!memory_valid) & (!stall) & (next_status != F_break) & (next_status != BCK_INI);
+	assign new_read = new_read_valid & (!stall) & (next_status != F_break) & (next_status != BCK_INI) & (!bubble_flag);
 
 	always@(posedge Clk_32UI) begin
 		if (!reset_n) begin
@@ -619,79 +622,86 @@ module Queue(
 			last_mem_info_q[31:7] <= 0;
 			k_q[63:33] <= 0;
 			l_q[63:33] <= 0;
+			
+			bubble_flag <= 0;
 		end
 		else if (!stall) begin
-			
-			if(next_status == F_break) begin
-				//[important] pop out without memory response
-				
-				//======== forward ports =============
-				{ptr_curr_out, read_num_out, ik_x0_out[32:0], ik_x1_out[32:0], ik_x2_out[32:0], ik_info_out[38:32], ik_info_out[6:0], 
-				forward_i_out,min_intv_out, query_out, backward_x_out,
-				status_out} <= RAM_forward[read_ptr_f];
+			if(bubble_flag == 0) begin
+				if(next_status == F_break) begin
+					//[important] pop out without memory response
+					
+					//======== forward ports =============
+					{ptr_curr_out, read_num_out, ik_x0_out[32:0], ik_x1_out[32:0], ik_x2_out[32:0], ik_info_out[38:32], ik_info_out[6:0], 
+					forward_i_out,min_intv_out, query_out, backward_x_out,
+					status_out} <= RAM_forward[read_ptr_f];
 
+					
+					//=====================================
+					
+					read_ptr_f <= read_ptr_f + 1;
+					
+					//======== backward ports =============
+					status_q <= BUBBLE;
+					//=====================================
+					
+					bubble_flag <= 1;
+				end
 				
-				//=====================================
-				
-				read_ptr_f <= read_ptr_f + 1;
-				
-				//======== backward ports =============
-				status_q <= BUBBLE;
-				//=====================================
-			end
-			
-			else if (next_status == BCK_INI) begin
-				//[important] pop out without memory response
-				
-				//======== forward ports =============
-				status_out <= BUBBLE;
-				//=====================================
-						
-				//======== backward initial ===========
-				//provide initial value to backward datapath
-				//only _q ports are meaningful, others are placeholder
-				{	forward_size_n_q, read_num_q, 
-					ik_x0_new_q[32:0], ik_x1_new_q[32:0], ik_x2_new_q[32:0], 
-					ik_info_out[38:32], ik_info_out[6:0], forward_i_out, min_intv_q, query_out,  //place holder
-					backward_x_q, status_q
-				} <= RAM_forward[read_ptr_f];
-				
+				else if (next_status == BCK_INI) begin
+					//[important] pop out without memory response
+					
+					//======== forward ports =============
+					status_out <= BUBBLE;
+					//=====================================
+							
+					//======== backward initial ===========
+					//provide initial value to backward datapath
+					//only _q ports are meaningful, others are placeholder
+					{	forward_size_n_q, read_num_q, 
+						ik_x0_new_q[32:0], ik_x1_new_q[32:0], ik_x2_new_q[32:0], 
+						ik_info_out[38:32], ik_info_out[6:0], forward_i_out, min_intv_q, query_out,  //place holder
+						backward_x_q, status_q
+					} <= RAM_forward[read_ptr_f];
+					
 
+					
+					read_ptr_f <= read_ptr_f + 1;
+					
+					forward_all_done <= 1;
+					
+					//other ports left random
+					
+					//======================================
+					
+					bubble_flag <= 1;
+				end
+				///////////////////////////////////////////
 				
-				read_ptr_f <= read_ptr_f + 1;
-				
-				forward_all_done <= 1;
-				
-				//other ports left random
-				
-				//======================================
-			end
-			///////////////////////////////////////////
-			
-			else if (new_read_valid) begin // no memory response, fetch new read
+				else if (new_read_valid) begin // no memory response, fetch new read
 
-				//-------------------
-                status_out <= F_init;
-                ptr_curr_out <= 0;
-                read_num_out <= new_read_num; //from RAM
-                ik_x0_out[32:0] <= new_ik_x0[32:0]; //from RAM
-                ik_x1_out[32:0] <= new_ik_x1[32:0]; //from RAM
-                ik_x2_out[32:0] <= new_ik_x2[32:0]; //from RAM
-                ik_info_out[38:32] <= new_ik_info[38:32]; //from RAM
-				ik_info_out[6:0] <= new_ik_info[6:0]; //from RAM
-                forward_i_out <= new_forward_i + 1; // from RAM
-				backward_x_out <= new_forward_i;
-                min_intv_out <= new_min_intv; 
-                query_out <= 0; // !!!!the first round doesn't need query
+					//-------------------
+					status_out <= F_init;
+					ptr_curr_out <= 0;
+					read_num_out <= new_read_num; //from RAM
+					ik_x0_out[32:0] <= new_ik_x0[32:0]; //from RAM
+					ik_x1_out[32:0] <= new_ik_x1[32:0]; //from RAM
+					ik_x2_out[32:0] <= new_ik_x2[32:0]; //from RAM
+					ik_info_out[38:32] <= new_ik_info[38:32]; //from RAM
+					ik_info_out[6:0] <= new_ik_info[6:0]; //from RAM
+					forward_i_out <= new_forward_i + 1; // from RAM
+					backward_x_out <= new_forward_i;
+					min_intv_out <= new_min_intv; 
+					query_out <= 0; // !!!!the first round doesn't need query
+					
+					//-------------------
+
+					status_q <= BUBBLE;
+					
+					bubble_flag <= 1;
+				end
 				
-                //-------------------
-
-				status_q <= BUBBLE;
-
-			end
-			
-			
-			else if (memory_valid) begin // get memory responses, output old read
+				
+				else if (memory_valid) begin // get memory responses, output old read
 					if(next_status == F_run) begin
 						{ptr_curr_out, read_num_out, ik_x0_out[32:0], ik_x1_out[32:0], ik_x2_out[32:0], ik_info_out[38:32], ik_info_out[6:0], 
 						forward_i_out,min_intv_out, query_out, backward_x_out,
@@ -715,27 +725,32 @@ module Queue(
 							status_q
 						} <= RAM_forward[read_ptr_f];
 						
-
-						
 						forward_all_done <= 1;
 						//==========================================
-					end
-					
-					
+					end		
 					read_ptr_f <= read_ptr_f + 1;
 					read_ptr_m <= read_ptr_m + 1;
-			end
+					
+					bubble_flag <= 1;
+				end
+					
+				else begin // no memory responses and no more reads
+					// new_read <= 0;
+					//-------------------
+					status_out <= BUBBLE;
+					status_q <= BUBBLE;
+					
+					bubble_flag <= 0;
+				end
 			
-			
-			
-			else begin // no memory responses and no more reads
-				// new_read <= 0;
-				//-------------------
-                status_out <= BUBBLE;
+			end // if(bubble_flag == 0)
+			else begin
+				bubble_flag <= 0;
+				status_out <= BUBBLE;
 				status_q <= BUBBLE;
-
 			end
-		end
+			
+		end // end stall
 	end	
 
 endmodule
